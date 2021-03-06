@@ -1,0 +1,9 @@
+# bin files
+/build/bin/
+# obj files
+/build/obj/
+# makefiles
+Makefile
+MES.make
+#vscode
+.vscode
