@@ -1,20 +1,29 @@
+-- premake5
 workspace "MES"
-   configurations { "Debug", "Release" }
+    configurations {"Debug", "Release"}
+    architecture "x64"
+    system "windows"
+
+outputdir = "%{cfg.buildcfg}-%{cfg.system}"
 
 project "MES"
-   kind "ConsoleApp"
-   language "C++"
-   targetdir "build/bin/%{cfg.buildcfg}"
-   objdir "build/obj/%{cfg.buildcfg}"
+    kind "ConsoleApp"
+    language "C++"
+    targetdir "build/bin/%{outputdir}"
+    objdir "build/obj/%{outputdir}"
 
-   files { "src/*.cpp", "src/*.h" }
-   includedirs { "include" }
-   libdirs { "libs" }
+    files {
+        "src/**.h",
+        "src/**.cpp"
+    }
 
-   filter "configurations:Debug"
-      defines { "DEBUG" }
-      symbols "On"
+    includedirs {"include"}
+    libdirs {"libs"}
 
-   filter "configurations:Release"
-      defines { "NDEBUG" }
-      optimize "On"
+    filter "configurations:Debug"
+        defines {"DEBUG"}
+        symbols "On"
+
+    filter "configurations:Release"
+        defines {"NDEBUG"}
+        optimize "On"
