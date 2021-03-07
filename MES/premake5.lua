@@ -14,11 +14,17 @@ project "MES"
 
     files {
         "src/**.h",
-        "src/**.cpp"
+        "src/**.cpp",
+        "libs/pugixml-1.11/src/*.cpp"
     }
 
-    includedirs {"include"}
-    libdirs {"libs"}
+    includedirs {
+        "include",
+        "libs/pugixml-1.11/src"
+    }
+
+    libdirs {}
+    links {}
 
     filter "configurations:Debug"
         defines {"DEBUG"}
