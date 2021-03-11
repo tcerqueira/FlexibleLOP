@@ -20,7 +20,7 @@ project "MES"
 
     includedirs {
         "include",
-        "libs/pugixml-1.11/src"
+        "libs/pugixml-1.11/include"
     }
 
     libdirs {}

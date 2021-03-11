@@ -3,7 +3,7 @@
 class Order
 {
 public:
-    Order();
+    
 private:
 
 };

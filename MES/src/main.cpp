@@ -1,5 +1,6 @@
 #include <iostream>
-#include "../libs/pugixml-1.11/src/pugixml.hpp"
+#include "pugixml.hpp"
+#include "XmlParser.h"
 
 int main(int argc, char *argv[])
 {
