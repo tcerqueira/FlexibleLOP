@@ -1,6 +1,7 @@
 #include <iostream>
 #include "pugixml.hpp"
 #include "XmlParser.h"
+#include "Scheduler.h"
 
 int main(int argc, char *argv[])
 {

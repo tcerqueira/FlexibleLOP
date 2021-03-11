@@ -17,6 +17,8 @@ public:
 protected:
     // document getter
     xml_document* getDocument() { return &m_Doc; }
+    // NOT TESTED
+    bool isLoaded() { return m_Result; }
 
 private:
     xml_document m_Doc;
@@ -24,6 +26,22 @@ private:
 };
 
 class OrderDoc : public XmlDoc
+{
+public:
+
+private:
+
+};
+
+class StorageDoc : public XmlDoc
+{
+public:
+
+private:
+
+};
+
+class ScheduleDoc : public XmlDoc
 {
 public:
 
