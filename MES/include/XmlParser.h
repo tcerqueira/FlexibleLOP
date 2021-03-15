@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include "pugixml.hpp"
+#include <pugixml.hpp>
 
 using namespace pugi;
 
@@ -13,12 +13,12 @@ public:
     // save document tree
     bool save(const std::string &filename);
     void save(std::ostream out);
+    // NOT TESTED
+    bool isLoaded() { return m_Result; }
 
 protected:
     // document getter
     xml_document* getDocument() { return &m_Doc; }
-    // NOT TESTED
-    bool isLoaded() { return m_Result; }
 
 private:
     xml_document m_Doc;
@@ -28,9 +28,12 @@ private:
 class OrderDoc : public XmlDoc
 {
 public:
+    // amount getter
+    int getAmount() const { return amount; }
+
 
 private:
-
+    int amount;
 };
 
 class StorageDoc : public XmlDoc
