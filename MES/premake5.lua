@@ -2,7 +2,8 @@
 workspace "MES"
     configurations {"Debug", "Release"}
     architecture "x64"
-    system "windows"
+    --system "windows"
+    cppdialect "C++17"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}"
 
