@@ -4,10 +4,11 @@
 #include "Scheduler.h"
 #include "LOProduction.h"
 #include "Orders.h"
+#include "MES.h"
 
 int main(int argc, char *argv[])
 {
-    std::cout << "Hello World!" << std::endl;
+    /*std::cout << "Hello World!" << std::endl;
 
     pugi::xml_document doc;
     pugi::xml_parse_result result = doc.load_file("test/OrderTest.xml");
@@ -23,5 +24,8 @@ int main(int argc, char *argv[])
 
     OrderDoc orders;
     //std::cout << orders.getAmount() << std::endl;
-    auto list = Order::CreateOrders(orders);
+    auto list = Order::CreateOrders(orders);*/
+
+    MES Mes;
+    Mes.run();
 }
