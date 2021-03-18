@@ -2,7 +2,8 @@
 workspace "MES"
     configurations {"Debug", "Release"}
     architecture "x64"
-    system "windows"
+    --system "windows"
+    cppdialect "C++17"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}"
 
@@ -14,11 +15,17 @@ project "MES"
 
     files {
         "src/**.h",
-        "src/**.cpp"
+        "src/**.cpp",
+        "libs/pugixml-1.11/src/*.cpp"
     }
 
-    includedirs {"include"}
-    libdirs {"libs"}
+    includedirs {
+        "include",
+        "libs/pugixml-1.11/include"
+    }
+
+    libdirs {}
+    links {}
 
     filter "configurations:Debug"
         defines {"DEBUG"}
