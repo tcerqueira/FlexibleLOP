@@ -25,7 +25,9 @@ project "MES"
     }
 
     libdirs {}
-    links {}
+    links {
+        "pthread"
+    }
 
     filter "configurations:Debug"
         defines {"DEBUG"}
