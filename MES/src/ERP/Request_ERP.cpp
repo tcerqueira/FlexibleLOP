@@ -2,5 +2,5 @@
 
 Request_ERP::Request_ERP(const char* packet)
 : packet(packet)
-{    
+{
 }

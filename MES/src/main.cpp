@@ -27,5 +27,5 @@ int main(int argc, char *argv[])
     auto list = Order::CreateOrders(orders);*/
 
     MES Mes;
-    Mes.run();
+    Mes.start();
 }

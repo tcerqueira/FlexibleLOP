@@ -11,6 +11,10 @@ class MES
 {
 public:
     MES();
+    void start();
+
+private:
+    int setUp();
     void run();
 
 private:

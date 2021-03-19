@@ -14,11 +14,11 @@ Client_ERP::Client_ERP(Dispatcher* dispatcher)
 void Client_ERP::listen_async(const int& port)
 {
     std::thread listenerThread([this](const int& port) {
-        Response_ERP res;
         while(1)
         {
             // listen
             // runs handler in other thread
+            Response_ERP res;
             Request_ERP req = Request_ERP(
             "<Order Number=\"123\">"
                 "<Unload Type=\"P1\" Destination=\"PM3\" Quantity=\"2\"/>"
