@@ -24,9 +24,13 @@ project "MES"
         "libs/pugixml-1.11/include"
     }
 
-    libdirs {}
+    libdirs {
+        
+    }
+
     links {
-        "pthread"
+        "pthread",
+        "boost_system"
     }
 
     filter "configurations:Debug"

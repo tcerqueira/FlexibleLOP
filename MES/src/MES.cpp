@@ -1,7 +1,8 @@
 #include <iostream>
 #include <fstream>
+#include <thread>
 #include "MES.h"
-#include "Client_ERP.h"
+#include "udp_server.h"
 #include "Dispatcher_ERP.h"
 #include "XmlParser.h"
 
@@ -9,13 +10,20 @@ MES::MES()
 {
     scheduler = Scheduler();
     dispatcher = Dispatcher();
-    erp = Client_ERP(&dispatcher);
+    erp_server = new UdpServer(io_service, LISTEN_PORT);
     store = Storage();
     factory = LOProduction();
+
+    //io_service.run();
+    std::cout << "past run" << std::endl;
 }
 
 void MES::run()
 {
+    std::thread serverThread([this]() {
+        io_service.run();
+    });
+
     char buf[50];
     while(1)
     {
@@ -23,6 +31,8 @@ void MES::run()
         factory.send();
         std::cin >> buf;
     }
+
+    serverThread.join();
 }
 
 
@@ -33,7 +43,16 @@ void MES::start()
     // TEST
     OrderDoc doc;
     doc.load_file("test/OrderTest.xml");
-    OrderList::CreateOrders(doc);
+    // int index = 1;
+    // std::cout << doc.number(index) << std::endl;
+    // std::cout << doc.from(index) << std::endl;
+    // std::cout << doc.to(index) << std::endl;
+    // std::cout << doc.quantity(index) << std::endl;
+    // std::cout << doc.time(index) << std::endl;
+    // std::cout << doc.penalty(index) << std::endl;
+    // std::cout << doc.maxdelay(index) << std::endl;
+    OrderList* newList = OrderList::CreateOrders(doc);
+    std::cout << newList->at(1)->getId() << std::endl;
     // TEST
     std::cout << "Mes running!" << std::endl;
     run();    
@@ -45,10 +64,15 @@ int MES::setUp()
         std::cout << req.get() << std::endl;
     });
 
-    erp.listen_async(80);
+    //erp_server.listen_async(80);
 }
 
 void MES::onOrder(const char* bytes)
 {
     std::cout << bytes << std::endl;
+}
+
+MES::~MES()
+{
+    delete erp_server;
 }
