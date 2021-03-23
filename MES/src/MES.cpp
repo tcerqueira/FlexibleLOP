@@ -13,14 +13,11 @@ MES::MES()
     erp_server = new UdpServer(io_service, LISTEN_PORT);
     store = Storage();
     factory = LOProduction();
-
-    //io_service.run();
-    std::cout << "past run" << std::endl;
 }
 
 void MES::run()
 {
-    std::thread serverThread([this]() {
+    std::thread erpServerThread([this]() {
         io_service.run();
     });
 
@@ -32,7 +29,7 @@ void MES::run()
         std::cin >> buf;
     }
 
-    serverThread.join();
+    erpServerThread.join();
 }
 
 
@@ -55,7 +52,7 @@ void MES::start()
     std::cout << newList->at(1)->getId() << std::endl;
     // TEST
     std::cout << "Mes running!" << std::endl;
-    run();    
+    run();  
 }
 
 int MES::setUp()
@@ -63,8 +60,6 @@ int MES::setUp()
     dispatcher.addOrderListener([](const Request_ERP& req, Response_ERP* res) { 
         std::cout << req.get() << std::endl;
     });
-
-    //erp_server.listen_async(80);
 }
 
 void MES::onOrder(const char* bytes)
