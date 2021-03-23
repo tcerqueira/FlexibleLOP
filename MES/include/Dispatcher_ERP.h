@@ -1,7 +1,6 @@
 #pragma once
 
-#include <functional>
-#include <vector>
+#include "l_comms.h"
 #include "Request_Response_ERP.h"
 
 class Dispatcher

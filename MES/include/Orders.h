@@ -1,10 +1,8 @@
 #pragma once
 
-#include <vector>
+#include "l_comms.h"
 #include <ctime>
-#include <memory>
 #include "XmlParser.h"
-#include <string>
 
 class OrderList;
 

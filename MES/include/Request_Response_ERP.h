@@ -1,5 +1,7 @@
 #pragma once
 
+#include "l_comms.h"
+
 class Request_ERP
 {
 public:

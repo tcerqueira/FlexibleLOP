@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include "l_comms.h"
 #include <pugixml.hpp>
 
 #define ROOT_NODE "ORDERS"
