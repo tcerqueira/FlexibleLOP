@@ -1,0 +1,6 @@
+[submodule "MES/libs/spdlog"]
+	path = MES/libs/spdlog
+	url = https://github.com/gabime/spdlog
+[submodule "MES/libs/pugixml"]
+	path = MES/libs/pugixml
+	url = https://github.com/zeux/pugixml

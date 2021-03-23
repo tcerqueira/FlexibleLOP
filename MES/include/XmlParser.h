@@ -3,16 +3,17 @@
 #include <string>
 #include <pugixml.hpp>
 
+#define ROOT_NODE "ORDERS"
+#define TRANSF_NODE "Transform"
+#define UNLOAD_NODE "Unload"
+
 using namespace pugi;
+
 
 class XmlDoc : public xml_document
 {
 public:
-    // load the xml file
-    void load(const std::string &filename);
-    // save document tree
-    bool save(const std::string &filename);
-    void save(std::ostream out);
+    xml_node root() const { return child(ROOT_NODE); }
     // NOT TESTED
     bool isLoaded() { return (bool) m_Result; }
 
@@ -25,22 +26,21 @@ private:
 class OrderDoc : public XmlDoc
 {
 public:
-    // amount getter
-    int getAmount() const { return amount; }
     // for transform ordfers
-    const char* from(int index);
-    const char* to(int index);
-    const char* time(int index);
-    const char* maxdelay(int index);
-    const char* penalty(int index);
+    const char* from(int index) const;
+    const char* to(int index) const;
+    int time(int index) const;
+    int maxdelay(int index) const;
+    int penalty(int index) const;
     // for unload orders
-    const char* type(int index);
-    const char* destination(int index);
+    const char* type(int index) const;
+    const char* destination(int index) const;
     // for both
-    const char* quantity(int index);
+    int number(int index) const;
+    int quantity(int index) const;
 
 private:
-    int amount;
+    xml_node orderAt(int index) const;
 };
 
 class StorageDoc : public XmlDoc

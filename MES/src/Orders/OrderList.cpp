@@ -13,36 +13,37 @@ OrderList* OrderList::CreateOrders(const OrderDoc& orders)
     time_t receivedAt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 
     // loop for every order in xml document
-    for (pugi::xml_node_iterator it = orders.begin(); it != orders.end(); ++it)
+    int i = 0;
+    for (pugi::xml_node_iterator it = orders.root().begin(); it != orders.root().end(); it++, i++)
     {
         Order* order = nullptr;
-        if(!it->child("Transform"))
+        if(it->child(TRANSF_NODE))
         {
-            std::cout << "Transform" << std::endl;
-            std::cout << parsePiece("P2") << std::endl; 
-            // pugi::xml_node transform = it->child("Tranform");
+            // std::cout << "Transform" << std::endl;
 
-            // order = new TransformOrder(it->attribute("Number").as_int(), receivedAt, transform.attribute("Quantity")
-            //     , parsePiece(transform.attribute("From").as_string())
-            //     , );
-
+            order = new TransformOrder(orders.number(i), receivedAt, orders.quantity(i)
+                , parsePiece(orders.from(i)), parsePiece(orders.to(i))
+                , orders.penalty(i), orders.maxdelay(i));
+            
         } 
-        else if (!it->child("Unload"))
+        else if (it->child(UNLOAD_NODE))
         {
-            std::cout << "Unload" << std::endl;
-            // order = new UnloadOrder(it->attribute("Number").as_int(), receivedAt
-            //     , );
+            // std::cout << "Unload" << std::endl;
+
+            // TODO: UNLOAD CONSTRUCTOR
+            order = new TransformOrder(orders.number(i), receivedAt, orders.quantity(i)
+                , parsePiece(orders.from(i)), parsePiece(orders.to(i))
+                , orders.penalty(i), orders.maxdelay(i));
         }
         else
         {
             std::cout << "null" << std::endl;
         }
 
+        // TODO: ORDERED INSERTION
         if(order != nullptr)
             order_vec->push_back(order);
     }
-    //std::vector<Order*> order_vec;
-    std::cout << order_vec->size() << std::endl;
 
     return order_vec;
 }

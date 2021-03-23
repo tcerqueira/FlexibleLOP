@@ -16,17 +16,22 @@ project "MES"
     files {
         "src/**.h",
         "src/**.cpp",
-        "libs/pugixml-1.11/src/*.cpp"
+        "libs/pugixml/src/**.cpp"
     }
 
     includedirs {
         "include",
-        "libs/pugixml-1.11/include"
+        "libs/pugixml/src",
+        "libs/spdlog/include"
     }
 
-    libdirs {}
+    libdirs {
+        
+    }
+
     links {
-        "pthread"
+        "pthread",
+        "boost_system"
     }
 
     filter "configurations:Debug"
