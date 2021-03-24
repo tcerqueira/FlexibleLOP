@@ -1,6 +1,4 @@
 #include "udp_server.h"
-#include <thread>
-#include <iostream>
 #include "Dispatcher_ERP.h"
 
 UdpServer::UdpServer(boost::asio::io_service& io_service, int port)
@@ -32,10 +30,10 @@ void UdpServer::handle_receive(const boost::system::error_code& error, std::size
 
         start_receive();
     }
-    std::cout << "Req received!" << std::endl;
+    MES_TRACE("Request received!");
 }
 
 void UdpServer::handle_send(boost::shared_ptr<std::string> bytes, const boost::system::error_code& error, std::size_t length)
 {
-    std::cout << "Res sent!" << std::endl;
+    MES_TRACE("Response sent - {}", bytes->data());
 }

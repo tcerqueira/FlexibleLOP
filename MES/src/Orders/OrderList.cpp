@@ -1,6 +1,5 @@
 #include "Orders.h"
 #include "XmlParser.h"
-#include <iostream>
 #include <chrono>
 #include "Utils.h"
 

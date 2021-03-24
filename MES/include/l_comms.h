@@ -7,3 +7,6 @@
 // Data structures
 #include <string>
 #include <vector>
+
+// Custom
+#include "Log.h"

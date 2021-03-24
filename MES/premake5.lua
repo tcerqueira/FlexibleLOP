@@ -26,12 +26,13 @@ project "MES"
     }
 
     libdirs {
-        
+        --"libs/spdlog/build"
     }
 
     links {
         "pthread",
         "boost_system"
+        --"spdlog"
     }
 
     filter "configurations:Debug"
