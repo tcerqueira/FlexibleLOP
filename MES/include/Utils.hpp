@@ -1,4 +1,6 @@
-#include "Utils.h"
+#pragma once
+#include <string>
+#include "Orders.h"
 
 piece_t parsePiece(const char* piece)
 {
@@ -21,4 +23,15 @@ piece_t parsePiece(const char* piece)
         return P8;
     if(str == std::string("P9"))
         return P9;
+}
+
+dest_t parseDest(const char*  dest)
+{
+    auto str = std::string(dest);
+    if(str == std::string("D1"))
+        return PM1;
+    if(str == std::string("D2"))
+        return PM2;
+    if(str == std::string("D3"))
+        return PM3;
 }

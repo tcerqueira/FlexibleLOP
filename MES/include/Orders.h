@@ -20,10 +20,13 @@ public:
     int getTimeStarted() const { return startedAt; }
     int getTimeFinished() const { return finishedAt; }
 
+    Order& operator--();
+    Order& operator--(int);
+
 private:
     int id;
-    int doneAmount = 0;
-    int doingAmount = 0;
+    int doneAmount;
+    int doingAmount;
     int totalAmount;
     time_t receivedAt;
     time_t sentAt;

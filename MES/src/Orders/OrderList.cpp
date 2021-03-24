@@ -1,7 +1,7 @@
 #include "Orders.h"
 #include "XmlParser.h"
 #include <chrono>
-#include "Utils.h"
+#include "Utils.hpp"
 
 OrderList* OrderList::CreateOrders(const OrderDoc& orders)
 {
@@ -18,25 +18,19 @@ OrderList* OrderList::CreateOrders(const OrderDoc& orders)
         Order* order = nullptr;
         if(it->child(TRANSF_NODE))
         {
-            // std::cout << "Transform" << std::endl;
-
             order = new TransformOrder(orders.number(i), receivedAt, orders.quantity(i)
                 , parsePiece(orders.from(i)), parsePiece(orders.to(i))
                 , orders.penalty(i), orders.maxdelay(i));
-            
         } 
         else if (it->child(UNLOAD_NODE))
         {
-            // std::cout << "Unload" << std::endl;
-
             // TODO: UNLOAD CONSTRUCTOR
-            order = new TransformOrder(orders.number(i), receivedAt, orders.quantity(i)
-                , parsePiece(orders.from(i)), parsePiece(orders.to(i))
-                , orders.penalty(i), orders.maxdelay(i));
+            order = new UnloadOrder(orders.number(i), receivedAt, orders.quantity(i)
+                , parsePiece(orders.type(i)), parseDest(orders.destination(i)));
         }
         else
         {
-            std::cout << "null" << std::endl;
+            MES_WARN("Order {} - type {} undefined.", orders.number(i), it->first_child().name());
         }
 
         // TODO: ORDERED INSERTION

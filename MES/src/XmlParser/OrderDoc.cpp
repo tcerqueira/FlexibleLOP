@@ -58,7 +58,7 @@ int OrderDoc::number(int index) const
 int OrderDoc::quantity(int index) const
 {
     if(orderAt(index).child(TRANSF_NODE))
-        return orderAt(index).child("Transform").attribute("Quantity").as_int();
+        return orderAt(index).child(TRANSF_NODE).attribute("Quantity").as_int();
 
     return orderAt(index).child(UNLOAD_NODE).attribute("Quantity").as_int();
 }

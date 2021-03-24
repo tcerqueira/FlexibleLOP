@@ -1,11 +1,10 @@
-#include "Request_Response_ERP.h"
+#include <Dispatcher_ERP.h>
 
 Response_ERP::Response_ERP()
 {
-    
 }
 
-Response_ERP::Response_ERP(char* packet)
-: packet(packet)
+Response_ERP::Response_ERP(char* payload)
+: payload(payload)
 {    
 }

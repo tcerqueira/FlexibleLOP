@@ -15,6 +15,7 @@ MES::MES()
 void MES::run()
 {
     std::thread erpServerThread([this]() {
+        MES_TRACE("Starting UDP Server.");
         io_service.run();
     });
 
@@ -46,7 +47,9 @@ void MES::start()
     // std::cout << doc.penalty(index) << std::endl;
     // std::cout << doc.maxdelay(index) << std::endl;
     OrderList* newList = OrderList::CreateOrders(doc);
-    MES_TRACE(newList->at(1)->getId());
+    // *(newList->at(1))--;
+    Order o = *(newList->at(1)); o--;
+    MES_TRACE(o.getDoing());
     // TEST
     MES_INFO("\n###### RUNNING ######");
     run();  
@@ -54,9 +57,9 @@ void MES::start()
 
 int MES::setUp()
 {
-    dispatcher.addOrderListener([](const Request_ERP& req, Response_ERP* res) {
-        MES_TRACE(req.get());
-    });
+    // dispatcher.addOrderListener([this](const Request_ERP& req, Response_ERP* res) {
+    //     onOrder(req.get());
+    // });
 }
 
 void MES::onOrder(const char* bytes)
