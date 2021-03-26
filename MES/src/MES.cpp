@@ -1,4 +1,5 @@
 #include "MES.h"
+#include "Orders.h"
 #include "udp_server.h"
 #include "XmlParser.h"
 
@@ -65,13 +66,14 @@ void MES::erpRequestDispatcher(char* data, std::size_t len, std::shared_ptr<std:
 
         if(node_name == std::string(ORDER_NODE)){
             OrderNode order_node(*it);
+            Order* order = Order::Factory(order_node);
             MES_TRACE("Order type: {} ; Number: {} ; Quantity: {}", order_node.name(), order_node.number(), order_node.quantity());
         }
         else if(node_name == std::string(STORAGE_NODE)){
-
+            onStorageRequest();
         }
         else if(node_name == std::string(SCHEDULE_NODE)){
-
+            onScheduleRequest();
         }
         else{
             MES_WARN("Unknown type of order \"{}\".", node_name);

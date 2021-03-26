@@ -1,6 +1,4 @@
-#pragma once
-#include <string>
-#include "Orders.h"
+#include "Utils.h"
 
 piece_t parsePiece(const char* piece)
 {

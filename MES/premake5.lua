@@ -16,11 +16,13 @@ project "MES"
     files {
         "src/**.h",
         "src/**.cpp",
+        "src/**.hpp",
         "libs/pugixml/src/**.cpp"
     }
 
     includedirs {
         "include",
+        "src",
         "libs/pugixml/src",
         "libs/spdlog/include"
     }
