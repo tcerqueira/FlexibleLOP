@@ -4,8 +4,11 @@
 #include <pugixml.hpp>
 
 #define ROOT_NODE "ORDERS"
+#define ORDER_NODE "Order"
 #define TRANSF_NODE "Transform"
 #define UNLOAD_NODE "Unload"
+#define STORAGE_NODE "Request_Stores"
+#define SCHEDULE_NODE "Request_Orders"
 
 using namespace pugi;
 
@@ -21,6 +24,27 @@ protected:
 
 private:
     xml_parse_result m_Result;
+};
+
+class OrderNode
+{
+public:
+    OrderNode(xml_node order_root);
+    // for transform ordfers
+    const char* from() const;
+    const char* to() const;
+    int time() const;
+    int maxdelay() const;
+    int penalty() const;
+    // for unload orders
+    const char* type() const;
+    const char* destination() const;
+    // for both
+    int number() const;
+    int quantity() const;
+    const char* name() const;
+private:
+    xml_node order_root;
 };
 
 class OrderDoc : public XmlDoc
