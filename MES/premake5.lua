@@ -12,6 +12,7 @@ project "MES"
     language "C++"
     targetdir "build/bin/%{outputdir}"
     objdir "build/obj/%{outputdir}"
+    targetname "%{prj.name}"
 
     files {
         "src/**.h",
@@ -33,7 +34,7 @@ project "MES"
 
     links {
         "pthread",
-        "boost_system"
+        "boost_system:static"
         --"spdlog"
     }
 

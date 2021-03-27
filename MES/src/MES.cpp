@@ -6,10 +6,10 @@
 MES::MES()
 {
     scheduler = Scheduler();
-    // dispatcher = Dispatcher();
     erp_server = new UdpServer(io_service, LISTEN_PORT);
     store = Storage();
     factory = LOProduction();
+    // Log::getLogger()->set_level(spdlog::level::info);
 }
 
 void MES::start()
@@ -17,8 +17,8 @@ void MES::start()
     MES_INFO("\n###### STARTING ######");
     setUp();
     // TEST
-    OrderDoc doc;
-    doc.load_file("test/OrderTest.xml");
+    // OrderDoc doc;
+    // doc.load_file("test/OrderTest.xml");
     // TEST
     MES_INFO("\n###### RUNNING ######");
     run();  
@@ -27,7 +27,7 @@ void MES::start()
 void MES::run()
 {
     std::thread erpServerThread([this]() {
-        MES_TRACE("Starting UDP Server.");
+        MES_TRACE("Starting UDP Server. Listening on PORT({}).", LISTEN_PORT);
         io_service.run();
     });
 
@@ -64,14 +64,15 @@ void MES::erpRequestDispatcher(char* data, std::size_t len, std::shared_ptr<std:
         auto node_name = std::string(it->name());
         MES_TRACE(node_name);
 
+        // ORDER REQUEST
         if(node_name == std::string(ORDER_NODE)){
-            OrderNode order_node(*it);
-            Order* order = Order::Factory(order_node);
-            MES_TRACE("Order type: {} ; Number: {} ; Quantity: {}", order_node.name(), order_node.number(), order_node.quantity());
+            onOrderRequest(*it);
         }
+        // STORAGE REQUEST
         else if(node_name == std::string(STORAGE_NODE)){
             onStorageRequest();
         }
+        // SCHEDULE REQUEST
         else if(node_name == std::string(SCHEDULE_NODE)){
             onScheduleRequest();
         }
@@ -79,6 +80,13 @@ void MES::erpRequestDispatcher(char* data, std::size_t len, std::shared_ptr<std:
             MES_WARN("Unknown type of order \"{}\".", node_name);
         }
     }
+}
+
+void MES::onOrderRequest(const OrderNode& order_node)
+{
+    Order* order = Order::Factory(order_node);
+    MES_TRACE("Order received: {}.", *order);
+    scheduler.addOrder(order);
 }
 
 void MES::onStorageRequest()
@@ -91,10 +99,6 @@ void MES::onScheduleRequest()
 
 }
 
-void MES::onOrder(const OrderNode& order_xml)
-{
-    
-}
 
 MES::~MES()
 {

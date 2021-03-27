@@ -21,7 +21,7 @@ private:
     void run();
     // request handlers
     void erpRequestDispatcher(char* data, std::size_t len, std::shared_ptr<std::string> response);
-    void onOrder(const OrderNode& order_xml);
+    void onOrderRequest(const OrderNode& order_node);
     void onStorageRequest();
     void onScheduleRequest();
 

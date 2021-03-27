@@ -10,7 +10,7 @@ class Order
 {
 public:
     Order(int id, time_t receivedAt, int quantity);
-    static Order* Factory(const OrderNode& order_node);
+    static Order *Factory(const OrderNode &order_node);
     // getters
     int getId() const { return id; }
     int getDone() const { return doneAmount; }
@@ -21,8 +21,11 @@ public:
     int getTimeStarted() const { return startedAt; }
     int getTimeFinished() const { return finishedAt; }
 
-    Order& operator--();
-    Order& operator--(int);
+    Order &operator--();
+    Order &operator--(int);
+
+    template <typename OStream>
+    friend OStream &operator<<(OStream &os, const Order &o);
 
 private:
     int id;
@@ -35,22 +38,14 @@ private:
     time_t finishedAt;
 };
 
-class OrderList : public std::vector<Order*>
+enum piece_t
 {
-public:
-    // adds Order
-    void add(Order* order);
-    void add(Order* order, int index);
-    // removes Order and returns the object
-    Order* remove(int index);
-    // factory method
-    static OrderList* CreateOrders(const OrderDoc& orders);
-
-private:
+    P1 = 1, P2, P3, P4, P5, P6, P7, P8, P9
 };
-
-enum piece_t { P1 = 1, P2, P3, P4, P5, P6, P7, P8, P9};
-enum dest_t { PM1 = 1, PM2, PM3 };
+enum dest_t
+{
+    PM1 = 1, PM2, PM3
+};
 
 class TransformOrder : public Order
 {
@@ -83,3 +78,10 @@ private:
     piece_t piece;
     dest_t dest;
 };
+
+// STREAM OVERLOADS
+template <typename OStream>
+OStream &operator<<(OStream &os, const Order &o)
+{
+    return os << "[Order id=" << o.id << " Quantity=" << o.totalAmount << " Time=" << o.receivedAt << "]";
+}

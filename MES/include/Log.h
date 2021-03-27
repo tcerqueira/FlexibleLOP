@@ -2,6 +2,7 @@
 
 #include "l_comms.h"
 #include <spdlog/spdlog.h>
+#include "spdlog/fmt/ostr.h"
 
 class Log
 {

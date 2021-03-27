@@ -19,7 +19,7 @@ Order Scheduler::popOrder()
     Order order = --(*orders.front());
     // if all orders dispatched
     if(order.getDoing() + order.getDone() >= order.getQuantity()){
-        MES_TRACE("Order {} dispatched.", order.getId());
+        MES_TRACE("Order {} dispatched.", order);
         // TODO: add it to dispatched list
     }
 
