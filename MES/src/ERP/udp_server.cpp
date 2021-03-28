@@ -15,14 +15,6 @@ void UdpServer::start_receive()
         boost::bind(&UdpServer::handle_receive, this,
             boost::asio::placeholders::error,
             boost::asio::placeholders::bytes_transferred));
-    // auto db = boost::asio::dynamic_buffer(str_buffer);
-    // auto buffer = db.prepare(MAX_BUFFER);
-
-    // socket_.async_receive_from(
-    //     buffer, remote_endpoint_,
-    //     boost::bind(&UdpServer::handle_receive, this,
-    //         boost::asio::placeholders::error,
-    //         boost::asio::placeholders::bytes_transferred));
 }
 
 void UdpServer::handle_receive(const boost::system::error_code& error, std::size_t length)

@@ -22,9 +22,9 @@ private:
     void run();
     // request handlers
     void erpRequestDispatcher(char* data, std::size_t len, std::shared_ptr<std::string> response);
-    void onOrderRequest(const OrderNode& order_node);
-    void onStorageRequest();
-    void onScheduleRequest();
+    void onOrderRequest(const OrderNode& order_node, std::shared_ptr<std::string> response);
+    void onStorageRequest(std::shared_ptr<std::string> response);
+    void onScheduleRequest(std::shared_ptr<std::string> response);
     static Order *OrderFactory(const OrderNode &order_node);
 
 private:

@@ -1,4 +1,5 @@
 #include "MES.h"
+#include <sstream>
 #include "Orders.h"
 #include "udp_server.h"
 #include "XmlParser.h"
@@ -20,6 +21,11 @@ void MES::start()
     // TEST
     // StorageDoc doc(store);
     // doc.save(std::cout);
+    MES_TRACE("ZE");
+    MES_INFO("ES");
+    MES_WARN("UM");
+    MES_ERROR("GRANDE");
+    MES_FATAL("NABO");
     // TEST
     MES_INFO("\n###### RUNNING ######");
     run();  
@@ -67,15 +73,15 @@ void MES::erpRequestDispatcher(char* data, std::size_t len, std::shared_ptr<std:
 
         // ORDER REQUEST
         if(node_name == std::string(ORDER_NODE)){
-            onOrderRequest(*it);
+            onOrderRequest(*it, response);
         }
         // STORAGE REQUEST
         else if(node_name == std::string(STORAGE_NODE)){
-            onStorageRequest();
+            onStorageRequest(response);
         }
         // SCHEDULE REQUEST
         else if(node_name == std::string(SCHEDULE_NODE)){
-            onScheduleRequest();
+            onScheduleRequest(response);
         }
         else{
             MES_WARN("Unknown type of order \"{}\".", node_name);
@@ -83,21 +89,27 @@ void MES::erpRequestDispatcher(char* data, std::size_t len, std::shared_ptr<std:
     }
 }
 
-void MES::onOrderRequest(const OrderNode& order_node)
+void MES::onOrderRequest(const OrderNode& order_node, std::shared_ptr<std::string> response)
 {
     Order* order = MES::OrderFactory(order_node);
     MES_TRACE("Order received: {}.", *order);
     scheduler.addOrder(order);
 }
 
-void MES::onStorageRequest()
+void MES::onStorageRequest(std::shared_ptr<std::string> response)
 {
-
+    std::stringstream ss;
+    StorageDoc storeDoc(store);
+    storeDoc.save(ss);
+    *response = ss.str();
 }
 
-void MES::onScheduleRequest()
+void MES::onScheduleRequest(std::shared_ptr<std::string> response)
 {
-
+    std::stringstream ss;
+    ScheduleDoc scheduleDoc(scheduler);
+    scheduleDoc.save(ss);
+    *response = ss.str();
 }
 
 Order *MES::OrderFactory(const OrderNode &order_node)
