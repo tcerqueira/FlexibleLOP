@@ -2,15 +2,11 @@
 
 #include "l_comms.h"
 #include <ctime>
-#include "XmlParser.h"
-
-class OrderList;
 
 class Order
 {
 public:
     Order(int id, time_t receivedAt, int quantity);
-    static Order *Factory(const OrderNode &order_node);
     // getters
     int getId() const { return id; }
     int getDone() const { return doneAmount; }
@@ -40,11 +36,11 @@ private:
 
 enum piece_t
 {
-    P1 = 1, P2, P3, P4, P5, P6, P7, P8, P9
+    P1 = 1, P2, P3, P4, P5, P6, P7, P8, P9, End_p
 };
 enum dest_t
 {
-    PM1 = 1, PM2, PM3
+    PM1 = 1, PM2, PM3, End_d
 };
 
 class TransformOrder : public Order

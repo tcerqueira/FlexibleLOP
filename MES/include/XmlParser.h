@@ -2,18 +2,26 @@
 
 #include "l_comms.h"
 #include <pugixml.hpp>
+#include "Storage.h"
+#include "Scheduler.h"
 
+// Request node names
 #define ROOT_NODE "ORDERS"
+#define STORAGE_NODE "Request_Stores"
+#define SCHEDULE_NODE "Request_Orders"
+// Root node names for response
+#define STORE_ROOT_NODE "Current_Stores"
+#define SCHEDULE_ROOT_NODE "Order_Schedule"
+#define STORE_PIECE_NODE "WorkPiece"
+// Children node names
 #define ORDER_NODE "Order"
 #define TRANSF_NODE "Transform"
 #define UNLOAD_NODE "Unload"
-#define STORAGE_NODE "Request_Stores"
-#define SCHEDULE_NODE "Request_Orders"
 
 using namespace pugi;
 
 
-class XmlDoc : public xml_document
+class XmlRequest : public xml_document
 {
 public:
     xml_node root() const { return child(ROOT_NODE); }
@@ -47,37 +55,19 @@ private:
     xml_node order_root;
 };
 
-class OrderDoc : public XmlDoc
+class StorageDoc : public xml_document
 {
 public:
-    // for transform ordfers
-    const char* from(int index) const;
-    const char* to(int index) const;
-    int time(int index) const;
-    int maxdelay(int index) const;
-    int penalty(int index) const;
-    // for unload orders
-    const char* type(int index) const;
-    const char* destination(int index) const;
-    // for both
-    int number(int index) const;
-    int quantity(int index) const;
-
-private:
-    xml_node orderAt(int index) const;
-};
-
-class StorageDoc : public XmlDoc
-{
-public:
+    StorageDoc(const Storage& store);
 
 private:
 
 };
 
-class ScheduleDoc : public XmlDoc
+class ScheduleDoc : public xml_document
 {
 public:
+    ScheduleDoc(const Scheduler& schedule);
 
 private:
 

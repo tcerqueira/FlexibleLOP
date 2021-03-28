@@ -6,6 +6,7 @@
 #include "udp_server.h"
 #include "Storage.h"
 #include "LOProduction.h"
+#include "XmlParser.h"
 
 #define LISTEN_PORT 54321
 
@@ -24,6 +25,7 @@ private:
     void onOrderRequest(const OrderNode& order_node);
     void onStorageRequest();
     void onScheduleRequest();
+    static Order *OrderFactory(const OrderNode &order_node);
 
 private:
     Scheduler scheduler;

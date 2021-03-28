@@ -2,13 +2,14 @@
 #include "Orders.h"
 #include "udp_server.h"
 #include "XmlParser.h"
+#include "Utils.h"
 
 MES::MES()
 {
-    scheduler = Scheduler();
+    // scheduler = Scheduler();
     erp_server = new UdpServer(io_service, LISTEN_PORT);
-    store = Storage();
-    factory = LOProduction();
+    store = Storage((const int[]){1,2,4,8,16,32,64,128,256});
+    // factory = LOProduction();
     // Log::getLogger()->set_level(spdlog::level::info);
 }
 
@@ -17,8 +18,8 @@ void MES::start()
     MES_INFO("\n###### STARTING ######");
     setUp();
     // TEST
-    // OrderDoc doc;
-    // doc.load_file("test/OrderTest.xml");
+    // StorageDoc doc(store);
+    // doc.save(std::cout);
     // TEST
     MES_INFO("\n###### RUNNING ######");
     run();  
@@ -56,7 +57,7 @@ int MES::setUp()
 
 void MES::erpRequestDispatcher(char* data, std::size_t len, std::shared_ptr<std::string> response)
 {
-    XmlDoc doc;
+    XmlRequest doc;
     doc.load_buffer_inplace(data, len);
 
     for (pugi::xml_node_iterator it = doc.root().begin(); it != doc.root().end(); it++)
@@ -84,7 +85,7 @@ void MES::erpRequestDispatcher(char* data, std::size_t len, std::shared_ptr<std:
 
 void MES::onOrderRequest(const OrderNode& order_node)
 {
-    Order* order = Order::Factory(order_node);
+    Order* order = MES::OrderFactory(order_node);
     MES_TRACE("Order received: {}.", *order);
     scheduler.addOrder(order);
 }
@@ -99,6 +100,26 @@ void MES::onScheduleRequest()
 
 }
 
+Order *MES::OrderFactory(const OrderNode &order_node)
+{
+    time_t receivedAt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    Order *order = nullptr;
+    auto node_name = std::string(order_node.name());
+
+    if (node_name == std::string(TRANSF_NODE))
+    {
+        order = new TransformOrder(order_node.number(), receivedAt, order_node.quantity(), parsePiece(order_node.from()), parsePiece(order_node.to()), order_node.penalty(), order_node.maxdelay());
+    }
+    else if (node_name == std::string(UNLOAD_NODE))
+    {
+        order = new UnloadOrder(order_node.number(), receivedAt, order_node.quantity(), parsePiece(order_node.type()), parseDest(order_node.destination()));
+    }
+    else
+    {
+    }
+
+    return order;
+}
 
 MES::~MES()
 {

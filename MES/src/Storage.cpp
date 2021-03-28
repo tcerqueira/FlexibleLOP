@@ -1,15 +1,14 @@
 #include "Storage.h"
+#include <cstring>
 
 Storage::Storage()
 {
-    for(int i=0; i < NPIECES; i++)
-        count[i] = 0;
+    memset(count, 0, sizeof(*count)*NPIECES);
 }
 
 Storage::Storage(const int* count)
 {
-    for(int i=0; i < NPIECES; i++)
-        this->count[i] = count[i];
+    memcpy(this->count, count, sizeof(*count)*NPIECES);
 }
 
 
