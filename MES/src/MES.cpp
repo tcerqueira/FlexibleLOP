@@ -21,11 +21,6 @@ void MES::start()
     // TEST
     // StorageDoc doc(store);
     // doc.save(std::cout);
-    MES_TRACE("ZE");
-    MES_INFO("ES");
-    MES_WARN("UM");
-    MES_ERROR("GRANDE");
-    MES_FATAL("NABO");
     // TEST
     MES_INFO("\n###### RUNNING ######");
     run();  

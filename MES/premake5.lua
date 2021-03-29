@@ -25,16 +25,19 @@ project "MES"
         "include",
         "src",
         "libs/pugixml/src",
-        "libs/spdlog/include"
+        "libs/spdlog/include",
+        "libs/open62541/include"
     }
 
     libdirs {
         --"libs/spdlog/build"
+        "libs/open62541/build/bin"
     }
 
     links {
         "pthread",
-        "boost_system:static"
+        "boost_system:static",
+        "open62541:static"
         --"spdlog"
     }
 

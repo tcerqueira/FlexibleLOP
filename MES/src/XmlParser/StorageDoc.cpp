@@ -1,6 +1,7 @@
 #include "XmlParser.h"
 #include "Orders.h"
 #include "Utils.h"
+#include <cstring>
 
 StorageDoc::StorageDoc(const Storage& store)
 {
@@ -15,7 +16,7 @@ StorageDoc::StorageDoc(const Storage& store)
 
         workpiece_node.append_attribute("type") = str_piece;
         workpiece_node.append_attribute("quantity") = count;
-        free(str_piece);
+        delete str_piece;
     }
 
 }
