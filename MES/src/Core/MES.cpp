@@ -89,6 +89,7 @@ void MES::onOrderRequest(const OrderNode& order_node, std::shared_ptr<std::strin
     Order* order = MES::OrderFactory(order_node);
     MES_TRACE("Order received: {}.", *order);
     scheduler.addOrder(order);
+    // MES_TRACE(scheduler);
 }
 
 void MES::onStorageRequest(std::shared_ptr<std::string> response)

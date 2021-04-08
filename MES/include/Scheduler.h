@@ -12,7 +12,22 @@ public:
     void addOrder(Order* order);
     Order popOrder();
 
+    template <typename OStream>
+    friend OStream &operator<<(OStream &os, const Scheduler &sc);
+
 private:
     std::vector<Order*> orders;
     Storage *store;
 };
+
+// STREAM OVERLOADS
+template <typename OStream>
+OStream &operator<<(OStream &os, const Scheduler &sc)
+{
+    for(int i=0; i < sc.orders.size(); i++)
+    {
+        os << i << " - " << *sc.orders[i] << std::endl;
+    }
+
+    return os;
+}
