@@ -11,11 +11,14 @@ public:
     int getId() const { return id; }
     int getDone() const { return doneAmount; }
     int getDoing() const { return doingAmount; }
+    int getToDo() const { return totalAmount-doneAmount-doingAmount; }
     int getQuantity() const { return totalAmount; }
-    int getTimeRcv() const { return receivedAt; }
-    int getTimeSent() const { return sentAt; }
-    int getTimeStarted() const { return startedAt; }
-    int getTimeFinished() const { return finishedAt; }
+    time_t getTimeRcv() const { return receivedAt; }
+    time_t getTimeSent() const { return sentAt; }
+    time_t getTimeStarted() const { return startedAt; }
+    time_t getTimeFinished() const { return finishedAt; }
+    
+    virtual int getType() const { return 0; };
 
     Order &operator--();
     Order &operator--(int);
@@ -54,6 +57,9 @@ public:
     int getMaxDelay() const { return maxSecDelay; }
     int getPenalty() const { return finalPenalty; }
 
+    template <typename OStream>
+    friend OStream &operator<<(OStream &os, const TransformOrder &o);
+
 private:
     piece_t initial;
     piece_t finalp;
@@ -70,6 +76,9 @@ public:
     piece_t getPiece() const { return piece; }
     dest_t getDest() const { return dest; }
 
+    template <typename OStream>
+    friend OStream &operator<<(OStream &os, const UnloadOrder &o);
+
 private:
     piece_t piece;
     dest_t dest;
@@ -80,4 +89,16 @@ template <typename OStream>
 OStream &operator<<(OStream &os, const Order &o)
 {
     return os << "[Order id=" << o.id << " Quantity=" << o.totalAmount << " Time=" << o.receivedAt << "]";
+}
+
+template <typename OStream>
+OStream &operator<<(OStream &os, const TransformOrder &o)
+{
+    return os << "[TransformOrder id=" << o.getId() << " Quantity=" << o.getQuantity() << " Time=" << o.getTimeRcv() << " Penalty=" << o.penaltyPerDay << "]";
+}
+
+template <typename OStream>
+OStream &operator<<(OStream &os, const UnloadOrder &o)
+{
+    return os << "[UnloadOrder id=" << o.getId() << " Quantity=" << o.getQuantity() << " Time=" << o.getTimeRcv() << " Dest=" << o.dest << "]";
 }

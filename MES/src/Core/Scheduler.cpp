@@ -25,3 +25,8 @@ Order Scheduler::popOrder()
 
     return order;
 }
+
+Order* Scheduler::orderAt(int index) const
+{
+    return orders[index];
+}

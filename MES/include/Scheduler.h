@@ -11,6 +11,8 @@ public:
     void addOrderList(std::vector<Order*> &list);
     void addOrder(Order* order);
     Order popOrder();
+    Order* orderAt(int index) const;
+    int orderSize() const { return orders.size(); }
 
     template <typename OStream>
     friend OStream &operator<<(OStream &os, const Scheduler &sc);

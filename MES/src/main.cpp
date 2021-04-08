@@ -8,13 +8,13 @@ int main(int argc, char *argv[])
 {
     // ########################################
     /* Create a client and connect */
-    UA_Client *client = UA_Client_new();
-    UA_ClientConfig_setDefault(UA_Client_getConfig(client));
-    UA_StatusCode status = UA_Client_connect(client, "opc.tcp://localhost:4840");
-    if(status != UA_STATUSCODE_GOOD) {
-        UA_Client_delete(client);
-        // return status;
-    }
+    // UA_Client *client = UA_Client_new();
+    // UA_ClientConfig_setDefault(UA_Client_getConfig(client));
+    // UA_StatusCode status = UA_Client_connect(client, "opc.tcp://localhost:4840");
+    // if(status != UA_STATUSCODE_GOOD) {
+    //     UA_Client_delete(client);
+    //     // return status;
+    // }
 
     /* Read the value attribute of the node. UA_Client_readValueAttribute is a
      * wrapper for the raw read service available as UA_Client_Service_read. */
