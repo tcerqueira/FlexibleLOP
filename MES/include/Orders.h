@@ -1,12 +1,7 @@
 #pragma once
 
-#include <vector>
+#include "l_comms.h"
 #include <ctime>
-#include <memory>
-#include "XmlParser.h"
-#include <string>
-
-class OrderList;
 
 class Order
 {
@@ -16,16 +11,25 @@ public:
     int getId() const { return id; }
     int getDone() const { return doneAmount; }
     int getDoing() const { return doingAmount; }
+    int getToDo() const { return totalAmount-doneAmount-doingAmount; }
     int getQuantity() const { return totalAmount; }
-    int getTimeRcv() const { return receivedAt; }
-    int getTimeSent() const { return sentAt; }
-    int getTimeStarted() const { return startedAt; }
-    int getTimeFinished() const { return finishedAt; }
+    time_t getTimeRcv() const { return receivedAt; }
+    time_t getTimeSent() const { return sentAt; }
+    time_t getTimeStarted() const { return startedAt; }
+    time_t getTimeFinished() const { return finishedAt; }
+    
+    virtual int getType() const { return 0; };
+
+    Order &operator--();
+    Order &operator--(int);
+
+    template <typename OStream>
+    friend OStream &operator<<(OStream &os, const Order &o);
 
 private:
     int id;
-    int doneAmount = 0;
-    int doingAmount = 0;
+    int doneAmount;
+    int doingAmount;
     int totalAmount;
     time_t receivedAt;
     time_t sentAt;
@@ -33,22 +37,14 @@ private:
     time_t finishedAt;
 };
 
-class OrderList : public std::vector<Order*>
+enum piece_t
 {
-public:
-    // adds Order
-    void add(Order* order);
-    void add(Order* order, int index);
-    // removes Order and returns the object
-    Order* remove(int index);
-    // factory method
-    static OrderList* CreateOrders(const OrderDoc& orders);
-
-private:
+    P1 = 1, P2, P3, P4, P5, P6, P7, P8, P9, End_p
 };
-
-enum piece_t { P1 = 1, P2, P3, P4, P5, P6, P7, P8, P9};
-enum dest_t { PM1 = 1, PM2, PM3 };
+enum dest_t
+{
+    PM1 = 1, PM2, PM3, End_d
+};
 
 class TransformOrder : public Order
 {
@@ -60,6 +56,9 @@ public:
     int getDailyPenalty() const { return penaltyPerDay; }
     int getMaxDelay() const { return maxSecDelay; }
     int getPenalty() const { return finalPenalty; }
+
+    template <typename OStream>
+    friend OStream &operator<<(OStream &os, const TransformOrder &o);
 
 private:
     piece_t initial;
@@ -77,7 +76,29 @@ public:
     piece_t getPiece() const { return piece; }
     dest_t getDest() const { return dest; }
 
+    template <typename OStream>
+    friend OStream &operator<<(OStream &os, const UnloadOrder &o);
+
 private:
     piece_t piece;
     dest_t dest;
 };
+
+// STREAM OVERLOADS
+template <typename OStream>
+OStream &operator<<(OStream &os, const Order &o)
+{
+    return os << "[Order id=" << o.id << " Quantity=" << o.totalAmount << " Time=" << o.receivedAt << "]";
+}
+
+template <typename OStream>
+OStream &operator<<(OStream &os, const TransformOrder &o)
+{
+    return os << "[TransformOrder id=" << o.getId() << " Quantity=" << o.getQuantity() << " Time=" << o.getTimeRcv() << " Penalty=" << o.penaltyPerDay << "]";
+}
+
+template <typename OStream>
+OStream &operator<<(OStream &os, const UnloadOrder &o)
+{
+    return os << "[UnloadOrder id=" << o.getId() << " Quantity=" << o.getQuantity() << " Time=" << o.getTimeRcv() << " Dest=" << o.dest << "]";
+}
