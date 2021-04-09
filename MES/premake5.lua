@@ -12,26 +12,33 @@ project "MES"
     language "C++"
     targetdir "build/bin/%{outputdir}"
     objdir "build/obj/%{outputdir}"
+    targetname "%{prj.name}"
 
     files {
         "src/**.h",
         "src/**.cpp",
+        "src/**.hpp",
         "libs/pugixml/src/**.cpp"
     }
 
     includedirs {
         "include",
+        "src",
         "libs/pugixml/src",
-        "libs/spdlog/include"
+        "libs/spdlog/include",
+        "libs/open62541/include"
     }
 
     libdirs {
-        
+        --"libs/spdlog/build"
+        "libs/open62541/build/bin"
     }
 
     links {
         "pthread",
-        "boost_system"
+        "boost_system:static",
+        "open62541:static"
+        --"spdlog"
     }
 
     filter "configurations:Debug"
