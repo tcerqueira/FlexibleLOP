@@ -5,7 +5,7 @@
 #include "Scheduler.h"
 #include "udp_server.h"
 #include "Storage.h"
-#include "LOProduction.h"
+#include "opc_client.h"
 #include "XmlParser.h"
 
 #define LISTEN_PORT 54321
@@ -18,7 +18,7 @@ public:
     void start();
 
 private:
-    int setUp();
+    void setUp();
     void run();
     // request handlers
     void erpRequestDispatcher(char* data, std::size_t len, std::shared_ptr<std::string> response);
@@ -30,7 +30,7 @@ private:
 private:
     Scheduler scheduler;
     Storage store;
-    LOProduction factory;
+    opc_client fct_client;
     UdpServer* erp_server;
     boost::asio::io_service io_service;
 };

@@ -9,8 +9,9 @@ MES::MES()
 {
     // scheduler = Scheduler();
     erp_server = new UdpServer(io_service, LISTEN_PORT);
+    fct_client = opc_client();
     store = Storage((const int[]){1,2,4,8,16,32,64,128,256});
-    // factory = LOProduction();
+    
     // Log::getLogger()->set_level(spdlog::level::info);
 }
 
@@ -18,10 +19,6 @@ void MES::start()
 {
     MES_INFO("\n###### STARTING ######");
     setUp();
-    // TEST
-    // StorageDoc doc(store);
-    // doc.save(std::cout);
-    // TEST
     MES_INFO("\n###### RUNNING ######");
     run();  
 }
@@ -29,22 +26,20 @@ void MES::start()
 void MES::run()
 {
     std::thread erpServerThread([this]() {
-        MES_TRACE("Starting UDP Server. Listening on PORT({}).", LISTEN_PORT);
+        MES_INFO("Starting UDP Server. Listening on PORT({}).", LISTEN_PORT);
         io_service.run();
     });
 
     char buf[50];
     while(1)
     {
-        factory.listen();
-        factory.send();
         std::cin >> buf;
     }
 
     erpServerThread.join();
 }
 
-int MES::setUp()
+void MES::setUp()
 {
     // erp_server->setRequestDispatcher(std::bind(&MES::erpRequestDispatcher, this, std::placeholders::_1);
     erp_server->setRequestDispatcher([this](char* data, std::size_t len, std::shared_ptr<std::string> response) {
@@ -64,7 +59,7 @@ void MES::erpRequestDispatcher(char* data, std::size_t len, std::shared_ptr<std:
     for (pugi::xml_node_iterator it = doc.root().begin(); it != doc.root().end(); it++)
     {
         auto node_name = std::string(it->name());
-        MES_TRACE(node_name);
+        // MES_TRACE(node_name);
 
         // ORDER REQUEST
         if(node_name == std::string(ORDER_NODE)){
@@ -79,7 +74,7 @@ void MES::erpRequestDispatcher(char* data, std::size_t len, std::shared_ptr<std:
             onScheduleRequest(response);
         }
         else{
-            MES_WARN("Unknown type of order \"{}\".", node_name);
+            MES_WARN("Unknown node name: \"{}\"", node_name);
         }
     }
 }
@@ -124,6 +119,7 @@ Order *MES::OrderFactory(const OrderNode &order_node)
     }
     else
     {
+        MES_WARN("Unknown type of order: \"{}\"", node_name);
     }
 
     return order;
