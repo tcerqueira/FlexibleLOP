@@ -2,6 +2,7 @@
 #include <sstream>
 #include "Orders.h"
 #include "Utils.h"
+#include "Database.h"
 
 MES::MES()
 {
@@ -39,6 +40,8 @@ void MES::run()
 
 void MES::setUp()
 {
+    // connect to DB
+    Database::Get().connect();
     // erp_server->setRequestDispatcher(std::bind(&MES::erpRequestDispatcher, this, std::placeholders::_1);
     erp_server->setRequestDispatcher([this](char* data, std::size_t len, std::shared_ptr<std::string> response) {
         erpRequestDispatcher(data, len, response);

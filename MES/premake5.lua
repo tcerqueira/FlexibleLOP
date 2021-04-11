@@ -30,15 +30,14 @@ project "MES"
     }
 
     libdirs {
-        --"libs/spdlog/build"
         "libs/open62541/build/bin"
     }
 
     links {
         "pthread",
         "boost_system:static",
-        "open62541:static"
-        --"spdlog"
+        "open62541:static",
+        "pq", "pqxx"
     }
 
     filter "configurations:Debug"
