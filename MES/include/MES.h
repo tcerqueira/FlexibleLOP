@@ -25,6 +25,7 @@ private:
     void onOrderRequest(const OrderNode& order_node, std::shared_ptr<std::string> response);
     void onStorageRequest(std::shared_ptr<std::string> response);
     void onScheduleRequest(std::shared_ptr<std::string> response);
+    // Factory of orders from xml
     static Order *OrderFactory(const OrderNode &order_node);
 
 private:

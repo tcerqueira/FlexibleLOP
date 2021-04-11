@@ -1,8 +1,6 @@
 #include "MES.h"
 #include <sstream>
 #include "Orders.h"
-#include "udp_server.h"
-#include "XmlParser.h"
 #include "Utils.h"
 
 MES::MES()
