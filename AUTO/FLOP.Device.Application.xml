@@ -13,7 +13,13 @@
   <NodeList>
     <Node name="Application">
       <Node name="PLC_PRG">
+        <Node name="CL0T3_dir" type="T_INT" access="ReadWrite" />
+        <Node name="CL0T4_dir" type="T_INT" access="ReadWrite" />
         <Node name="CL0T5_dir" type="T_INT" access="ReadWrite" />
+        <Node name="CL1T2_dir" type="T_BOOL" access="ReadWrite" />
+        <Node name="CL1T2_tool" type="T_INT" access="ReadWrite" />
+        <Node name="CL1T3_dir" type="T_BOOL" access="ReadWrite" />
+        <Node name="CL1T3_tool" type="T_INT" access="ReadWrite" />
         <Node name="CL1T4_dir" type="T_BOOL" access="ReadWrite" />
         <Node name="CL1T4_tool" type="T_INT" access="ReadWrite" />
         <Node name="t" type="T_TIME" access="ReadWrite" />
