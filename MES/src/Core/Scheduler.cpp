@@ -1,32 +1,37 @@
 #include "Scheduler.h"
 
-void Scheduler::addOrderList(std::vector<Order*> &list)
+void Scheduler::addOrderList(std::vector<TransformOrder*> &list)
 {
-    for(Order* order : list)
+    for(TransformOrder* order : list)
     {
-        addOrder(order);
+        addTransform(order);
     }
 }
 
-void Scheduler::addOrder(Order* order)
+void Scheduler::addTransform(TransformOrder* order)
 {
     // TODO: priority insertion
-    orders.push_back(order);
+    t_orders.push_back(order);
 }
 
-Order Scheduler::popOrder()
+void Scheduler::addUnload(UnloadOrder* order)
 {
-    Order order = --(*orders.front());
-    // if all orders dispatched
-    if(order.getDoing() + order.getDone() >= order.getQuantity()){
-        MES_TRACE("Order {} dispatched.", order);
-        // TODO: add it to dispatched list
-    }
-
-    return order;
+    u_orders.push_back(order);
 }
 
-Order* Scheduler::orderAt(int index) const
+// TransformOrder Scheduler::popOrder()
+// {
+//     TransformOrder order = --(*t_orders.front());
+//     // if all orders dispatched
+//     if(order.getDoing() + order.getDone() >= order.getQuantity()){
+//         MES_TRACE("Order {} dispatched.", order);
+//         // TODO: add it to dispatched list
+//     }
+
+//     return order;
+// }
+
+TransformOrder* Scheduler::orderAt(int index) const
 {
-    return orders[index];
+    return t_orders[index];
 }

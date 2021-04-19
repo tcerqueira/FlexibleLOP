@@ -27,9 +27,7 @@ public:
     xml_node root() const { return child(ROOT_NODE); }
     // NOT TESTED
     bool isLoaded() { return (bool) m_Result; }
-
-protected:
-
+    
 private:
     xml_parse_result m_Result;
 };
@@ -67,7 +65,7 @@ private:
 class ScheduleDoc : public xml_document
 {
 public:
-    ScheduleDoc(const Scheduler& schedule);
+    ScheduleDoc(Scheduler& schedule);
 
 private:
 

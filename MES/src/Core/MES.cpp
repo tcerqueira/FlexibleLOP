@@ -8,7 +8,7 @@ MES::MES()
 {
     // scheduler = Scheduler();
     erp_server = new UdpServer(io_service, LISTEN_PORT);
-    fct_client = opc_client();
+    fct_client = new OpcClient();
     store = Storage((const int[]){1,2,4,8,16,32,64,128,256});
     
     // Log::getLogger()->set_level(spdlog::level::info);
@@ -24,7 +24,7 @@ void MES::start()
 
 void MES::run()
 {
-    fct_client.connect("localhost:4840");
+    fct_client->connect("localhost:4840");
 
     std::thread erpServerThread([this]() {
         MES_INFO("Starting UDP Server. Listening on PORT({}).", LISTEN_PORT);
@@ -35,6 +35,7 @@ void MES::run()
     while(1)
     {
         std::cin >> buf;
+        MES_TRACE(scheduler);
     }
 
     erpServerThread.join();
@@ -88,7 +89,17 @@ void MES::onOrderRequest(const OrderNode& order_node, std::shared_ptr<std::strin
 {
     Order* order = MES::OrderFactory(order_node);
     MES_TRACE("Order received: {}.", *order);
-    scheduler.addOrder(order);
+
+    auto t_order = dynamic_cast<TransformOrder*>(order);
+    auto u_order = dynamic_cast<UnloadOrder*>(order);
+    if(t_order != nullptr)
+    {
+        scheduler.addTransform(t_order);
+    }
+    else if(u_order != nullptr)
+    {
+        scheduler.addUnload(u_order);
+    }
     // MES_TRACE(scheduler);
 }
 
@@ -133,4 +144,5 @@ Order *MES::OrderFactory(const OrderNode &order_node)
 MES::~MES()
 {
     delete erp_server;
+    delete fct_client;
 }
