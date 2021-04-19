@@ -25,6 +25,8 @@ void MES::start()
 
 void MES::run()
 {
+    fct_client.connect("localhost:4840");
+
     std::thread erpServerThread([this]() {
         MES_INFO("Starting UDP Server. Listening on PORT({}).", LISTEN_PORT);
         io_service.run();
