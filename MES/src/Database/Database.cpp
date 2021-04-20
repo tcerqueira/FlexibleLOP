@@ -13,9 +13,16 @@ Database& Database::Get()
     return *instance;
 }
 
-void Database::connect()
+int Database::connect()
 {
-    conn = new pqxx::connection("dbname = sinf2021a13 user = sinf2021a13 password = ljyFftJD host = db.fe.up.pt");
+    try{
+        conn = new pqxx::connection("dbname = sinf2021a13 user = sinf2021a13 password = ljyFftJD host = db.fe.up.pt");
+        return 1;
+    }
+    catch(const std::exception &e){
+        MES_ERROR("Connection Error: {}", e.what());
+        return 0;
+    }
 }
 
 Database::Database()

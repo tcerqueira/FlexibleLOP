@@ -1,19 +1,46 @@
 #pragma once
 
 #include "l_comms.h"
+#include <unordered_map>
+
 #include <open62541/client.h>
 #include <open62541/client_config_default.h>
 #include <open62541/client_highlevel.h>
 
-class opc_client
+enum opc_evt_type {
+    REQ_ORDER, ORDER_BEGIN, ORDER_END, _END_EVT_
+};
+
+// template <typename T>
+struct opc_evt
+{
+    opc_evt_type type;
+    int data; // temporary testing
+    // void *data;
+    // std::size_t data_len;
+};
+
+class OpcClient
 {
 public:
-    opc_client();
-    ~opc_client();
+    using evtHandler = std::function<void(opc_evt)>;
+
+    OpcClient();
+    ~OpcClient();
+    int connect(const std::string &endpoint);
+    void startListening(int t_ms);
+    void stopListening();
+    void addListener(opc_evt_type type, evtHandler handler);
+
+    // void removeListener(opc_evt_type type, evtHandler handler);
     int readvalue();
-    int connect(const char* endpoint);
+    int writevalue(UA_NodeId nodeid, UA_Variant *newValue);
+private:
+    void notify(opc_evt evt);
+
 private:
     UA_Client* client;
     UA_StatusCode connectionStatus;
-    UA_Variant value;
+    volatile bool isListening;
+    std::unordered_map<opc_evt_type, std::vector<evtHandler>, std::hash<int>> listeners;
 };

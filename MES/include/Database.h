@@ -11,7 +11,7 @@ public:
     void operator=(const Database &) = delete;
 
     static Database& Get();
-    void connect();
+    int connect();
 
 protected:
     Database();

@@ -31,7 +31,7 @@ private:
 private:
     Scheduler scheduler;
     Storage store;
-    opc_client fct_client;
+    OpcClient* fct_client;
     UdpServer* erp_server;
     boost::asio::io_service io_service;
 };
