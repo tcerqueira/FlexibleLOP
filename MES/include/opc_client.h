@@ -10,8 +10,10 @@ class opc_client
 public:
     opc_client();
     ~opc_client();
+    int readvalue();
     int connect(const char* endpoint);
 private:
     UA_Client* client;
     UA_StatusCode connectionStatus;
+    UA_Variant value;
 };
