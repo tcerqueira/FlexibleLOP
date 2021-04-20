@@ -57,7 +57,7 @@ int OpcClient::readvalue()
 {
     UA_Variant value;
     UA_Variant_init(&value);
-    connectionStatus = UA_Client_readValueAttribute(client, UA_NODEID_STRING(1, "the.answer"), &value);
+    // connectionStatus = UA_Client_readValueAttribute(client, UA_NODEID_STRING(1, "the.answer"), &value);
     if(connectionStatus == UA_STATUSCODE_GOOD && UA_Variant_hasScalarType(&value, &UA_TYPES[UA_TYPES_INT32])) {
         printf("the value is: %i\n", *(UA_Int32*)value.data);
         UA_Variant_clear(&value);

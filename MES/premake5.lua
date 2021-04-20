@@ -1,7 +1,7 @@
 -- premake5
 workspace "MES"
     configurations {"Debug", "Release"}
-    architecture "x64"
+    -- architecture "x64"
     --system "windows"
     cppdialect "C++17"
 
@@ -36,8 +36,8 @@ project "MES"
     links {
         "pthread",
         "boost_system:static",
-        "open62541:static",
-        "pq", "pqxx"
+        "open62541:static"
+        -- "pqxx", "pq"
     }
 
     filter "configurations:Debug"
