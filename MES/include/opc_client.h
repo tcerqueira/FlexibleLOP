@@ -11,16 +11,19 @@ enum opc_evt_type {
     REQ_ORDER, ORDER_BEGIN, ORDER_END, _END_EVT_
 };
 
-typedef struct
+// template <typename T>
+struct opc_evt
 {
     opc_evt_type type;
     int data; // temporary testing
-} opc_evt;
+    // void *data;
+    // std::size_t data_len;
+};
 
 class OpcClient
 {
 public:
-    typedef std::function<void(opc_evt)> evtHandler;
+    using evtHandler = std::function<void(opc_evt)>;
 
     OpcClient();
     ~OpcClient();
@@ -30,7 +33,8 @@ public:
     void addListener(opc_evt_type type, evtHandler handler);
     // void removeListener(opc_evt_type type, evtHandler handler);
 private:
-    // bool 
+    void notify(opc_evt evt);
+
 private:
     UA_Client* client;
     UA_StatusCode connectionStatus;

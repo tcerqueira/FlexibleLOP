@@ -19,8 +19,23 @@ void OpcClient::startListening(int t_ms)
     isListening = true;
     while(isListening)
     {
-        listeners[REQ_ORDER].at(0)({REQ_ORDER, t_ms});
+        // opc_evt<int> evt = {REQ_ORDER, t_ms};
+        // TODO: check when events happen
+        if(true)
+            notify({REQ_ORDER, t_ms});
+        if(true)
+            notify({ORDER_BEGIN, t_ms});
+        if(true)
+            notify({ORDER_END, t_ms});
         std::this_thread::sleep_for(std::chrono::milliseconds(t_ms));
+    }
+}
+
+void OpcClient::notify(opc_evt evt)
+{
+    for(auto listener : listeners[evt.type])
+    {
+        listener(evt);
     }
 }
 

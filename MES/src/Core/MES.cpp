@@ -64,7 +64,15 @@ void MES::setUp()
     });
     // set listener to request order
     fct_client->addListener(REQ_ORDER, [this](opc_evt evt) {
-        MES_TRACE("Listened.");
+        MES_TRACE("Listened Request Order. (data={})", evt.data);
+    });
+    // set listener to order beginning
+    fct_client->addListener(ORDER_BEGIN, [this](opc_evt evt) {
+        MES_TRACE("Listened Order Begin. (data={})", evt.data);
+    });
+    // set listener to order ending
+    fct_client->addListener(ORDER_END, [this](opc_evt evt) {
+        MES_TRACE("Listened Order End. (data={})", evt.data);
     });
 }
 
