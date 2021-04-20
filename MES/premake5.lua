@@ -1,7 +1,7 @@
 -- premake5
 workspace "MES"
     configurations {"Debug", "Release"}
-    -- architecture "x64"
+    architecture "x64"
     --system "windows"
     cppdialect "C++17"
 
@@ -26,17 +26,21 @@ project "MES"
         "src",
         "libs/pugixml/src",
         "libs/spdlog/include",
-        "libs/open62541/include"
+        "libs/open62541/include",
+        "libs/SQLAPI/include"
     }
 
     libdirs {
-        "libs/open62541/build/bin"
+        "libs/open62541/build/bin",
+        "libs/SQLAPI/lib"
     }
 
     links {
         "pthread",
         "boost_system:static",
-        "open62541:static"
+        "open62541:static",
+        "sqlapi:static",
+        "dl"
         -- "pqxx", "pq"
     }
 

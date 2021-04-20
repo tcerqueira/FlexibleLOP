@@ -15,14 +15,14 @@ Database& Database::Get()
 
 int Database::connect()
 {
-    // try{
-    //     conn = new pqxx::connection("dbname = sinf2021a13 user = sinf2021a13 password = ljyFftJD host = db.fe.up.pt");
-    //     return 1;
-    // }
-    // catch(const std::exception &e){
-    //     MES_ERROR("Connection Error: {}", e.what());
-    //     return 0;
-    // }
+    try{
+        conn.Connect(_TSA("demo"), _TSA("guest"), _TSA("secret"), SA_SQLServer_Client);
+    }
+    catch(const SAException& e)
+    {
+        MES_ERROR("Error connecting.");
+    }
+
     return 1;
 }
 

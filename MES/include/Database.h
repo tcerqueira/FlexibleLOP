@@ -2,6 +2,7 @@
 
 #include "l_comms.h"
 #include <mutex>
+#include <SQLAPI.h>
 // #include <pqxx/pqxx>
 
 class Database
@@ -20,5 +21,5 @@ protected:
 private:
     static Database *instance;
     static std::mutex mutex;
-    // pqxx::connection *conn;
+    SAConnection conn;
 };
