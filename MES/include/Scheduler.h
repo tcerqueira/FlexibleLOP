@@ -12,7 +12,6 @@ public:
     void addTransform(TransformOrder* order);
     void addUnload(UnloadOrder* order);
     // TransformOrder popOrder();
-    TransformOrder* orderAt(int index) const;
     std::vector<TransformOrder*> &getTransformOrders() { return t_orders; };
     std::vector<UnloadOrder*> &getUnloadOrders() { return u_orders; };
 

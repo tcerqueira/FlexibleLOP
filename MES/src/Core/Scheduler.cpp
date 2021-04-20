@@ -30,8 +30,3 @@ void Scheduler::addUnload(UnloadOrder* order)
 
 //     return order;
 // }
-
-TransformOrder* Scheduler::orderAt(int index) const
-{
-    return t_orders[index];
-}

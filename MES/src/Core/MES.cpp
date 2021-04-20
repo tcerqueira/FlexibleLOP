@@ -31,14 +31,21 @@ void MES::run()
         io_service.run();
     });
 
+    std::thread opcListenerThread([this]() {
+        MES_INFO("Listening OPC Server.");
+        fct_client->startListening(5000);
+    });
+
     char buf[50];
     while(1)
     {
         std::cin >> buf;
-        MES_TRACE(scheduler);
+        // MES_TRACE(scheduler);
+        if(buf[0] == 'x') fct_client->stopListening();
     }
 
     erpServerThread.join();
+    opcListenerThread.join();
 }
 
 void MES::setUp()
@@ -54,6 +61,10 @@ void MES::setUp()
     // set response dispatcher for udp server
     erp_server->setResponseDispatcher([this](std::shared_ptr<std::string> response, std::size_t len) {
         MES_TRACE("{} bytes sent to ERP.", len);
+    });
+    // set listener to request order
+    fct_client->addListener(REQ_ORDER, [this](opc_evt evt) {
+        MES_TRACE("Listened.");
     });
 }
 
