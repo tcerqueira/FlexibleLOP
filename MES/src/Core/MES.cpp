@@ -1,16 +1,16 @@
 #include "MES.h"
 #include <sstream>
 #include "Orders.h"
-#include "udp_server.h"
-#include "XmlParser.h"
 #include "Utils.h"
+#include "Database.h"
 
 MES::MES()
 {
     // scheduler = Scheduler();
-    erp_server = new UdpServer(io_service, LISTEN_PORT);
+    erp_server = new UdpServer(io_service, UDP_LISTEN_PORT);
+    fct_client = new OpcClient();
     store = Storage((const int[]){1,2,4,8,16,32,64,128,256});
-    // factory = LOProduction();
+    
     // Log::getLogger()->set_level(spdlog::level::info);
 }
 
@@ -18,41 +18,62 @@ void MES::start()
 {
     MES_INFO("\n###### STARTING ######");
     setUp();
-    // TEST
-    // StorageDoc doc(store);
-    // doc.save(std::cout);
-    // TEST
     MES_INFO("\n###### RUNNING ######");
     run();  
 }
 
 void MES::run()
 {
+    fct_client->connect("LAPTOP-6MKI0KJB:4840");
+
     std::thread erpServerThread([this]() {
-        MES_TRACE("Starting UDP Server. Listening on PORT({}).", LISTEN_PORT);
+        MES_INFO("Starting UDP Server. Listening on PORT({}).", UDP_LISTEN_PORT);
         io_service.run();
+    });
+
+    std::thread opcListenerThread([this]() {
+        MES_INFO("Listening OPC Server.");
+        fct_client->startListening(OPC_LISTEN_PERIOD_MS);
     });
 
     char buf[50];
     while(1)
     {
-        factory.listen();
-        factory.send();
         std::cin >> buf;
+        // MES_TRACE(scheduler);
+        if(buf[0] == 'x') fct_client->stopListening();
     }
 
     erpServerThread.join();
+    opcListenerThread.join();
 }
 
-int MES::setUp()
+void MES::setUp()
 {
-    // erp_server->setRequestDispatcher(std::bind(&MES::erpRequestDispatcher, this, std::placeholders::_1);
+    // connect to DB
+    if(!Database::Get().connect()){
+        // TODO: connection fails
+        MES_ERROR("Could not connect to Database.");
+    }
+    // set request dispatcher for udp server
     erp_server->setRequestDispatcher([this](char* data, std::size_t len, std::shared_ptr<std::string> response) {
         erpRequestDispatcher(data, len, response);
     });
-
+    // set response dispatcher for udp server
     erp_server->setResponseDispatcher([this](std::shared_ptr<std::string> response, std::size_t len) {
         MES_TRACE("{} bytes sent to ERP.", len);
+    });
+    // set listener to request order
+    fct_client->addListener(REQ_ORDER, [this](opc_evt evt) {
+        MES_TRACE("Listened Request Order. (data={})", evt.data);
+    });
+    // set listener to order beginning
+    fct_client->addListener(ORDER_BEGIN, [this](opc_evt evt) {
+        MES_TRACE("Listened Order Begin. (data={})", evt.data);
+    });
+    // set listener to order ending
+    fct_client->addListener(ORDER_END, [this](opc_evt evt) {
+        MES_TRACE("Listened Order End. (data={})", evt.data);
     });
 }
 
@@ -64,7 +85,7 @@ void MES::erpRequestDispatcher(char* data, std::size_t len, std::shared_ptr<std:
     for (pugi::xml_node_iterator it = doc.root().begin(); it != doc.root().end(); it++)
     {
         auto node_name = std::string(it->name());
-        MES_TRACE(node_name);
+        // MES_TRACE(node_name);
 
         // ORDER REQUEST
         if(node_name == std::string(ORDER_NODE)){
@@ -79,7 +100,7 @@ void MES::erpRequestDispatcher(char* data, std::size_t len, std::shared_ptr<std:
             onScheduleRequest(response);
         }
         else{
-            MES_WARN("Unknown type of order \"{}\".", node_name);
+            MES_WARN("Unknown node name: \"{}\"", node_name);
         }
     }
 }
@@ -88,7 +109,17 @@ void MES::onOrderRequest(const OrderNode& order_node, std::shared_ptr<std::strin
 {
     Order* order = MES::OrderFactory(order_node);
     MES_TRACE("Order received: {}.", *order);
-    scheduler.addOrder(order);
+
+    auto t_order = dynamic_cast<TransformOrder*>(order);
+    auto u_order = dynamic_cast<UnloadOrder*>(order);
+    if(t_order != nullptr)
+    {
+        scheduler.addTransform(t_order);
+    }
+    else if(u_order != nullptr)
+    {
+        scheduler.addUnload(u_order);
+    }
     // MES_TRACE(scheduler);
 }
 
@@ -124,6 +155,7 @@ Order *MES::OrderFactory(const OrderNode &order_node)
     }
     else
     {
+        MES_WARN("Unknown type of order: \"{}\"", node_name);
     }
 
     return order;
@@ -132,4 +164,5 @@ Order *MES::OrderFactory(const OrderNode &order_node)
 MES::~MES()
 {
     delete erp_server;
+    delete fct_client;
 }
