@@ -8,7 +8,8 @@
 #include "opc_client.h"
 #include "XmlParser.h"
 
-#define LISTEN_PORT 54321
+#define UDP_LISTEN_PORT 54321
+#define OPC_LISTEN_PERIOD_MS 5000
 
 class MES
 {

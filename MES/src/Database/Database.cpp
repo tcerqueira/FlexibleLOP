@@ -16,11 +16,12 @@ Database& Database::Get()
 int Database::connect()
 {
     try{
-        conn.Connect(_TSA("demo"), _TSA("guest"), _TSA("secret"), SA_SQLServer_Client);
+        // TODO: read from config file to not expose secrets
+        conn.Connect(_TSA("db.fe.up.pt@sinf2021a13"), _TSA("sinf2021a13"), _TSA("ljyFftJD"), SA_PostgreSQL_Client);
     }
     catch(const SAException& e)
     {
-        MES_ERROR("Error connecting.");
+        return 0;
     }
 
     return 1;

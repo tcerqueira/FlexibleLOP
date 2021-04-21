@@ -7,7 +7,7 @@
 MES::MES()
 {
     // scheduler = Scheduler();
-    erp_server = new UdpServer(io_service, LISTEN_PORT);
+    erp_server = new UdpServer(io_service, UDP_LISTEN_PORT);
     fct_client = new OpcClient();
     store = Storage((const int[]){1,2,4,8,16,32,64,128,256});
     
@@ -27,13 +27,13 @@ void MES::run()
     fct_client->connect("localhost:4840");
 
     std::thread erpServerThread([this]() {
-        MES_INFO("Starting UDP Server. Listening on PORT({}).", LISTEN_PORT);
+        MES_INFO("Starting UDP Server. Listening on PORT({}).", UDP_LISTEN_PORT);
         io_service.run();
     });
 
     std::thread opcListenerThread([this]() {
         MES_INFO("Listening OPC Server.");
-        fct_client->startListening(5000);
+        fct_client->startListening(OPC_LISTEN_PERIOD_MS);
     });
 
     char buf[50];
@@ -53,6 +53,7 @@ void MES::setUp()
     // connect to DB
     if(!Database::Get().connect()){
         // TODO: connection fails
+        MES_ERROR("Could not connect to Database.");
     }
     // set request dispatcher for udp server
     erp_server->setRequestDispatcher([this](char* data, std::size_t len, std::shared_ptr<std::string> response) {
