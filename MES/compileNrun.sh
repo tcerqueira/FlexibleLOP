@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 
 make -j
 echo "==== Running ===="
