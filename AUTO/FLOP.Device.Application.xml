@@ -9,9 +9,20 @@
     <TypeSimple name="T_BOOL" size="1" swapsize="0" typeclass="Bool" iecname="BOOL" />
     <TypeSimple name="T_INT" size="2" swapsize="2" typeclass="Int" iecname="INT" />
     <TypeSimple name="T_TIME" size="4" swapsize="4" typeclass="Time" iecname="TIME" />
+    <TypeUserDef name="T_Order_t" size="3" nativesize="4" typeclass="Userdef" pouclass="STRUCTURE" iecname="Order_t">
+      <UserDefElement iecname="x" type="T_INT" byteoffset="0" vartype="VAR" />
+      <UserDefElement iecname="y" type="T_BOOL" byteoffset="2" vartype="VAR" />
+    </TypeUserDef>
+    <TypeArray name="T_ARRAY__1__10__OF_Order_t" size="40" nativesize="40" typeclass="Array" iecname="ARRAY [1..10] OF Order_t" basetype="T_Order_t">
+      <ArrayDim minrange="1" maxrange="10" />
+    </TypeArray>
   </TypeList>
   <NodeList>
     <Node name="Application">
+      <Node name="GVL">
+        <Node name="order" type="T_ARRAY__1__10__OF_Order_t" access="ReadWrite" />
+        <Node name="test" type="T_INT" access="ReadWrite" />
+      </Node>
       <Node name="PLC_PRG">
         <Node name="CL0T3_dir" type="T_INT" access="ReadWrite" />
         <Node name="CL0T4_dir" type="T_INT" access="ReadWrite" />
