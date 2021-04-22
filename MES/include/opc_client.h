@@ -16,8 +16,6 @@ struct opc_evt
 {
     opc_evt_type type;
     int data; // temporary testing
-    // void *data;
-    // std::size_t data_len;
 };
 
 class OpcClient
@@ -33,9 +31,10 @@ public:
     void addListener(opc_evt_type type, evtHandler handler);
 
     // void removeListener(opc_evt_type type, evtHandler handler);
-    int readvalue();
-    int writevalue(UA_NodeId nodeid, UA_Variant *newValue);
-private:
+    int readValue(UA_NodeId nodeid, UA_Variant &value);
+    int writeValue(UA_NodeId nodeid, UA_Variant &newValue);
+
+protected:
     void notify(opc_evt evt);
 
 private:

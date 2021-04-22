@@ -53,24 +53,22 @@ void OpcClient::addListener(opc_evt_type type, evtHandler handler)
     listeners[type].push_back(handler);
 }
 
-int OpcClient::readvalue()
+int OpcClient::readValue(UA_NodeId nodeid, UA_Variant &value)
 {
-    UA_Variant value;
-    UA_Variant_init(&value);
-    // connectionStatus = UA_Client_readValueAttribute(client, UA_NODEID_STRING(1, "the.answer"), &value);
-    if(connectionStatus == UA_STATUSCODE_GOOD && UA_Variant_hasScalarType(&value, &UA_TYPES[UA_TYPES_INT32])) {
-        printf("the value is: %i\n", *(UA_Int32*)value.data);
-        UA_Variant_clear(&value);
+    UA_StatusCode read_status = UA_Client_readValueAttribute(client, nodeid, &value);
+    if(read_status == UA_STATUSCODE_GOOD && UA_Variant_hasScalarType(&value, &UA_TYPES[UA_TYPES_INT16])) {
         return 1;
     };
-    UA_Variant_clear(&value);
     return 0;
 }
 
-int OpcClient::writevalue(UA_NodeId nodeid, UA_Variant *newValue)
+int OpcClient::writeValue(UA_NodeId nodeid, UA_Variant &newValue)
 {
-    connectionStatus = UA_Client_writeValueAttribute(client, nodeid, newValue);
-    return 1;
+    UA_StatusCode write_status = UA_Client_writeValueAttribute(client, nodeid, &newValue);
+    if(write_status == UA_STATUSCODE_GOOD) {
+        return 1;
+    }
+    return 0;
 }
 
 OpcClient::~OpcClient()
