@@ -22,6 +22,8 @@ piece_t parsePiece(const char* piece)
         return P8;
     if(str == std::string("P9"))
         return P9;
+    
+    return End_p;
 }
 
 dest_t parseDest(const char* dest)
@@ -33,6 +35,8 @@ dest_t parseDest(const char* dest)
         return PM2;
     if(str == std::string("PM3"))
         return PM3;
+    
+    return End_d;
 }
 
 char* pieceToString(piece_t piece)

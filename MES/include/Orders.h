@@ -94,11 +94,11 @@ OStream &operator<<(OStream &os, const Order &o)
 template <typename OStream>
 OStream &operator<<(OStream &os, const TransformOrder &o)
 {
-    return os << "[TransformOrder id=" << o.getId() << " Quantity=" << o.getQuantity() << " Time=" << o.getTimeRcv() << " Penalty=" << o.penaltyPerDay << "]";
+    return os << "[TransformOrder id=" << o.getId() << " Quantity=" << o.getQuantity() << " Time=" << o.getTimeRcv() << " Piece_I="<< (int)o.initial << " Piece_F="<< (int)o.finalp << " Penalty=" << o.penaltyPerDay << "]";
 }
 
 template <typename OStream>
 OStream &operator<<(OStream &os, const UnloadOrder &o)
 {
-    return os << "[UnloadOrder id=" << o.getId() << " Quantity=" << o.getQuantity() << " Time=" << o.getTimeRcv() << " Dest=" << o.dest << "]";
+    return os << "[UnloadOrder id=" << o.getId() << " Quantity=" << o.getQuantity() << " Time=" << o.getTimeRcv() << " Piece="<< (int)o.piece << " Dest=" << (int)o.dest << "]";
 }

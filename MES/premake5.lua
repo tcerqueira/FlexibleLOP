@@ -26,19 +26,22 @@ project "MES"
         "src",
         "libs/pugixml/src",
         "libs/spdlog/include",
-        "libs/open62541/include"
+        "libs/open62541/include",
+        "libs/SQLAPI/include"
     }
 
     libdirs {
-        --"libs/spdlog/build"
-        "libs/open62541/build/bin"
+        "libs/open62541/build/bin",
+        "libs/SQLAPI/lib"
     }
 
     links {
         "pthread",
         "boost_system:static",
-        "open62541:static"
-        --"spdlog"
+        "open62541:static",
+        "sqlapi:static",
+        "dl"
+        -- "pqxx", "pq"
     }
 
     filter "configurations:Debug"
