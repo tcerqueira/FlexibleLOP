@@ -37,11 +37,21 @@ void MES::run()
     });
 
     char buf[50];
+    int aux=1;
     while(1)
     {
         std::cin >> buf;
         // MES_TRACE(scheduler);
         if(buf[0] == 'x') fct_client->stopListening();
+
+        if(buf[0] == 'a')
+        {
+            aux++;
+            UA_Variant *test = UA_Variant_new();
+            UA_Variant_setScalarCopy(test, &aux, &UA_TYPES[UA_TYPES_INT16]);
+            fct_client->writevalue(UA_NODEID_STRING(4, "|var|CODESYS Control Win V3 x64.Application.GVL.test") , test);
+            UA_Variant_delete(test);
+        }
     }
 
     erpServerThread.join();
