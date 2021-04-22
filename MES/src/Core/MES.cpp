@@ -24,7 +24,7 @@ void MES::start()
 
 void MES::run()
 {
-    fct_client->connect("LAPTOP-6MKI0KJB:4840");
+    fct_client->connect("localhost:4840");
 
     std::thread erpServerThread([this]() {
         MES_INFO("Starting UDP Server. Listening on PORT({}).", UDP_LISTEN_PORT);
@@ -33,7 +33,7 @@ void MES::run()
 
     std::thread opcListenerThread([this]() {
         MES_INFO("Listening OPC Server.");
-        fct_client->startListening(OPC_LISTEN_PERIOD_MS);
+        //fct_client->startListening(OPC_LISTEN_PERIOD_MS);
     });
 
     char buf[50];
@@ -44,12 +44,20 @@ void MES::run()
         // MES_TRACE(scheduler);
         if(buf[0] == 'x') fct_client->stopListening();
 
-        if(buf[0] == 'a')
+        if(buf[0] == 'w')
         {
             aux++;
             UA_Variant *test = UA_Variant_new();
             UA_Variant_setScalarCopy(test, &aux, &UA_TYPES[UA_TYPES_INT16]);
-            fct_client->writevalue(UA_NODEID_STRING(4, "|var|CODESYS Control Win V3 x64.Application.GVL.test") , test);
+            MES_TRACE("write return: {0}", fct_client->writeValue(UA_NODEID_STRING(4, "|var|CODESYS Control Win V3 x64.Application.GVL.test") , *test));
+            UA_Variant_delete(test);
+        }
+
+        if(buf[0] == 'r')
+        {
+            UA_Variant *test = UA_Variant_new();
+            MES_TRACE("read return: {0}", fct_client->readValue(UA_NODEID_STRING(4, "|var|CODESYS Control Win V3 x64.Application.GVL.test"), *test));
+            MES_TRACE("read value: {}", *(UA_Int16*)test->data);
             UA_Variant_delete(test);
         }
     }
