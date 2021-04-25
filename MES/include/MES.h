@@ -9,7 +9,7 @@
 #include "XmlParser.h"
 
 #define UDP_LISTEN_PORT 54321
-#define OPC_LISTEN_PERIOD_MS 5000
+#define OPC_LISTEN_PERIOD_MS 10000
 
 class MES
 {

@@ -4,6 +4,8 @@
 #include "Utils.h"
 #include "Database.h"
 
+#define OPC_GLOBAL_NODE(x) { 4, std::string("|var|CODESYS Control Win V3 x64.Application.GVL.") + x }
+
 MES::MES()
 {
     // scheduler = Scheduler();
@@ -33,33 +35,15 @@ void MES::run()
 
     std::thread opcListenerThread([this]() {
         MES_INFO("Listening OPC Server.");
-        //fct_client->startListening(OPC_LISTEN_PERIOD_MS);
+        fct_client->startListening(OPC_LISTEN_PERIOD_MS);
     });
 
     char buf[50];
-    int aux=1;
     while(1)
     {
         std::cin >> buf;
         // MES_TRACE(scheduler);
         if(buf[0] == 'x') fct_client->stopListening();
-
-        if(buf[0] == 'w')
-        {
-            aux++;
-            UA_Variant *test = UA_Variant_new();
-            UA_Variant_setScalarCopy(test, &aux, &UA_TYPES[UA_TYPES_INT16]);
-            MES_TRACE("write return: {0}", fct_client->writeValue(UA_NODEID_STRING(4, "|var|CODESYS Control Win V3 x64.Application.GVL.test") , *test));
-            UA_Variant_delete(test);
-        }
-
-        if(buf[0] == 'r')
-        {
-            UA_Variant *test = UA_Variant_new();
-            MES_TRACE("read return: {0}", fct_client->readValue(UA_NODEID_STRING(4, "|var|CODESYS Control Win V3 x64.Application.GVL.test"), *test));
-            MES_TRACE("read value: {}", *(UA_Int16*)test->data);
-            UA_Variant_delete(test);
-        }
     }
 
     erpServerThread.join();
@@ -82,16 +66,22 @@ void MES::setUp()
         MES_TRACE("{} bytes sent to ERP.", len);
     });
     // set listener to request order
-    fct_client->addListener(REQ_ORDER, [this](opc_evt evt) {
-        MES_TRACE("Listened Request Order. (data={})", evt.data);
+    fct_client->addListener(OPC_GLOBAL_NODE("finish_orderC1_flag"), [this](opc_evt evt) {
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
     });
     // set listener to order beginning
-    fct_client->addListener(ORDER_BEGIN, [this](opc_evt evt) {
-        MES_TRACE("Listened Order Begin. (data={})", evt.data);
+    fct_client->addListener(OPC_GLOBAL_NODE("finish_orderC2_flag"), [this](opc_evt evt) {
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
     });
     // set listener to order ending
-    fct_client->addListener(ORDER_END, [this](opc_evt evt) {
-        MES_TRACE("Listened Order End. (data={})", evt.data);
+    fct_client->addListener(OPC_GLOBAL_NODE("unload_order_flag"), [this](opc_evt evt) {
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+    });
+    fct_client->addListener(OPC_GLOBAL_NODE("berwrehw"), [this](opc_evt evt) {
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+    });
+    fct_client->addListener(OPC_GLOBAL_NODE("berwrehw"), [this](opc_evt evt) {
+        MES_TRACE("Notification received on node2: n={}:{}", evt.node.name_space, evt.node.id_str);
     });
 }
 
