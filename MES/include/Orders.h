@@ -7,6 +7,7 @@ class Order
 {
 public:
     Order(int id, time_t receivedAt, int quantity);
+    virtual ~Order() = default;
     // getters
     int getId() const { return id; }
     int getDone() const { return doneAmount; }
