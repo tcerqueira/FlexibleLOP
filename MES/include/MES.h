@@ -8,9 +8,6 @@
 #include "opc_client.h"
 #include "XmlParser.h"
 
-#define UDP_LISTEN_PORT 54321
-#define OPC_LISTEN_PERIOD_MS 10000
-
 class MES
 {
 public:
@@ -28,19 +25,19 @@ private:
     void onScheduleRequest(std::shared_ptr<std::string> response);
     // opc handlers
     // TODO here
-    void onSendTransform() {}
-    void onSendUnload() {}
-    void onLoadPiece() {}
-    void onStartOrder() {}
-    void onFinishOrder() {}
-    void onFinishProcessing() {}
+    void onSendTransform();
+    void onSendUnload();
+    void onLoadPiece();
+    void onStartOrder();
+    void onFinishOrder();
+    void onFinishProcessing();
     // Factory of orders from xml
     static Order *OrderFactory(const OrderNode &order_node);
 
 private:
+    boost::asio::io_service io_service;
     Scheduler scheduler;
     Storage store;
-    OpcClient* fct_client;
-    UdpServer* erp_server;
-    boost::asio::io_service io_service;
+    OpcClient fct_client;
+    UdpServer erp_server;
 };
