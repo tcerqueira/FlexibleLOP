@@ -55,7 +55,13 @@ public:
     int readValueBool(UA_NodeId nodeid, UA_Variant &value);
     int readValueInt16(UA_NodeId nodeid, UA_Variant &value);
     int readValueInt32(UA_NodeId nodeid, UA_Variant &value);
+    // write values
     int writeValue(UA_NodeId nodeid, UA_Variant &newValue);
+    int writeValue(UA_NodeId nodeid, int16_t value);
+    int writeValue(UA_NodeId nodeid, int32_t value);
+    int writeValue(UA_NodeId nodeid, uint16_t value);
+    int writeValue(UA_NodeId nodeid, uint32_t value);
+    int writeValue(UA_NodeId nodeid, bool value);
 
 protected:
     void notify(opc_evt evt);

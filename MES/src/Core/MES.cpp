@@ -20,7 +20,7 @@ void MES::start()
     MES_INFO("\n###### STARTING ######");
     setUp();
     MES_INFO("\n###### RUNNING ######");
-    run();  
+    run();
 }
 
 void MES::run()
