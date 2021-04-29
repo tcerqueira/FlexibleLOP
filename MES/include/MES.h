@@ -11,8 +11,7 @@
 class MES
 {
 public:
-    MES();
-    ~MES();
+    MES(const std::string& opc_endpoint);
     void start();
 
 private:

@@ -1,13 +1,13 @@
 #include "opc_client.h"
 
-OpcClient::OpcClient()
-: isListening(false)
+OpcClient::OpcClient(const std::string& opc_endpoint)
+: isListening(false), endpoint(opc_endpoint)
 {
     client = UA_Client_new();
     UA_ClientConfig_setDefault(UA_Client_getConfig(client));
 }
 
-int OpcClient::connect(const std::string &endpoint)
+int OpcClient::connect()
 {
     std::string url = std::string("opc.tcp://") + endpoint;
     connectionStatus = UA_Client_connect(client, url.c_str());
@@ -20,6 +20,10 @@ int OpcClient::connect(const std::string &endpoint)
 
 void OpcClient::startListening(int t_ms)
 {
+    if(connectionStatus != UA_STATUSCODE_GOOD){
+        return;
+    }
+    
     isListening = true;
     while(isListening)
     {

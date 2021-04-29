@@ -8,9 +8,9 @@
 
 #define OPC_GLOBAL_NODE(x) { 4, std::string("|var|CODESYS Control Win V3 x64.Application.GVL.") + x }
 
-MES::MES()
+MES::MES(const std::string& opc_endpoint)
 :   erp_server(io_service, UDP_LISTEN_PORT),
-    fct_client(),
+    fct_client(opc_endpoint),
     store((const int[]){1,2,4,8,16,32,64,128,256})
 {
 }
@@ -25,8 +25,6 @@ void MES::start()
 
 void MES::run()
 {
-    fct_client.connect("localhost:4840");
-
     std::thread erpServerThread([this]() {
         MES_INFO("Starting UDP Server. Listening on PORT({}).", UDP_LISTEN_PORT);
         io_service.run();
@@ -54,7 +52,11 @@ void MES::setUp()
     // connect to DB
     if(!Database::Get().connect()){
         // TODO: connection fails
-        MES_ERROR("Could not connect to Database.");
+        MES_FATAL("No connection to Database.");
+    }
+    // connect to OPC server
+    if(!fct_client.connect()){
+        MES_FATAL("No connection to OPC server. Aborting.");
     }
     // set request dispatcher for udp server
     erp_server.setRequestDispatcher([this](char* data, std::size_t len, std::shared_ptr<std::string> response) {
@@ -122,8 +124,4 @@ void MES::setUp()
         MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
         onFinishProcessing();
     });
-}
-
-MES::~MES()
-{
 }
