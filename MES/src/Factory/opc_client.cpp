@@ -27,12 +27,19 @@ void OpcClient::startListening(int t_ms)
     }
 
     isListening = true;
+    // polling loop
     while (isListening)
     {
+        UA_NodeId flag_node;
+        // for each subscribed event flag
         for (NodeKey node_key : event_nodes)
         {
-            if (checkFlag(UA_NODEID_STRING_ALLOC(node_key.name_space, node_key.id_str.c_str())))
+            flag_node = UA_NODEID_STRING_ALLOC(node_key.name_space, node_key.id_str.c_str());
+            if (checkFlag(flag_node))
+            {
                 notify({node_key, 0});
+                clearFlag(flag_node);
+            }
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(t_ms));
@@ -61,6 +68,11 @@ bool OpcClient::checkFlag(UA_NodeId node)
         return false;
     }
     return *(bool *)flag.data;
+}
+
+void OpcClient::clearFlag(UA_NodeId node)
+{
+    writeValue(node, false);
 }
 
 void OpcClient::addListener(NodeKey type, evtHandler handler)

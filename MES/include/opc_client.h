@@ -51,7 +51,7 @@ public:
     void stopListening();
     void addListener(NodeKey type, evtHandler handler);
 
-    // void removeListener(opc_evt_type type, evtHandler handler);
+    // read values
     int readValueBool(UA_NodeId nodeid, UA_Variant &value);
     int readValueInt16(UA_NodeId nodeid, UA_Variant &value);
     int readValueInt32(UA_NodeId nodeid, UA_Variant &value);
@@ -66,6 +66,7 @@ public:
 protected:
     void notify(opc_evt evt);
     bool checkFlag(UA_NodeId node);
+    void clearFlag(UA_NodeId node);
 
 private:
     UA_Client* client;
