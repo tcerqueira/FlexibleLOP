@@ -25,7 +25,7 @@ private:
     // opc handlers
     void onSendTransform();
     void onSendUnload();
-    void onLoadPiece();
+    void onLoadOrder();
     void onStartOrder();
     void onFinishOrder();
     void onUnloaded();

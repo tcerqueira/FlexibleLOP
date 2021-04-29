@@ -49,6 +49,8 @@ void MES::run()
 
 void MES::setUp()
 {
+    // ####################### CONNECTIONS ############################
+    // ################################################################
     // connect to DB
     if(!Database::Get().connect()){
         // TODO: connection fails
@@ -58,6 +60,9 @@ void MES::setUp()
     if(!fct_client.connect()){
         MES_FATAL("No connection to OPC server. Aborting.");
     }
+
+    // ####################### UDP HANDLERS ###########################
+    // ################################################################
     // set request dispatcher for udp server
     erp_server.setRequestDispatcher([this](char* data, std::size_t len, std::shared_ptr<std::string> response) {
         erpRequestDispatcher(data, len, response);
@@ -66,23 +71,28 @@ void MES::setUp()
     erp_server.setResponseDispatcher([this](std::shared_ptr<std::string> response, std::size_t len) {
         MES_TRACE("{} bytes sent to ERP.", len);
     });
+
+    // ####################### OPC HANDLERS ###########################
+    // ################################################################
     // set listener to request order C1
     fct_client.addListener(OPC_GLOBAL_NODE("req_orderC1_flag"), [this](opc_evt evt) {
         MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        onSendTransform();
     });
     // set listener to request order C2
     fct_client.addListener(OPC_GLOBAL_NODE("req_orderC2_flag"), [this](opc_evt evt) {
         MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        onSendTransform();
     });
     // set listener to load order C1
     fct_client.addListener(OPC_GLOBAL_NODE("load_order1_flag"), [this](opc_evt evt) {
         MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
-        onSendTransform();
+        onLoadOrder();
     });
     // set listener to load order C2
     fct_client.addListener(OPC_GLOBAL_NODE("load_order2_flag"), [this](opc_evt evt) {
         MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
-        onSendTransform();
+        onLoadOrder();
     });
     // set listener to start order C1
     fct_client.addListener(OPC_GLOBAL_NODE("start_orderC1_flag"), [this](opc_evt evt) {
