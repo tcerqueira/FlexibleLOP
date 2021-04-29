@@ -4,14 +4,16 @@
 #include "Utils.h"
 #include "Database.h"
 
+#define UDP_LISTEN_PORT 54321
+#define OPC_LISTEN_PERIOD_MS 10000
+
+#define OPC_GLOBAL_NODE(x) { 4, std::string("|var|CODESYS Control Win V3 x64.Application.GVL.") + x }
+
 MES::MES()
+:   erp_server(io_service, UDP_LISTEN_PORT),
+    fct_client(),
+    store((const int[]){1,2,4,8,16,32,64,128,256})
 {
-    // scheduler = Scheduler();
-    erp_server = new UdpServer(io_service, UDP_LISTEN_PORT);
-    fct_client = new OpcClient();
-    store = Storage((const int[]){1,2,4,8,16,32,64,128,256});
-    
-    // Log::getLogger()->set_level(spdlog::level::info);
 }
 
 void MES::start()
@@ -24,7 +26,7 @@ void MES::start()
 
 void MES::run()
 {
-    fct_client->connect("localhost:4840");
+    fct_client.connect("localhost:4840");
 
     std::thread erpServerThread([this]() {
         MES_INFO("Starting UDP Server. Listening on PORT({}).", UDP_LISTEN_PORT);
@@ -33,7 +35,7 @@ void MES::run()
 
     std::thread opcListenerThread([this]() {
         MES_INFO("Listening OPC Server.");
-        fct_client->startListening(OPC_LISTEN_PERIOD_MS);
+        fct_client.startListening(OPC_LISTEN_PERIOD_MS);
     });
 
     char buf[50];
@@ -41,7 +43,7 @@ void MES::run()
     {
         std::cin >> buf;
         // MES_TRACE(scheduler);
-        if(buf[0] == 'x') fct_client->stopListening();
+        if(buf[0] == 'x') fct_client.stopListening();
     }
 
     erpServerThread.join();
@@ -56,24 +58,24 @@ void MES::setUp()
         MES_ERROR("Could not connect to Database.");
     }
     // set request dispatcher for udp server
-    erp_server->setRequestDispatcher([this](char* data, std::size_t len, std::shared_ptr<std::string> response) {
+    erp_server.setRequestDispatcher([this](char* data, std::size_t len, std::shared_ptr<std::string> response) {
         erpRequestDispatcher(data, len, response);
     });
     // set response dispatcher for udp server
-    erp_server->setResponseDispatcher([this](std::shared_ptr<std::string> response, std::size_t len) {
+    erp_server.setResponseDispatcher([this](std::shared_ptr<std::string> response, std::size_t len) {
         MES_TRACE("{} bytes sent to ERP.", len);
     });
     // set listener to request order
-    fct_client->addListener(REQ_ORDER, [this](opc_evt evt) {
-        MES_TRACE("Listened Request Order. (data={})", evt.data);
+    fct_client.addListener(OPC_GLOBAL_NODE("finish_orderC1_flag"), [this](opc_evt evt) {
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
     });
     // set listener to order beginning
-    fct_client->addListener(ORDER_BEGIN, [this](opc_evt evt) {
-        MES_TRACE("Listened Order Begin. (data={})", evt.data);
+    fct_client.addListener(OPC_GLOBAL_NODE("finish_orderC2_flag"), [this](opc_evt evt) {
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
     });
     // set listener to order ending
-    fct_client->addListener(ORDER_END, [this](opc_evt evt) {
-        MES_TRACE("Listened Order End. (data={})", evt.data);
+    fct_client.addListener(OPC_GLOBAL_NODE("unload_order_flag"), [this](opc_evt evt) {
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
     });
 }
 
@@ -85,7 +87,6 @@ void MES::erpRequestDispatcher(char* data, std::size_t len, std::shared_ptr<std:
     for (pugi::xml_node_iterator it = doc.root().begin(); it != doc.root().end(); it++)
     {
         auto node_name = std::string(it->name());
-        // MES_TRACE(node_name);
 
         // ORDER REQUEST
         if(node_name == std::string(ORDER_NODE)){
@@ -120,7 +121,6 @@ void MES::onOrderRequest(const OrderNode& order_node, std::shared_ptr<std::strin
     {
         scheduler.addUnload(u_order);
     }
-    // MES_TRACE(scheduler);
 }
 
 void MES::onStorageRequest(std::shared_ptr<std::string> response)
@@ -163,6 +163,4 @@ Order *MES::OrderFactory(const OrderNode &order_node)
 
 MES::~MES()
 {
-    delete erp_server;
-    delete fct_client;
 }
