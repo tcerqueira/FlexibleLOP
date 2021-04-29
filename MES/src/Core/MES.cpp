@@ -1,7 +1,6 @@
 #include "MES.h"
 #include <sstream>
 #include "Orders.h"
-#include "Utils.h"
 #include "Database.h"
 
 #define UDP_LISTEN_PORT 54321
@@ -9,9 +8,9 @@
 
 #define OPC_GLOBAL_NODE(x) { 4, std::string("|var|CODESYS Control Win V3 x64.Application.GVL.") + x }
 
-MES::MES()
+MES::MES(const std::string& opc_endpoint)
 :   erp_server(io_service, UDP_LISTEN_PORT),
-    fct_client(),
+    fct_client(opc_endpoint),
     store((const int[]){1,2,4,8,16,32,64,128,256})
 {
 }
@@ -26,8 +25,6 @@ void MES::start()
 
 void MES::run()
 {
-    fct_client.connect("localhost:4840");
-
     std::thread erpServerThread([this]() {
         MES_INFO("Starting UDP Server. Listening on PORT({}).", UDP_LISTEN_PORT);
         io_service.run();
@@ -52,11 +49,20 @@ void MES::run()
 
 void MES::setUp()
 {
+    // ####################### CONNECTIONS ############################
+    // ################################################################
     // connect to DB
     if(!Database::Get().connect()){
         // TODO: connection fails
-        MES_ERROR("Could not connect to Database.");
+        MES_FATAL("No connection to Database.");
     }
+    // connect to OPC server
+    if(!fct_client.connect()){
+        MES_FATAL("No connection to OPC server. Aborting.");
+    }
+
+    // ####################### UDP HANDLERS ###########################
+    // ################################################################
     // set request dispatcher for udp server
     erp_server.setRequestDispatcher([this](char* data, std::size_t len, std::shared_ptr<std::string> response) {
         erpRequestDispatcher(data, len, response);
@@ -65,102 +71,67 @@ void MES::setUp()
     erp_server.setResponseDispatcher([this](std::shared_ptr<std::string> response, std::size_t len) {
         MES_TRACE("{} bytes sent to ERP.", len);
     });
-    // set listener to request order
+
+    // ####################### OPC HANDLERS ###########################
+    // ################################################################
+    // set listener to request order C1
+    fct_client.addListener(OPC_GLOBAL_NODE("req_orderC1_flag"), [this](opc_evt evt) {
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        onSendTransform();
+    });
+    // set listener to request order C2
+    fct_client.addListener(OPC_GLOBAL_NODE("req_orderC2_flag"), [this](opc_evt evt) {
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        onSendTransform();
+    });
+    // set listener to load order C1
+    fct_client.addListener(OPC_GLOBAL_NODE("load_order1_flag"), [this](opc_evt evt) {
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        onLoadOrder();
+    });
+    // set listener to load order C2
+    fct_client.addListener(OPC_GLOBAL_NODE("load_order2_flag"), [this](opc_evt evt) {
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        onLoadOrder();
+    });
+    // set listener to start order C1
+    fct_client.addListener(OPC_GLOBAL_NODE("start_orderC1_flag"), [this](opc_evt evt) {
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        onStartOrder();
+    });
+    // set listener to start order C2
+    fct_client.addListener(OPC_GLOBAL_NODE("start_orderC2_flag"), [this](opc_evt evt) {
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        onStartOrder();
+    });
+    // set listener to finished order C1
     fct_client.addListener(OPC_GLOBAL_NODE("finish_orderC1_flag"), [this](opc_evt evt) {
         MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        onFinishOrder();
     });
-    // set listener to order beginning
+    // set listener to finished order C2
     fct_client.addListener(OPC_GLOBAL_NODE("finish_orderC2_flag"), [this](opc_evt evt) {
         MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        onFinishOrder();
     });
-    // set listener to order ending
-    fct_client.addListener(OPC_GLOBAL_NODE("unload_order_flag"), [this](opc_evt evt) {
+    // set listener to order unloaded on PM1
+    fct_client.addListener(OPC_GLOBAL_NODE("unload_PM1_flag"), [this](opc_evt evt) {
         MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        onUnloaded();
     });
-}
-
-void MES::erpRequestDispatcher(char* data, std::size_t len, std::shared_ptr<std::string> response)
-{
-    XmlRequest doc;
-    doc.load_buffer_inplace(data, len);
-
-    for (pugi::xml_node_iterator it = doc.root().begin(); it != doc.root().end(); it++)
-    {
-        auto node_name = std::string(it->name());
-
-        // ORDER REQUEST
-        if(node_name == std::string(ORDER_NODE)){
-            onOrderRequest(*it, response);
-        }
-        // STORAGE REQUEST
-        else if(node_name == std::string(STORAGE_NODE)){
-            onStorageRequest(response);
-        }
-        // SCHEDULE REQUEST
-        else if(node_name == std::string(SCHEDULE_NODE)){
-            onScheduleRequest(response);
-        }
-        else{
-            MES_WARN("Unknown node name: \"{}\"", node_name);
-        }
-    }
-}
-
-void MES::onOrderRequest(const OrderNode& order_node, std::shared_ptr<std::string> response)
-{
-    Order* order = MES::OrderFactory(order_node);
-    MES_TRACE("Order received: {}.", *order);
-
-    auto t_order = dynamic_cast<TransformOrder*>(order);
-    auto u_order = dynamic_cast<UnloadOrder*>(order);
-    if(t_order != nullptr)
-    {
-        scheduler.addTransform(t_order);
-    }
-    else if(u_order != nullptr)
-    {
-        scheduler.addUnload(u_order);
-    }
-}
-
-void MES::onStorageRequest(std::shared_ptr<std::string> response)
-{
-    std::stringstream ss;
-    StorageDoc storeDoc(store);
-    storeDoc.save(ss);
-    *response = ss.str();
-}
-
-void MES::onScheduleRequest(std::shared_ptr<std::string> response)
-{
-    std::stringstream ss;
-    ScheduleDoc scheduleDoc(scheduler);
-    scheduleDoc.save(ss);
-    *response = ss.str();
-}
-
-Order *MES::OrderFactory(const OrderNode &order_node)
-{
-    time_t receivedAt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    Order *order = nullptr;
-    auto node_name = std::string(order_node.name());
-
-    if (node_name == std::string(TRANSF_NODE))
-    {
-        order = new TransformOrder(order_node.number(), receivedAt, order_node.quantity(), parsePiece(order_node.from()), parsePiece(order_node.to()), order_node.penalty(), order_node.maxdelay());
-    }
-    else if (node_name == std::string(UNLOAD_NODE))
-    {
-        order = new UnloadOrder(order_node.number(), receivedAt, order_node.quantity(), parsePiece(order_node.type()), parseDest(order_node.destination()));
-    }
-    else
-    {
-        MES_WARN("Unknown type of order: \"{}\"", node_name);
-    }
-
-    return order;
-}
-
-MES::~MES()
-{
+    // set listener to order unloaded on PM2
+    fct_client.addListener(OPC_GLOBAL_NODE("unload_PM2_flag"), [this](opc_evt evt) {
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        onUnloaded();
+    });
+    // set listener to order unloaded on PM3
+    fct_client.addListener(OPC_GLOBAL_NODE("unload_PM3_flag"), [this](opc_evt evt) {
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        onUnloaded();
+    });
+    // set listener to machine finished processing
+    fct_client.addListener(OPC_GLOBAL_NODE("machine_end_flag"), [this](opc_evt evt) {
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        onFinishProcessing();
+    });
 }
