@@ -8,6 +8,8 @@
 #include "opc_client.h"
 #include "XmlParser.h"
 
+#define OPC_GLOBAL_NODE_STR "|var|CODESYS Control Win V3 x64.Application.GVL."
+
 class MES
 {
 public:
