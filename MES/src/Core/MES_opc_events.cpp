@@ -1,0 +1,36 @@
+#include "MES.h"
+
+void MES::onSendTransform()
+{
+
+}
+
+void MES::onSendUnload()
+{
+
+}
+
+void MES::onLoadPiece()
+{
+
+}
+
+void MES::onStartOrder()
+{
+
+}
+
+void MES::onFinishOrder()
+{
+
+}
+
+void MES::onUnloaded()
+{
+    
+}
+
+void MES::onFinishProcessing()
+{
+
+}
