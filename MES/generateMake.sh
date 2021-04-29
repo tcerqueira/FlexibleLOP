@@ -1,5 +1,5 @@
-#! /bin/bash
 
+#! /bin/sh
 # default exporter
 EXPORTER="gmake2" 
 while getopts e: option
@@ -9,7 +9,4 @@ in
 e) EXPORTER=${OPTARG};;
 esac
 done
-
 ./build/premake5.exe --file=premake5.lua $EXPORTER
-# Convert to LF line endings on checkout.
-*.sh text eol=lf
