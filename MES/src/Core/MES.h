@@ -3,10 +3,10 @@
 #include "l_comms.h"
 #include <boost/asio.hpp>
 #include "Scheduler.h"
-#include "udp_server.h"
+#include "ERP/Udp_Server.h"
 #include "Storage.h"
-#include "opc_client.h"
-#include "XmlParser.h"
+#include "Factory/Opc_Client.h"
+#include "XmlParser/XmlParser.h"
 
 #define OPC_GLOBAL_NODE_STR "|var|CODESYS Control Win V3 x64.Application.GVL."
 

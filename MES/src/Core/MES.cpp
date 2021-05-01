@@ -1,7 +1,7 @@
 #include "MES.h"
 #include <sstream>
-#include "Orders.h"
-#include "Database.h"
+#include "Orders/Orders.h"
+#include "Database/Database.h"
 
 #define UDP_LISTEN_PORT 54321
 #define OPC_LISTEN_PERIOD_MS 20
