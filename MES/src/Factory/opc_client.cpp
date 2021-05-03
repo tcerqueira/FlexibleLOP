@@ -1,4 +1,4 @@
-#include "opc_client.h"
+#include "Opc_Client.h"
 
 OpcClient::OpcClient(const std::string &opc_endpoint)
     : isListening(false), endpoint(opc_endpoint)
