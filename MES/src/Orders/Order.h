@@ -33,7 +33,7 @@ public:
     template <typename OStream>
     friend OStream &operator<<(OStream &os, const Order &o);
 
-private:
+protected:
     int id;
     int doneAmount;
     int doingAmount;
