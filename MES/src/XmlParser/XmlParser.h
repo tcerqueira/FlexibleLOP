@@ -2,8 +2,8 @@
 
 #include "l_comms.h"
 #include <pugixml.hpp>
-#include "Storage.h"
-#include "Scheduler.h"
+#include "Core/Storage.h"
+#include "Core/Scheduler.h"
 
 // Request node names
 #define ROOT_NODE "ORDERS"
