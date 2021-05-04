@@ -18,8 +18,14 @@ public:
     time_t getTimeSent() const { return sentAt; }
     time_t getTimeStarted() const { return startedAt; }
     time_t getTimeFinished() const { return finishedAt; }
+
+    void pieceDone();
+    void pieceDoing();
+    void sent();
+    void started();
+    void finished();
     
-    virtual int getType() const { return 0; };
+    // virtual int getType() const { return 0; };
 
     Order &operator--();
     Order &operator--(int);
@@ -27,7 +33,7 @@ public:
     template <typename OStream>
     friend OStream &operator<<(OStream &os, const Order &o);
 
-private:
+protected:
     int id;
     int doneAmount;
     int doingAmount;
