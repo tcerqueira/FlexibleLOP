@@ -62,6 +62,12 @@ public:
     int writeValue(UA_NodeId nodeid, uint16_t value);
     int writeValue(UA_NodeId nodeid, uint32_t value);
     int writeValue(UA_NodeId nodeid, bool value);
+    // write arrays
+    int writeValue(UA_NodeId nodeid, int16_t *value, int len);
+    int writeValue(UA_NodeId nodeid, int32_t *value, int len);
+    int writeValue(UA_NodeId nodeid, uint16_t *value, int len);
+    int writeValue(UA_NodeId nodeid, uint32_t *value, int len);
+    int writeValue(UA_NodeId nodeid, bool *value, int len);
 
 protected:
     void notify(opc_evt evt);

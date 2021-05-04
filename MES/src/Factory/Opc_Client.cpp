@@ -161,6 +161,47 @@ int OpcClient::writeValue(UA_NodeId nodeid, bool value)
     return writeValue(nodeid, var_value);
 }
 
+int OpcClient::writeValue(UA_NodeId nodeid, int16_t *value, int len)
+{
+    UA_Variant var_value;
+    UA_Variant_init(&var_value);
+    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_INT16]);
+    return writeValue(nodeid, var_value);
+}
+
+int OpcClient::writeValue(UA_NodeId nodeid, int32_t *value, int len)
+{
+    UA_Variant var_value;
+    UA_Variant_init(&var_value);
+    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_INT32]);
+    return writeValue(nodeid, var_value);
+}
+
+int OpcClient::writeValue(UA_NodeId nodeid, uint16_t *value, int len)
+{
+    UA_Variant var_value;
+    UA_Variant_init(&var_value);
+    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_UINT16]);
+    return writeValue(nodeid, var_value);
+}
+
+int OpcClient::writeValue(UA_NodeId nodeid, uint32_t *value, int len)
+{
+    UA_Variant var_value;
+    UA_Variant_init(&var_value);
+    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_UINT32]);
+    return writeValue(nodeid, var_value);
+}
+
+int OpcClient::writeValue(UA_NodeId nodeid, bool *value, int len)
+{
+    UA_Variant var_value;
+    UA_Variant_init(&var_value);
+    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_BOOLEAN]);
+    return writeValue(nodeid, var_value);
+}
+
+
 
 OpcClient::~OpcClient()
 {
