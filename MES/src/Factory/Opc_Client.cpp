@@ -1,7 +1,14 @@
 #include "Opc_Client.h"
 
 OpcClient::OpcClient(const std::string &opc_endpoint)
-    : isListening(false), endpoint(opc_endpoint)
+    : endpoint(opc_endpoint)
+{
+    client = UA_Client_new();
+    UA_ClientConfig_setDefault(UA_Client_getConfig(client));
+}
+
+OpcClient::OpcClient(std::string&& opc_endpoint)
+    : endpoint(std::move(opc_endpoint))
 {
     client = UA_Client_new();
     UA_ClientConfig_setDefault(UA_Client_getConfig(client));
@@ -35,6 +42,8 @@ void OpcClient::startListening(int t_ms)
         for (NodeKey node_key : event_nodes)
         {
             flag_node = UA_NODEID_STRING_ALLOC(node_key.name_space, node_key.id_str.c_str());
+            notify({node_key, 0});
+            clearFlag(flag_node);
             if (checkFlag(flag_node))
             {
                 notify({node_key, 0});

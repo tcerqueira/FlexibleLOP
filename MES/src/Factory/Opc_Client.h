@@ -45,6 +45,7 @@ public:
     using evtHandler = std::function<void(opc_evt)>;
 
     OpcClient(const std::string& opc_endpoint);
+    OpcClient(std::string&& opc_endpoint);
     ~OpcClient();
     int connect();
     void startListening(int t_ms);
@@ -78,7 +79,7 @@ private:
     UA_Client* client;
     std::string endpoint;
     UA_StatusCode connectionStatus;
-    volatile bool isListening;
+    volatile bool isListening = false;
     std::unordered_map<NodeKey, std::vector<evtHandler>, NodeKey::KeyHasher> listeners;
     std::unordered_set<NodeKey, NodeKey::KeyHasher> event_nodes;
 };

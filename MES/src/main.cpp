@@ -12,6 +12,6 @@ int main(int argc, char *argv[])
     // Initialize Logger
     Log::init();
     // Entry point to start MES
-    MES Mes(opc_endpoint);
+    MES Mes(std::move(opc_endpoint));
     Mes.start();
 }
