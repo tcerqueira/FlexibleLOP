@@ -1,4 +1,3 @@
-
 #! /bin/sh
 # default exporter
 EXPORTER="gmake2" 
