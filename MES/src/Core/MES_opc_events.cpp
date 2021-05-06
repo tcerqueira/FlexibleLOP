@@ -3,7 +3,7 @@
 #define TOOLSET_BUFLEN 4
 
 // Auxiliar Declarations
-void chooseTools(std::vector<int> &tools, const TransformOrder &next_order);
+void chooseTools(std::vector<int> &tools, uint16_t& piece_intermediate, std::vector<int> &tool_time, const TransformOrder &next_order);
 void chooseToolSet(int *tool_set, const std::vector<int> &tools);
 void chooseRoute(std::vector<int> &route, const int *tool_set, const std::vector<int> &tools);
 
@@ -17,7 +17,7 @@ struct opc_order
     std::vector<int> path;
     std::vector<int> tool_time;
     bool warehouse_intermediate;
-    uint16_t piece_intermidiate;
+    uint16_t piece_intermediate;
 };
 
 void MES::onSendTransform(int cell)
@@ -26,7 +26,7 @@ void MES::onSendTransform(int cell)
     ss_node << "orders_C" << cell;
     opc_order order;
     // TransformOrder* next_order = scheduler.getTransformOrders()[0];
-    auto next_order = std::make_unique<TransformOrder>(111, 0, 3, P2, P4, 1, 30);
+    auto next_order = std::make_unique<TransformOrder>(111, 0, 3, P1, P8, 1, 30);
     if(next_order == nullptr){
         return;
     }
@@ -37,8 +37,11 @@ void MES::onSendTransform(int cell)
 
     // Get tools
     std::vector<int> tools; tools.reserve(6);
-    chooseTools(tools, *next_order);
-    //MES_TRACE("Tools: {}; {}; {};", tools[0], tools[1], tools[2]);
+    uint16_t piece_intermediate;
+    chooseTools(tools, piece_intermediate, order.tool_time, *next_order);
+    order.piece_intermediate = piece_intermediate;
+    MES_TRACE("Piece Intermediate: {}", order.piece_intermediate);
+    //MES_TRACE("Tool time: {}; {}; {}; {}; {}; {}; {};", order.tool_time[0], order.tool_time[1], order.tool_time[2], order.tool_time[3], order.tool_time[4], order.tool_time[5],  order.tool_time[6]);
 
     // Choose toolset
     int tool_set[4] = {0,0,0,0};
@@ -50,8 +53,16 @@ void MES::onSendTransform(int cell)
     std::vector<int> path; path.reserve(6);
     chooseRoute(path, tool_set, tools);
     order.path = path;
-    //MES_TRACE("Path: {}; {}; {};", order.path[0], order.path[1], order.path[2]);
-
+    //MES_TRACE("Path: {}; {}; {}; {}; {}; {}; {}; {};", order.path[0], order.path[1], order.path[2], order.path[3], order.path[4], order.path[5], order.path[6], order.path[7]);
+    
+    //Check for warehouse intermediate
+    order.warehouse_intermediate = false;
+    for(int i = 0; i<order.path.size(); i++){
+        if(order.path[i]==5){
+            order.warehouse_intermediate = true;
+        }
+    }
+    //MES_TRACE("Warehouse intermediate: {}", order.warehouse_intermediate);
 
     uint16_t piece_init = 1;
     std::string node = std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].init_p");
@@ -104,30 +115,63 @@ void MES::onFinishProcessing()
 // #################################################################################################################
 
 // get tools
-void chooseTools(std::vector<int>& tools, const TransformOrder& next_order)
+void chooseTools(std::vector<int>& tools, uint16_t& piece_intermediate, std::vector<int> &tool_time, const TransformOrder& next_order)
 {
     piece_t piece_act = next_order.getInitial();
     int i = 0;
-    while(piece_act != next_order.getFinal()){
-        if(i==4){
-            //order.piece_intermediate = ;
-        }
-        
+    while(piece_act != next_order.getFinal()){   
         switch (piece_act){     //Find next tool (incomplete)
         case P1:
             tools.push_back(0);
-            // order.tool_time.push_back(15000);
+            tool_time.push_back(15000);
             piece_act = P2;
             break;
         case P2:
             tools.push_back(1);
-            // order.tool_time.push_back(15000);
+            tool_time.push_back(15000);
             piece_act = P3;
             break;
         case P3:
             tools.push_back(2);
-            // order.tool_time.push_back(15000);
+            tool_time.push_back(15000);
             piece_act = P4;
+            break;
+        case P4:
+            tools.push_back(0);
+            tool_time.push_back(15000);
+            piece_act = P5;
+            break;
+        case P5:
+            if(i==4){
+                piece_intermediate = 5;
+                tool_time.push_back(0);
+            }
+            if(next_order.getFinal() == P9){
+                tools.push_back(2);
+                tool_time.push_back(30000);
+                piece_act = P9;
+            }
+            else{
+                tools.push_back(1);
+                tool_time.push_back(30000);
+                piece_act = P6;
+            }
+            break;
+        case P6:
+            if(i==4){
+                piece_intermediate = 6;
+                tool_time.push_back(0);
+            }
+            if(next_order.getFinal() == P8){
+                tools.push_back(0);
+                tool_time.push_back(15000);
+                piece_act = P8;
+            }
+            else{
+                tools.push_back(2);
+                tool_time.push_back(30000);
+                piece_act = P7;
+            }
             break;
         }
         i++;
@@ -162,7 +206,7 @@ void chooseRoute(std::vector<int> &route, const int *tool_set, const std::vector
         for(int j = mac_act; j < TOOLSET_BUFLEN; j++){   //piece can't go back to other conveyors
             if(tools[i] == tool_set[j]){
                 route.push_back(j+1);
-                mac_act = j+1;
+                mac_act = j;
                 break;
             }
             else{
@@ -170,8 +214,10 @@ void chooseRoute(std::vector<int> &route, const int *tool_set, const std::vector
                     route.push_back(5);
                     // order.warehouse_intermediate = true;
                     mac_act = 0;
+                    j = 0;
                 }
             }
         }
     }
+    route.push_back(0);
 }
