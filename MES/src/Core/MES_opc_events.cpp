@@ -40,14 +40,14 @@ void MES::onSendTransform(int cell)
     uint16_t piece_intermediate;
     chooseTools(tools, piece_intermediate, order.tool_time, *next_order);
     order.piece_intermediate = piece_intermediate;
-    MES_TRACE("Piece Intermediate: {}", order.piece_intermediate);
+    //MES_TRACE("Piece Intermediate: {}", order.piece_intermediate);
     //MES_TRACE("Tool time: {}; {}; {}; {}; {}; {}; {};", order.tool_time[0], order.tool_time[1], order.tool_time[2], order.tool_time[3], order.tool_time[4], order.tool_time[5],  order.tool_time[6]);
 
     // Choose toolset
     int tool_set[4] = {0,0,0,0};
     chooseToolSet(tool_set, tools);
     order.tool_set = tool_set;
-    //MES_TRACE("Tool_set: {}; {}; {}; {};", order.tool_set[0], order.tool_set[1], order.tool_set[2], order.tool_set[3]);
+    MES_TRACE("Tool_set: {}; {}; {}; {};", order.tool_set[0], order.tool_set[1], order.tool_set[2], order.tool_set[3]);
 
     // Choose route
     std::vector<int> path; path.reserve(6);
@@ -64,13 +64,44 @@ void MES::onSendTransform(int cell)
     }
     //MES_TRACE("Warehouse intermediate: {}", order.warehouse_intermediate);
 
-    uint16_t piece_init = 1;
-    std::string node = std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].init_p");
-    fct_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), piece_init);
+    // Transform vectors into arrays
+    int array_path[order.path.size()];
 
-    int16_t quantity = 5;
-    node = std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].n_pieces");
-    fct_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), quantity);
+    for(int i = 0; i<order.path.size(); i++){
+        array_path[i] = order.path[i];
+    }
+
+    int array_tool_time[order.tool_time.size()];
+
+    for(int i = 0; i<order.path.size(); i++){
+        array_tool_time[i] = order.tool_time[i];
+    }
+
+    // Write to factory
+
+    std::string node = std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].init_p");
+    fct_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.init_p);
+
+    node = std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].quantity");
+    fct_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.quantity);
+
+    node = std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].to_do");
+    fct_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.done);
+
+    node = std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].tool_set");
+    fct_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.tool_set, TOOLSET_BUFLEN);
+
+    node = std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].path");
+    fct_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), array_path, order.path.size());
+
+    node = std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].tool_time");
+    fct_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), array_tool_time, order.tool_time.size());
+
+    node = std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].warehouse_intermediate");
+    fct_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.warehouse_intermediate);
+
+    node = std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].piece_intermediate");
+    fct_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.piece_intermediate);
 
     /*orders_C1[1].init_p;
     orders_C1[1].warehouse_intermediate;
