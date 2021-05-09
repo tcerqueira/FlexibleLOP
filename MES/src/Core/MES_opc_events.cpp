@@ -1,7 +1,6 @@
 #include "MES.h"
 
 #define TOOLSET_BUFLEN 4
-#define PATH_MAX 8
 
 // Auxiliar Declarations
 void chooseTools(std::vector<int16_t> &tools, uint16_t& piece_intermediate, uint64_t *tool_time, const TransformOrder &next_order);
@@ -27,7 +26,7 @@ void MES::onSendTransform(int cell)
     ss_node << "orders_C" << cell;
     opc_order order;
     // TransformOrder* next_order = scheduler.getTransformOrders()[0];
-    auto next_order = std::make_unique<TransformOrder>(111, 0, 3, P4, P9, 1, 30);
+    auto next_order = std::make_unique<TransformOrder>(111, 0, 1, P1, P3, 1, 30);
     if(next_order == nullptr){
         return;
     }
@@ -57,7 +56,7 @@ void MES::onSendTransform(int cell)
     
     //Check for warehouse intermediate
     order.warehouse_intermediate = false;
-    for(int i = 0; i<PATH_MAX; i++){
+    for(int i = 0; i<8; i++){
         if(order.path[i]==5){
             order.warehouse_intermediate = true;
         }
