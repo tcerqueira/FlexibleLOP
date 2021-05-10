@@ -45,8 +45,6 @@ void OpcClient::startListening(int t_ms)
         for (NodeKey node_key : event_nodes)
         {
             flag_node = UA_NODEID_STRING_ALLOC(node_key.name_space, node_key.id_str.c_str());
-            notify({node_key, 0});
-            clearFlag(flag_node);
             if (checkFlag(flag_node))
             {
                 notify({node_key, 0});
@@ -189,6 +187,14 @@ int OpcClient::writeValue(UA_NodeId nodeid, int32_t *value, int len)
     return writeValue(nodeid, var_value);
 }
 
+int OpcClient::writeValue(UA_NodeId nodeid, int64_t *value, int len)
+{
+    UA_Variant var_value;
+    UA_Variant_init(&var_value);
+    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_INT64]);
+    return writeValue(nodeid, var_value);
+}
+
 int OpcClient::writeValue(UA_NodeId nodeid, uint16_t *value, int len)
 {
     UA_Variant var_value;
@@ -202,6 +208,14 @@ int OpcClient::writeValue(UA_NodeId nodeid, uint32_t *value, int len)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_UINT32]);
+    return writeValue(nodeid, var_value);
+}
+
+int OpcClient::writeValue(UA_NodeId nodeid, uint64_t *value, int len)
+{
+    UA_Variant var_value;
+    UA_Variant_init(&var_value);
+    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_UINT64]);
     return writeValue(nodeid, var_value);
 }
 

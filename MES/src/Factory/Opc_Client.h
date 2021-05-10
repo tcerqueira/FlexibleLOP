@@ -66,8 +66,10 @@ public:
     // write arrays
     int writeValue(UA_NodeId nodeid, int16_t *value, int len);
     int writeValue(UA_NodeId nodeid, int32_t *value, int len);
+    int writeValue(UA_NodeId nodeid, int64_t *value, int len);
     int writeValue(UA_NodeId nodeid, uint16_t *value, int len);
     int writeValue(UA_NodeId nodeid, uint32_t *value, int len);
+    int writeValue(UA_NodeId nodeid, uint64_t *value, int len);
     int writeValue(UA_NodeId nodeid, bool *value, int len);
 
 protected:
