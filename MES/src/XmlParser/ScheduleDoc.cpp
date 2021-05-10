@@ -2,13 +2,13 @@
 #include "Orders/Orders.h"
 #include "Utils.h"
 
-void appendCommonAttr(pugi::xml_node node, TransformOrder *order);
+void appendCommonAttr(pugi::xml_node node, std::shared_ptr<TransformOrder> order);
 
 ScheduleDoc::ScheduleDoc(Scheduler &schedule)
 {
     pugi::xml_node schedule_root = this->append_child(SCHEDULE_ROOT_NODE);
     pugi::xml_node order_node, curr_node;
-    const std::vector<TransformOrder*> &ordersC1 = schedule.getTransformOrdersC1();
+    const std::vector<std::shared_ptr<TransformOrder>> &ordersC1 = schedule.getTransformOrdersC1();
 
     for (int i = 0; i < ordersC1.size(); i++)
     {
@@ -36,7 +36,7 @@ ScheduleDoc::ScheduleDoc(Scheduler &schedule)
     }
 }
 
-void appendCommonAttr(pugi::xml_node node, TransformOrder *order)
+void appendCommonAttr(pugi::xml_node node, std::shared_ptr<TransformOrder> order)
 {
     node.append_attribute("Quantity") = order->getQuantity();
     node.append_attribute("Quantity1") = order->getDone();

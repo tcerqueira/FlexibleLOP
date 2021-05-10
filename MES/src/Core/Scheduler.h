@@ -8,12 +8,13 @@ class Scheduler
 {  
 public:
     // note: takes ownership of the Order objects in the container
-    void addOrderList(std::vector<TransformOrder*> &list);
-    void addTransform(TransformOrder* order);
-    void addUnload(UnloadOrder* order);
+    void addOrderList(std::vector<std::shared_ptr<TransformOrder>> &list);
+    void addTransform(std::shared_ptr<TransformOrder> order);
+    void addUnload(std::shared_ptr<UnloadOrder> order);
     // TransformOrder popOrder();
-    std::vector<TransformOrder*> &getTransformOrdersC1() { return t1_orders; };
-    std::vector<UnloadOrder*> &getUnloadOrders() { return u_orders; };
+    std::vector<std::shared_ptr<TransformOrder>> &getTransformOrdersC1() { return t1_orders; };
+    std::vector<std::shared_ptr<TransformOrder>> &getTransformOrdersC2() { return t1_orders; };
+    std::vector<std::shared_ptr<UnloadOrder>> &getUnloadOrders() { return u_orders; };
 
     template <typename OStream>
     friend OStream &operator<<(OStream &os, const Scheduler &sc);
@@ -21,9 +22,9 @@ public:
 private:
     std::mutex transformVec_mutex;
     std::mutex unloadVec_mutex;
-    std::vector<TransformOrder*> t1_orders;
-    std::vector<TransformOrder*> t2_orders;
-    std::vector<UnloadOrder*> u_orders;
+    std::vector<std::shared_ptr<TransformOrder>> t1_orders;
+    std::vector<std::shared_ptr<TransformOrder>> t2_orders;
+    std::vector<std::shared_ptr<UnloadOrder>> u_orders;
     Storage *store;
 };
 

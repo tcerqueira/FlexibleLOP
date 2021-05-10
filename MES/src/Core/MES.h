@@ -34,7 +34,7 @@ private:
     void onUnloaded();
     void onFinishProcessing();
     // Factory of orders from xml
-    static Order *OrderFactory(const OrderNode &order_node);
+    static std::shared_ptr<Order> OrderFactory(const OrderNode &order_node);
 
 private:
     boost::asio::io_service io_service;

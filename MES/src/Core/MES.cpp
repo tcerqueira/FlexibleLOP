@@ -47,7 +47,7 @@ void MES::run()
     while(1)
     {
         std::cin >> buf;
-        // MES_TRACE(scheduler);
+        MES_TRACE(scheduler);
         if(buf[0] == 'x') fct_client.stopListening();
     }
 
