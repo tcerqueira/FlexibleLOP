@@ -45,9 +45,10 @@ public:
     using evtHandler = std::function<void(opc_evt)>;
 
     OpcClient(const std::string& opc_endpoint);
+    OpcClient(std::string&& opc_endpoint);
     ~OpcClient();
     int connect();
-    void startListening(int t_ms);
+    int startListening(int t_ms);
     void stopListening();
     void addListener(NodeKey type, evtHandler handler);
 
@@ -62,6 +63,14 @@ public:
     int writeValue(UA_NodeId nodeid, uint16_t value);
     int writeValue(UA_NodeId nodeid, uint32_t value);
     int writeValue(UA_NodeId nodeid, bool value);
+    // write arrays
+    int writeValue(UA_NodeId nodeid, int16_t *value, int len);
+    int writeValue(UA_NodeId nodeid, int32_t *value, int len);
+    int writeValue(UA_NodeId nodeid, int64_t *value, int len);
+    int writeValue(UA_NodeId nodeid, uint16_t *value, int len);
+    int writeValue(UA_NodeId nodeid, uint32_t *value, int len);
+    int writeValue(UA_NodeId nodeid, uint64_t *value, int len);
+    int writeValue(UA_NodeId nodeid, bool *value, int len);
 
 protected:
     void notify(opc_evt evt);
@@ -72,7 +81,7 @@ private:
     UA_Client* client;
     std::string endpoint;
     UA_StatusCode connectionStatus;
-    volatile bool isListening;
+    volatile bool isListening = false;
     std::unordered_map<NodeKey, std::vector<evtHandler>, NodeKey::KeyHasher> listeners;
     std::unordered_set<NodeKey, NodeKey::KeyHasher> event_nodes;
 };

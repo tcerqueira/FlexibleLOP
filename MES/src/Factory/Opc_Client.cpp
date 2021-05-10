@@ -1,7 +1,16 @@
-#include "opc_client.h"
+#include "Opc_Client.h"
+
+#include <chrono>
 
 OpcClient::OpcClient(const std::string &opc_endpoint)
-    : isListening(false), endpoint(opc_endpoint)
+    : endpoint(opc_endpoint)
+{
+    client = UA_Client_new();
+    UA_ClientConfig_setDefault(UA_Client_getConfig(client));
+}
+
+OpcClient::OpcClient(std::string&& opc_endpoint)
+    : endpoint(std::move(opc_endpoint))
 {
     client = UA_Client_new();
     UA_ClientConfig_setDefault(UA_Client_getConfig(client));
@@ -19,11 +28,11 @@ int OpcClient::connect()
     return 1;
 }
 
-void OpcClient::startListening(int t_ms)
+int OpcClient::startListening(int t_ms)
 {
     if (connectionStatus != UA_STATUSCODE_GOOD)
     {
-        return;
+        return 0;
     }
 
     isListening = true;
@@ -31,6 +40,7 @@ void OpcClient::startListening(int t_ms)
     while (isListening)
     {
         UA_NodeId flag_node;
+        auto start = std::chrono::high_resolution_clock::now();
         // for each subscribed event flag
         for (NodeKey node_key : event_nodes)
         {
@@ -41,9 +51,12 @@ void OpcClient::startListening(int t_ms)
                 clearFlag(flag_node);
             }
         }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(t_ms));
+        auto end = std::chrono::high_resolution_clock::now();
+        auto sleep_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::milliseconds(t_ms) - (end - start));
+        // MES_TRACE("duration {}", sleep_duration.count());
+        std::this_thread::sleep_for(sleep_duration);
     }
+    return 1;
 }
 
 void OpcClient::notify(opc_evt evt)
@@ -160,6 +173,63 @@ int OpcClient::writeValue(UA_NodeId nodeid, bool value)
     UA_Variant_setScalar(&var_value, &value, &UA_TYPES[UA_TYPES_BOOLEAN]);
     return writeValue(nodeid, var_value);
 }
+
+int OpcClient::writeValue(UA_NodeId nodeid, int16_t *value, int len)
+{
+    UA_Variant var_value;
+    UA_Variant_init(&var_value);
+    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_INT16]);
+    return writeValue(nodeid, var_value);
+}
+
+int OpcClient::writeValue(UA_NodeId nodeid, int32_t *value, int len)
+{
+    UA_Variant var_value;
+    UA_Variant_init(&var_value);
+    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_INT32]);
+    return writeValue(nodeid, var_value);
+}
+
+int OpcClient::writeValue(UA_NodeId nodeid, int64_t *value, int len)
+{
+    UA_Variant var_value;
+    UA_Variant_init(&var_value);
+    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_INT64]);
+    return writeValue(nodeid, var_value);
+}
+
+int OpcClient::writeValue(UA_NodeId nodeid, uint16_t *value, int len)
+{
+    UA_Variant var_value;
+    UA_Variant_init(&var_value);
+    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_UINT16]);
+    return writeValue(nodeid, var_value);
+}
+
+int OpcClient::writeValue(UA_NodeId nodeid, uint32_t *value, int len)
+{
+    UA_Variant var_value;
+    UA_Variant_init(&var_value);
+    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_UINT32]);
+    return writeValue(nodeid, var_value);
+}
+
+int OpcClient::writeValue(UA_NodeId nodeid, uint64_t *value, int len)
+{
+    UA_Variant var_value;
+    UA_Variant_init(&var_value);
+    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_UINT64]);
+    return writeValue(nodeid, var_value);
+}
+
+int OpcClient::writeValue(UA_NodeId nodeid, bool *value, int len)
+{
+    UA_Variant var_value;
+    UA_Variant_init(&var_value);
+    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_BOOLEAN]);
+    return writeValue(nodeid, var_value);
+}
+
 
 
 OpcClient::~OpcClient()
