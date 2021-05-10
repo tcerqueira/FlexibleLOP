@@ -24,5 +24,5 @@ private:
 template <typename OStream>
 OStream &operator<<(OStream &os, const UnloadOrder &o)
 {
-    return os << "[UnloadOrder id=" << o.getId() << " Quantity=" << o.getQuantity() << " Time=" << o.getTimeRcv() << " Piece="<< (int)o.piece << " Dest=" << (int)o.dest << "]";
+    return os << "UnloadOrder [id=" << o.getId() << " Quantity=" << o.getQuantity() << " Time=" << o.getTimeRcv() << " Piece="<< (int)o.piece << " Dest=" << (int)o.dest << "]";
 }

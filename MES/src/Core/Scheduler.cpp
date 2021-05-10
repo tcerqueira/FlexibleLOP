@@ -12,8 +12,8 @@ void Scheduler::addTransform(std::shared_ptr<TransformOrder> order)
 {
     // TODO: priority insertion
     const std::lock_guard<std::mutex> lock(transformVec_mutex);
-    // t1_orders.size() > t2_orders.size() ? t2_orders.push_back(order) : t1_orders.push_back(order);
-    t1_orders.push_back(order);
+    t1_orders.size() > t2_orders.size() ? t2_orders.push_back(order) : t1_orders.push_back(order);
+    // t1_orders.push_back(order);
 }
 
 void Scheduler::addUnload(std::shared_ptr<UnloadOrder> order)

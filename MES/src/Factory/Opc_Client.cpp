@@ -28,11 +28,11 @@ int OpcClient::connect()
     return 1;
 }
 
-void OpcClient::startListening(int t_ms)
+int OpcClient::startListening(int t_ms)
 {
     if (connectionStatus != UA_STATUSCODE_GOOD)
     {
-        return;
+        return 0;
     }
 
     isListening = true;
@@ -51,9 +51,12 @@ void OpcClient::startListening(int t_ms)
                 clearFlag(flag_node);
             }
         }
-        auto sleep_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::milliseconds(t_ms) - (std::chrono::high_resolution_clock::now() - start));
+        auto end = std::chrono::high_resolution_clock::now();
+        auto sleep_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::milliseconds(t_ms) - (end - start));
+        // MES_TRACE("duration {}", sleep_duration.count());
         std::this_thread::sleep_for(sleep_duration);
     }
+    return 1;
 }
 
 void OpcClient::notify(opc_evt evt)

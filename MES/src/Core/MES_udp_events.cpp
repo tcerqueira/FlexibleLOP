@@ -1,6 +1,5 @@
 #include "MES.h"
 #include "Utils.h"
-#include <memory>
 
 void MES::erpRequestDispatcher(char* data, std::size_t len, std::shared_ptr<std::string> response)
 {
