@@ -28,19 +28,19 @@ void MES::erpRequestDispatcher(char* data, std::size_t len, std::shared_ptr<std:
     }
 }
 
-Order *MES::OrderFactory(const OrderNode &order_node)
+std::shared_ptr<Order> MES::OrderFactory(const OrderNode &order_node)
 {
     time_t receivedAt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    Order *order = nullptr;
+    std::shared_ptr<Order> order;
     auto node_name = std::string(order_node.name());
 
     if (node_name == std::string(TRANSF_NODE))
     {
-        order = new TransformOrder(order_node.number(), receivedAt, order_node.quantity(), parsePiece(order_node.from()), parsePiece(order_node.to()), order_node.penalty(), order_node.maxdelay());
+        order = std::make_shared<TransformOrder>(order_node.number(), receivedAt, order_node.quantity(), parsePiece(order_node.from()), parsePiece(order_node.to()), order_node.penalty(), order_node.maxdelay());
     }
     else if (node_name == std::string(UNLOAD_NODE))
     {
-        order = new UnloadOrder(order_node.number(), receivedAt, order_node.quantity(), parsePiece(order_node.type()), parseDest(order_node.destination()));
+        order = std::make_shared<UnloadOrder>(order_node.number(), receivedAt, order_node.quantity(), parsePiece(order_node.type()), parseDest(order_node.destination()));
     }
     else
     {
@@ -52,11 +52,11 @@ Order *MES::OrderFactory(const OrderNode &order_node)
 
 void MES::onOrderRequest(const OrderNode& order_node, std::shared_ptr<std::string> response)
 {
-    Order* order = MES::OrderFactory(order_node);
+    std::shared_ptr<Order> order = MES::OrderFactory(order_node);
     MES_TRACE("Order received: {}.", *order);
 
-    auto t_order = dynamic_cast<TransformOrder*>(order);
-    auto u_order = dynamic_cast<UnloadOrder*>(order);
+    auto t_order = std::dynamic_pointer_cast<TransformOrder>(order);
+    auto u_order = std::dynamic_pointer_cast<UnloadOrder>(order);
     if(t_order != nullptr)
     {
         scheduler.addTransform(t_order);

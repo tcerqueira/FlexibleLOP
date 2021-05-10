@@ -48,5 +48,5 @@ protected:
 template <typename OStream>
 OStream &operator<<(OStream &os, const Order &o)
 {
-    return os << "[Order id=" << o.id << " Quantity=" << o.totalAmount << " Time=" << o.receivedAt << "]";
+    return os << "Order [id=" << o.id << " Quantity=" << o.totalAmount << " Time=" << o.receivedAt << "]";
 }

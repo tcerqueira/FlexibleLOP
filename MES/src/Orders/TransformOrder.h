@@ -29,5 +29,5 @@ private:
 template <typename OStream>
 OStream &operator<<(OStream &os, const TransformOrder &o)
 {
-    return os << "[TransformOrder id=" << o.getId() << " Quantity=" << o.getQuantity() << " Time=" << o.getTimeRcv() << " Piece_I="<< (int)o.initial << " Piece_F="<< (int)o.finalp << " Penalty=" << o.penaltyPerDay << "]";
+    return os << "TransformOrder [id=" << o.getId() << " Quantity=" << o.getQuantity() << " Time=" << o.getTimeRcv() << " Piece_I="<< (int)o.initial << " Piece_F="<< (int)o.finalp << " Penalty=" << o.penaltyPerDay << "]";
 }
