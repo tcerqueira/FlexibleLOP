@@ -26,7 +26,7 @@ void MES::start()
 {
     MES_INFO("\n###### STARTING ######");
     setUp();
-    MES_INFO("Press to run...");std::cin.get();
+    MES_INFO("Press to run..."); std::cin.get();
     MES_INFO("\n###### RUNNING ######");
     run();
 }

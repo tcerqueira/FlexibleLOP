@@ -1,5 +1,7 @@
 #include "Opc_Client.h"
 
+#include <chrono>
+
 OpcClient::OpcClient(const std::string &opc_endpoint)
     : endpoint(opc_endpoint)
 {
@@ -38,6 +40,7 @@ void OpcClient::startListening(int t_ms)
     while (isListening)
     {
         UA_NodeId flag_node;
+        auto start = std::chrono::high_resolution_clock::now();
         // for each subscribed event flag
         for (NodeKey node_key : event_nodes)
         {
@@ -50,8 +53,8 @@ void OpcClient::startListening(int t_ms)
                 clearFlag(flag_node);
             }
         }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(t_ms));
+        auto sleep_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::milliseconds(t_ms) - (std::chrono::high_resolution_clock::now() - start));
+        std::this_thread::sleep_for(sleep_duration);
     }
 }
 

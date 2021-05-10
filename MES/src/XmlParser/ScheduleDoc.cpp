@@ -8,15 +8,15 @@ ScheduleDoc::ScheduleDoc(Scheduler &schedule)
 {
     pugi::xml_node schedule_root = this->append_child(SCHEDULE_ROOT_NODE);
     pugi::xml_node order_node, curr_node;
-    const std::vector<TransformOrder*> &orders = schedule.getTransformOrders();
+    const std::vector<TransformOrder*> &ordersC1 = schedule.getTransformOrdersC1();
 
-    for (int i = 0; i < orders.size(); i++)
+    for (int i = 0; i < ordersC1.size(); i++)
     {
-        auto t_order = orders[i];
+        auto t_order = ordersC1[i];
 
         // Append order node
         order_node = schedule_root.append_child(ORDER_NODE);
-        order_node.append_attribute("Number") = orders[i]->getId();
+        order_node.append_attribute("Number") = ordersC1[i]->getId();
 
         // Append main node
         curr_node = order_node.append_child(TRANSF_NODE);
@@ -32,7 +32,7 @@ ScheduleDoc::ScheduleDoc(Scheduler &schedule)
         free(from_str); free(to_str);
 
         // Append common attributes
-        appendCommonAttr(curr_node, orders[i]);
+        appendCommonAttr(curr_node, ordersC1[i]);
     }
 }
 
