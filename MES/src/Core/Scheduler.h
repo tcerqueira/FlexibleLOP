@@ -13,7 +13,7 @@ public:
     void addUnload(std::shared_ptr<UnloadOrder> order);
     // TransformOrder popOrder();
     std::vector<std::shared_ptr<TransformOrder>> &getTransformOrdersC1() { return t1_orders; };
-    std::vector<std::shared_ptr<TransformOrder>> &getTransformOrdersC2() { return t1_orders; };
+    std::vector<std::shared_ptr<TransformOrder>> &getTransformOrdersC2() { return t2_orders; };
     std::vector<std::shared_ptr<UnloadOrder>> &getUnloadOrders() { return u_orders; };
 
     template <typename OStream>

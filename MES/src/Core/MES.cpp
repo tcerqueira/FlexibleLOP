@@ -26,7 +26,6 @@ void MES::start()
 {
     MES_INFO("\n###### STARTING ######");
     setUp();
-    MES_INFO("Press to run..."); std::cin.get();
     MES_INFO("\n###### RUNNING ######");
     run();
 }
@@ -38,9 +37,16 @@ void MES::run()
         io_service.run();
     });
 
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    MES_INFO("Press to run..."); std::cin.get();
+
     std::thread opcListenerThread([this]() {
-        fct_client.startListening(OPC_LISTEN_PERIOD_MS);
-        MES_INFO("Listening OPC Server.");
+        if(fct_client.startListening(OPC_LISTEN_PERIOD_MS))
+            MES_INFO("Listening OPC Server.");
+        else {
+            MES_FATAL("No connection to OPC Server.");
+            // return;
+        }
     });
 
     char buf[50];
@@ -95,47 +101,47 @@ void MES::setUp()
     // set listener to load order C1
     fct_client.addListener(OPC_GLOBAL_NODE("load_order1_flag"), [this](opc_evt evt) {
         MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
-        onLoadOrder();
+        onLoadOrder(1);
     });
     // set listener to load order C2
     fct_client.addListener(OPC_GLOBAL_NODE("load_order2_flag"), [this](opc_evt evt) {
         MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
-        onLoadOrder();
+        onLoadOrder(2);
     });
     // set listener to start order C1
     fct_client.addListener(OPC_GLOBAL_NODE("start_orderC1_flag"), [this](opc_evt evt) {
         MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
-        onStartOrder();
+        onStartOrder(1);
     });
     // set listener to start order C2
     fct_client.addListener(OPC_GLOBAL_NODE("start_orderC2_flag"), [this](opc_evt evt) {
         MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
-        onStartOrder();
+        onStartOrder(2);
     });
     // set listener to finished order C1
     fct_client.addListener(OPC_GLOBAL_NODE("finish_orderC1_flag"), [this](opc_evt evt) {
         MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
-        onFinishOrder();
+        onFinishOrder(1);
     });
     // set listener to finished order C2
     fct_client.addListener(OPC_GLOBAL_NODE("finish_orderC2_flag"), [this](opc_evt evt) {
         MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
-        onFinishOrder();
+        onFinishOrder(2);
     });
     // set listener to order unloaded on PM1
     fct_client.addListener(OPC_GLOBAL_NODE("unload_PM1_flag"), [this](opc_evt evt) {
         MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
-        onUnloaded();
+        onUnloaded(PM1);
     });
     // set listener to order unloaded on PM2
     fct_client.addListener(OPC_GLOBAL_NODE("unload_PM2_flag"), [this](opc_evt evt) {
         MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
-        onUnloaded();
+        onUnloaded(PM2);
     });
     // set listener to order unloaded on PM3
     fct_client.addListener(OPC_GLOBAL_NODE("unload_PM3_flag"), [this](opc_evt evt) {
         MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
-        onUnloaded();
+        onUnloaded(PM3);
     });
     // set listener to machine finished processing
     fct_client.addListener(OPC_GLOBAL_NODE("machine_end_flag"), [this](opc_evt evt) {

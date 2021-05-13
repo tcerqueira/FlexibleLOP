@@ -98,22 +98,22 @@ void MES::onSendUnload()
 
 }
 
-void MES::onLoadOrder()
+void MES::onLoadOrder(int conveyor)
 {
 
 }
 
-void MES::onStartOrder()
+void MES::onStartOrder(int cell)
 {
 
 }
 
-void MES::onFinishOrder()
+void MES::onFinishOrder(int cell)
 {
 
 }
 
-void MES::onUnloaded()
+void MES::onUnloaded(dest_t dest)
 {
     
 }
