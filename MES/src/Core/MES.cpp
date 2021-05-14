@@ -4,7 +4,7 @@
 #include "Database/Database.h"
 
 #define UDP_LISTEN_PORT 54321
-#define OPC_LISTEN_PERIOD_MS 20
+#define OPC_LISTEN_PERIOD_MS 50
 
 #define OPC_GLOBAL_NODE(x) { 4, std::string(OPC_GLOBAL_NODE_STR) + x }
 

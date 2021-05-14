@@ -25,8 +25,14 @@ void MES::onSendTransform(int cell)
     std::stringstream ss_node;
     ss_node << "orders_C" << cell;
     opc_order order;
-    // TransformOrder* next_order = scheduler.getTransformOrders()[0];
-    auto next_order = std::make_unique<TransformOrder>(111, 0, 1, P1, P7, 1, 30);
+    std::shared_ptr<TransformOrder> next_order;
+    if(cell == 1){
+        if(scheduler.getTransformOrdersC1().empty()){
+            return;
+        }
+        next_order = scheduler.getTransformOrdersC1()[0];
+    }
+    //auto next_order = std::make_unique<TransformOrder>(111, 0, 1, P1, P7, 1, 30);
     if(next_order == nullptr){
         return;
     }
