@@ -35,6 +35,12 @@ void MES::onSendTransform(int cell)
         }
         next_order = scheduler.getTransformOrdersC1()[0];
     }
+    else{
+        if(scheduler.getTransformOrdersC2().empty()){
+            return;
+        }
+        next_order = scheduler.getTransformOrdersC2()[0];
+    }
     //auto next_order = std::make_unique<TransformOrder>(111, 0, 1, P1, P7, 1, 30);
     if(next_order == nullptr){
         return;
