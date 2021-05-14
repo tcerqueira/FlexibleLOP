@@ -48,6 +48,7 @@ public:
     OpcClient(std::string&& opc_endpoint);
     ~OpcClient();
     int connect();
+    void disconnect();
     bool isConnected();
     int startListening(int t_ms);
     void stopListening();

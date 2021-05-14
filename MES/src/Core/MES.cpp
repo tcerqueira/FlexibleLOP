@@ -36,6 +36,7 @@ void MES::run()
         MES_INFO("Starting UDP Server. Listening on PORT({}).", UDP_LISTEN_PORT);
         io_service.run();
     });
+    erpServerThread.detach();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
     MES_INFO("Press to run..."); std::cin.get();
@@ -45,9 +46,9 @@ void MES::run()
             MES_INFO("Listening OPC Server.");
         else {
             MES_FATAL("No connection to OPC Server.");
-            // return;
         }
     });
+    opcListenerThread.detach();
 
     char buf[50];
     while(1)
@@ -55,10 +56,8 @@ void MES::run()
         std::cin >> buf;
         MES_TRACE(scheduler);
         if(buf[0] == 'x') fct_client.stopListening();
+        if(buf[0] == 'q') break;
     }
-
-    erpServerThread.join();
-    opcListenerThread.join();
 }
 
 void MES::setUp()
@@ -153,4 +152,10 @@ void MES::setUp()
         MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
         onFinishProcessing();
     });
+}
+
+MES::~MES()
+{
+    io_service.stop();
+    fct_client.disconnect();
 }

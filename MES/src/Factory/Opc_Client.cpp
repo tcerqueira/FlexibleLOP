@@ -1,6 +1,8 @@
 #include "Opc_Client.h"
 
 #include <chrono>
+#include <boost/asio.hpp>
+#include <boost/asio/thread_pool.hpp>
 
 OpcClient::OpcClient(const std::string &opc_endpoint)
     : endpoint(opc_endpoint)
@@ -28,6 +30,11 @@ int OpcClient::connect()
     return 1;
 }
 
+void OpcClient::disconnect()
+{
+    if(isConnected()) UA_Client_disconnect(client);
+}
+
 bool OpcClient::isConnected()
 {
     return (connectionStatus == UA_STATUSCODE_GOOD);
@@ -41,6 +48,7 @@ int OpcClient::startListening(int t_ms)
     }
 
     isListening = true;
+    boost::asio::thread_pool pool(6);
     // polling loop
     while (isListening)
     {
@@ -52,10 +60,17 @@ int OpcClient::startListening(int t_ms)
             flag_node = UA_NODEID_STRING_ALLOC(node_key.name_space, node_key.id_str.c_str());
             if (checkFlag(flag_node))
             {
-                notify({node_key, 0});
-                clearFlag(flag_node);
+                boost::asio::post(pool, [&, this]() { // if it doesnt work, comment it out and uncomment code bellow
+                    notify({node_key, 0});
+                    clearFlag(flag_node);
+                });
+
+                // notify({node_key, 0});
+                // clearFlag(flag_node);
             }
         }
+        pool.join();
+
         auto end = std::chrono::high_resolution_clock::now();
         auto sleep_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::milliseconds(t_ms) - (end - start));
         // MES_TRACE("duration {}", sleep_duration.count());
