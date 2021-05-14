@@ -13,7 +13,7 @@ public:
     piece_t getFinal() const { return finalp; }
     int getDailyPenalty() const { return penaltyPerDay; }
     int getMaxDelay() const { return maxSecDelay; }
-    int getPenalty() const { return finalPenalty; }
+    int getPenalty() const;
 
     template <typename OStream>
     friend OStream &operator<<(OStream &os, const TransformOrder &o);
@@ -23,12 +23,11 @@ private:
     piece_t finalp;
     int penaltyPerDay;
     int maxSecDelay;
-    int finalPenalty;
 };
 
 // STREAM OVERLOADS
 template <typename OStream>
 OStream &operator<<(OStream &os, const TransformOrder &o)
 {
-    return os << "[TransformOrder id=" << o.getId() << " Quantity=" << o.getQuantity() << " Time=" << o.getTimeRcv() << " Piece_I="<< (int)o.initial << " Piece_F="<< (int)o.finalp << " Penalty=" << o.penaltyPerDay << "]";
+    return os << "TransformOrder [id=" << o.getId() << " Quantity=" << o.getQuantity() << " Time=" << o.getTimeRcv() << " Piece_I="<< (int)o.initial << " Piece_F="<< (int)o.finalp << " Penalty=" << o.penaltyPerDay << "]";
 }
