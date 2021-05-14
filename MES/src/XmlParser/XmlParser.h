@@ -2,7 +2,7 @@
 
 #include "l_comms.h"
 #include <pugixml.hpp>
-#include "Core/Storage.h"
+#include "Factory/Storage.h"
 #include "Core/Scheduler.h"
 
 // Request node names
