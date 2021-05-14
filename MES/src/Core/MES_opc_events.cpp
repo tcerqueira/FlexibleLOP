@@ -22,6 +22,9 @@ struct opc_order
 
 void MES::onSendTransform(int cell)
 {
+    if(!scheduler.hasTransform(cell))
+        return;
+
     std::stringstream ss_node;
     ss_node << "orders_C" << cell;
     opc_order order;
@@ -93,34 +96,67 @@ void MES::onSendTransform(int cell)
     fct_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.piece_intermediate);
 }
 
+struct opc_unload
+{
+    int16_t type_t;
+    int16_t dest;
+    int16_t quant;
+};
+
+int writeUnload(OpcClient &opc_client, const opc_unload &order)
+{
+    std::string unload_node = "unload_orders";
+
+    std::string node = std::move(std::string(OPC_GLOBAL_NODE_STR) + unload_node + std::string("[1].type_t"));
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.type_t)) return 0;
+
+    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + unload_node + std::string("[1].dest"));
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.dest)) return 0;
+
+    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + unload_node + std::string("[1].quant"));
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.quant)) return 0;
+
+    return 1;
+}
+
 void MES::onSendUnload()
 {
+    if(!scheduler.hasUnload())
+        return;
+
+    std::shared_ptr<UnloadOrder> next_order = scheduler.getUnloadOrders()[0];
+    opc_unload opc_u = {(int16_t)next_order->getPiece(), (int16_t)next_order->getDest(), (int16_t)next_order->getQuantity()};
+
+    if(!writeUnload(fct_client, opc_u))
+        MES_ERROR("Could not send unload order.");
 
 }
 
 void MES::onLoadOrder(int conveyor)
 {
+    // Convert to a piece
 
+    // Update Storage
 }
 
 void MES::onStartOrder(int cell)
 {
-
+    // Update scheduler by id
 }
 
 void MES::onFinishOrder(int cell)
 {
-
+    // Update scheduler by id
 }
 
 void MES::onUnloaded(dest_t dest)
 {
-    
+    // Update stats 
 }
 
 void MES::onFinishProcessing()
 {
-
+    // Update stats
 }
 
 // ############################################ AUXILIAR FUNCTIONS #################################################

@@ -128,6 +128,11 @@ void MES::setUp()
         MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
         onFinishOrder(2);
     });
+    // set listener to know factory is ready to receive unload orders
+    fct_client.addListener(OPC_GLOBAL_NODE("unload_order_flag"), [this](opc_evt evt) {
+        // MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        onSendUnload();
+    });
     // set listener to order unloaded on PM1
     fct_client.addListener(OPC_GLOBAL_NODE("unload_PM1_flag"), [this](opc_evt evt) {
         MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
