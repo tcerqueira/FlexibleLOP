@@ -7,7 +7,7 @@ void chooseTools(std::vector<int16_t> &tools, uint16_t& piece_intermediate, uint
 void chooseToolSet(int16_t *tool_set, const std::vector<int16_t> &tools);
 void chooseRoute(int16_t *route, const int16_t *tool_set, const std::vector<int16_t> &tools);
 
-struct opc_order
+struct opc_transform
 {
     uint16_t init_p;
     int16_t quantity;
@@ -27,7 +27,7 @@ void MES::onSendTransform(int cell)
 
     std::stringstream ss_node;
     ss_node << "orders_C" << cell;
-    opc_order order;
+    opc_transform order;
     std::shared_ptr<TransformOrder> next_order;
     if(cell == 1){
         if(scheduler.getTransformOrdersC1().empty()){
