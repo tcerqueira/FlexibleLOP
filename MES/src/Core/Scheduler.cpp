@@ -22,6 +22,16 @@ void Scheduler::addUnload(std::shared_ptr<UnloadOrder> order)
     u_orders.push_back(order);
 }
 
+bool Scheduler::hasTransform(int cell) const
+{
+    return cell == 1 ? !t1_orders.empty() : !t2_orders.empty();
+}
+
+bool Scheduler::hasUnload() const
+{
+    return !u_orders.empty();
+}
+
 // TransformOrder Scheduler::popOrder()
 // {
 //     TransformOrder order = --(*t1_orders.front());

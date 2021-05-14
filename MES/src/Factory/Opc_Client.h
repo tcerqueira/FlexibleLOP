@@ -48,6 +48,7 @@ public:
     OpcClient(std::string&& opc_endpoint);
     ~OpcClient();
     int connect();
+    bool isConnected();
     int startListening(int t_ms);
     void stopListening();
     void addListener(NodeKey type, evtHandler handler);

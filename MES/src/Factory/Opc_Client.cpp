@@ -28,9 +28,14 @@ int OpcClient::connect()
     return 1;
 }
 
+bool OpcClient::isConnected()
+{
+    return (connectionStatus == UA_STATUSCODE_GOOD);
+}
+
 int OpcClient::startListening(int t_ms)
 {
-    if (connectionStatus != UA_STATUSCODE_GOOD)
+    if (!isConnected())
     {
         return 0;
     }

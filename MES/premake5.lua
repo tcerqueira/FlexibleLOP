@@ -1,8 +1,7 @@
 -- premake5
 workspace "MES"
     configurations {"Debug", "Release"}
-    architecture "x64"
-    --system "windows"
+    architecture "x86_64"
     cppdialect "C++17"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}"
@@ -32,16 +31,17 @@ project "MES"
 
     libdirs {
         "libs/open62541/build/bin",
-        "libs/SQLAPI/lib"
+        "libs/spdlog/build",
+        "libs/SQLAPI/lib64"
     }
 
     links {
         "pthread",
         "boost_system:static",
         "open62541:static",
+        "spdlog:static",
         "sqlapi:static",
         "dl"
-        -- "pqxx", "pq"
     }
 
     filter "configurations:Debug"
