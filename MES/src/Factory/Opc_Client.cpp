@@ -1,6 +1,8 @@
 #include "Opc_Client.h"
 
 #include <chrono>
+#include <boost/asio/post.hpp>
+#include <boost/asio/thread_pool.hpp>
 
 OpcClient::OpcClient(const std::string &opc_endpoint)
     : endpoint(opc_endpoint)
@@ -9,7 +11,7 @@ OpcClient::OpcClient(const std::string &opc_endpoint)
     UA_ClientConfig_setDefault(UA_Client_getConfig(client));
 }
 
-OpcClient::OpcClient(std::string&& opc_endpoint)
+OpcClient::OpcClient(std::string &&opc_endpoint)
     : endpoint(std::move(opc_endpoint))
 {
     client = UA_Client_new();
@@ -28,6 +30,12 @@ int OpcClient::connect()
     return 1;
 }
 
+void OpcClient::disconnect()
+{
+    if (isConnected())
+        UA_Client_disconnect(client);
+}
+
 bool OpcClient::isConnected()
 {
     return (connectionStatus == UA_STATUSCODE_GOOD);
@@ -41,23 +49,41 @@ int OpcClient::startListening(int t_ms)
     }
 
     isListening = true;
+    // std::vector<std::thread> threads(event_nodes.size());
     // polling loop
     while (isListening)
     {
         UA_NodeId flag_node;
         auto start = std::chrono::high_resolution_clock::now();
+        // boost::asio::thread_pool pool(4);
         // for each subscribed event flag
         for (NodeKey node_key : event_nodes)
         {
             flag_node = UA_NODEID_STRING_ALLOC(node_key.name_space, node_key.id_str.c_str());
             if (checkFlag(flag_node))
             {
+                // boost::asio::post(pool, [&, this]() {
+                //     notify({node_key, 0});
+                //     // clearFlag(flag_node);
+                // });
+
+                // threads.push_back(std::move(
+                //     std::thread([&, this]() { // if it doesnt work, comment it out and uncomment code bellow
+                //         notify({node_key, 0});
+                //         // clearFlag(flag_node);
+                // })));
                 notify({node_key, 0});
                 clearFlag(flag_node);
             }
         }
+        // for(std::thread &th : threads)
+        //     if(th.joinable()) th.join();
+        // threads.clear();
+        // pool.join();
+
         auto end = std::chrono::high_resolution_clock::now();
         auto sleep_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::milliseconds(t_ms) - (end - start));
+        MES_TRACE(sleep_duration.count());
         std::this_thread::sleep_for(sleep_duration);
     }
     return 1;
@@ -84,7 +110,9 @@ bool OpcClient::checkFlag(UA_NodeId node)
     {
         return false;
     }
-    return *(bool *)flag.data;
+    bool result = *(bool *)flag.data;
+    UA_Variant_clear(&flag);
+    return result;
 }
 
 void OpcClient::clearFlag(UA_NodeId node)
@@ -100,6 +128,7 @@ void OpcClient::addListener(NodeKey type, evtHandler handler)
 
 int OpcClient::readValueBool(UA_NodeId nodeid, UA_Variant &value)
 {
+    std::lock_guard<std::mutex> lck(read_mtx);
     UA_StatusCode read_status = UA_Client_readValueAttribute(client, nodeid, &value);
     if (read_status == UA_STATUSCODE_GOOD && UA_Variant_hasScalarType(&value, &UA_TYPES[UA_TYPES_BOOLEAN]))
     {
@@ -130,6 +159,7 @@ int OpcClient::readValueInt32(UA_NodeId nodeid, UA_Variant &value)
 
 int OpcClient::writeValue(UA_NodeId nodeid, UA_Variant &newValue)
 {
+    std::lock_guard<std::mutex> lck(write_mtx);
     UA_StatusCode write_status = UA_Client_writeValueAttribute(client, nodeid, &newValue);
     if (write_status == UA_STATUSCODE_GOOD)
     {
@@ -233,8 +263,6 @@ int OpcClient::writeValue(UA_NodeId nodeid, bool *value, int len)
     UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_BOOLEAN]);
     return writeValue(nodeid, var_value);
 }
-
-
 
 OpcClient::~OpcClient()
 {

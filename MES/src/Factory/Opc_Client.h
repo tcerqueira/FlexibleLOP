@@ -48,6 +48,7 @@ public:
     OpcClient(std::string&& opc_endpoint);
     ~OpcClient();
     int connect();
+    void disconnect();
     bool isConnected();
     int startListening(int t_ms);
     void stopListening();
@@ -83,6 +84,7 @@ private:
     std::string endpoint;
     UA_StatusCode connectionStatus;
     volatile bool isListening = false;
+    std::mutex write_mtx, read_mtx;
     std::unordered_map<NodeKey, std::vector<evtHandler>, NodeKey::KeyHasher> listeners;
     std::unordered_set<NodeKey, NodeKey::KeyHasher> event_nodes;
 };

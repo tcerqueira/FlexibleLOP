@@ -4,7 +4,7 @@
 #include <boost/asio.hpp>
 #include "Scheduler.h"
 #include "ERP/Udp_Server.h"
-#include "Storage.h"
+#include "Factory/Storage.h"
 #include "Factory/Opc_Client.h"
 #include "XmlParser/XmlParser.h"
 
@@ -15,6 +15,7 @@ class MES
 public:
     MES(const std::string& opc_endpoint);
     MES(std::string&& opc_endpoint);
+    ~MES();
     void start();
 
 private:
@@ -38,8 +39,8 @@ private:
 
 private:
     boost::asio::io_service io_service;
-    Scheduler scheduler;
     Storage store;
+    Scheduler scheduler;
     OpcClient fct_client;
     UdpServer erp_server;
 };
