@@ -13,6 +13,17 @@ MES::MES(const std::string& opc_endpoint)
     fct_client(opc_endpoint),
     store((const int[]){1,2,4,8,16,32,64,128,256})
 {
+    std::array<Machine, NMACHINES> machines_array = {{
+        {{1,0,0,0,0,0,0,0,0}, 1 },
+        {{0,1,0,0,0,0,0,0,0}, 2 },
+        {{0,0,1,0,0,0,0,0,0}, 3 },
+        {{0,0,0,1,0,0,0,0,0}, 4 },
+        {{0,0,0,0,1,0,0,0,0}, 5 },
+        {{0,0,0,0,0,1,0,0,0}, 6 },
+        {{0,0,0,0,0,0,1,0,0}, 7 },
+        {{0,0,0,0,0,0,0,1,0}, 8 }
+    }};
+    factory = Factory(std::move(machines_array), (std::array<int, NPIECES>){1,2,4,8,16,32,64,128,256});
 }
 
 MES::MES(std::string&& opc_endpoint)
@@ -20,6 +31,17 @@ MES::MES(std::string&& opc_endpoint)
     fct_client(std::move(opc_endpoint)),
     store((const int[]){1,2,4,8,16,32,64,128,256})
 {
+    std::array<Machine, NMACHINES> machines_array = {{
+        {{1,0,0,0,0,0,0,0,0}, 1 },
+        {{0,1,0,0,0,0,0,0,0}, 2 },
+        {{0,0,1,0,0,0,0,0,0}, 3 },
+        {{0,0,0,1,0,0,0,0,0}, 4 },
+        {{0,0,0,0,1,0,0,0,0}, 5 },
+        {{0,0,0,0,0,1,0,0,0}, 6 },
+        {{0,0,0,0,0,0,1,0,0}, 7 },
+        {{0,0,0,0,0,0,0,1,0}, 8 }
+    }};
+    factory = Factory(std::move(machines_array), (std::array<int, NPIECES>){1,2,4,8,16,32,64,128,256});
 }
 
 void MES::start()

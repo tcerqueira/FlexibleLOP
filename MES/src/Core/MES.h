@@ -5,6 +5,7 @@
 #include "Scheduler.h"
 #include "ERP/Udp_Server.h"
 #include "Factory/Storage.h"
+#include "Factory/Factory.h"
 #include "Factory/Opc_Client.h"
 #include "XmlParser/XmlParser.h"
 
@@ -40,6 +41,7 @@ private:
 private:
     boost::asio::io_service io_service;
     Storage store;
+    Factory factory;
     Scheduler scheduler;
     OpcClient fct_client;
     UdpServer erp_server;
