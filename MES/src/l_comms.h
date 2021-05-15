@@ -6,7 +6,8 @@
 
 // Data structures
 #include <string>
+#include <sstream>
 #include <vector>
 
 // Custom
-#include "Log.h"
+#include "Log/Log.h"
