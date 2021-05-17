@@ -42,6 +42,7 @@ bool OpcClient::isConnected()
     return (connectionStatus == UA_STATUSCODE_GOOD);
 }
 
+#define OPC_LISTEN_ASYNC_MODE 3
 int OpcClient::startListening(int t_ms)
 {
 #if OPC_LISTEN_ASYNC_MODE == 0
@@ -119,7 +120,7 @@ int OpcClient::startListening(int t_ms)
 #endif
         auto end = std::chrono::high_resolution_clock::now();
         auto sleep_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::milliseconds(t_ms) - (end - start));
-        MES_TRACE(sleep_duration.count());
+        //MES_TRACE(sleep_duration.count());
         std::this_thread::sleep_for(sleep_duration);
     }
     return 1;
