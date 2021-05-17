@@ -123,12 +123,12 @@ void MES::setUp()
     // set listener to load order C1
     fct_client.addListener(OPC_GLOBAL_NODE("load_order1_flag"), [this](opc_evt evt) {
         MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
-        onLoadOrder(1);
+        onLoadOrder(P1);
     });
     // set listener to load order C2
     fct_client.addListener(OPC_GLOBAL_NODE("load_order2_flag"), [this](opc_evt evt) {
         MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
-        onLoadOrder(2);
+        onLoadOrder(P2);
     });
     // set listener to start order C1
     fct_client.addListener(OPC_GLOBAL_NODE("start_orderC1_flag"), [this](opc_evt evt) {

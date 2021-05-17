@@ -138,7 +138,7 @@ void MES::onSendUnload()
 
 }
 
-void MES::onLoadOrder(int conveyor)
+void MES::onLoadOrder(piece_t piece)
 {
     // Convert to a piece
     piece_t load_piece = P1;
@@ -151,16 +151,36 @@ void MES::onStartOrder(int cell)
 {
     // Update scheduler by id
     // Read numbber from factory
-    int number = 123;
+    std::stringstream ss_node;
+    ss_node << OPC_GLOBAL_NODE_STR << "starting_piece_numberC" << cell;
+    const std::string &str_node = ss_node.str();
+
+    UA_Variant number_var;
+    UA_Variant_init(&number_var);
+    if(!fct_client.readValueInt16(UA_NODEID_STRING_ALLOC(4, str_node.c_str()), number_var)) {
+        MES_ERROR("Could not read from node \"{}\".", str_node);
+    }
+    int number = *(int*)number_var.data;
     scheduler.updatePieceStarted(number);
+    UA_Variant_clear(&number_var);
 }
 
 void MES::onFinishOrder(int cell)
 {
     // Update scheduler by id
-    // Read numbber from factory
-    int number = 123;
+    // Read numbber from
+    std::stringstream ss_node;
+    ss_node << OPC_GLOBAL_NODE_STR << "finishing_piece_numberC" << cell;
+    const std::string &str_node = ss_node.str();
+
+    UA_Variant number_var;
+    UA_Variant_init(&number_var);
+    if(!fct_client.readValueInt16(UA_NODEID_STRING_ALLOC(4, str_node.c_str()), number_var)) {
+        MES_ERROR("Could not read from node \"{}\".", str_node);
+    }
+    int number = *(int*)number_var.data;
     scheduler.updatePieceStarted(number);
+    UA_Variant_clear(&number_var);
 }
 
 void MES::onUnloaded(dest_t dest)
