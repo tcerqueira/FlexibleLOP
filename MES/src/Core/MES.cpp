@@ -171,10 +171,14 @@ void MES::setUp()
         onUnloaded(PM3);
     });
     // set listener to machine finished processing
-    fct_client.addListener(OPC_GLOBAL_NODE("machine_end_flag"), [this](opc_evt evt) {
-        MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
-        onFinishProcessing();
-    });
+    for(int i=0; i < NMACHINES; i++)
+    {
+        std::stringstream ss_node; ss_node << "machine_end_flag" << "[" << i << "]";
+        fct_client.addListener(OPC_GLOBAL_NODE(ss_node.str()), [i, this](opc_evt evt) {
+            MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+            onFinishProcessing(i);
+        });
+    }
 }
 
 MES::~MES()

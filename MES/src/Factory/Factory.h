@@ -46,4 +46,5 @@ OStream &operator<<(OStream &os, const Factory &fct)
         i++;
     }
     // unload stats print
+    return os;
 }

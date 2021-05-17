@@ -191,12 +191,12 @@ void MES::onUnloaded(dest_t dest)
     factory.unloaded(unload_piece, dest);
 }
 
-void MES::onFinishProcessing()
+void MES::onFinishProcessing(int machine)
 {
     // Update stats
     // Read machined piece type and number of machine from factory
     piece_t machined_piece = P1;
-    factory.machined(0, machined_piece, 15);
+    factory.machined(machine, machined_piece, 15);
 }
 
 // ############################################ AUXILIAR FUNCTIONS #################################################
