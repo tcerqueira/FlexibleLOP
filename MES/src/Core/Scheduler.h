@@ -13,6 +13,9 @@ public:
     void addUnload(std::shared_ptr<UnloadOrder> order);
     bool hasTransform(int cell) const;
     bool hasUnload() const;
+    void updatePieceStarted(int number);
+    void updatePieceFinished(int number);
+    
     // TransformOrder popOrder();
     std::vector<std::shared_ptr<TransformOrder>> &getTransformOrdersC1() { return t1_orders; };
     std::vector<std::shared_ptr<TransformOrder>> &getTransformOrdersC2() { return t2_orders; };
