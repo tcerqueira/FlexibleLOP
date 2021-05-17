@@ -30,11 +30,11 @@ private:
     // opc handlers
     void onSendTransform(int cell);
     void onSendUnload();
-    void onLoadOrder(int conveyor);
+    void onLoadOrder(piece_t piece);
     void onStartOrder(int cell);
     void onFinishOrder(int cell);
     void onUnloaded(dest_t dest);
-    void onFinishProcessing();
+    void onFinishProcessing(int machine);
     // Factory of orders from xml
     static std::shared_ptr<Order> OrderFactory(const OrderNode &order_node);
 
