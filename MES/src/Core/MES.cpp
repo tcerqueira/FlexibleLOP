@@ -78,7 +78,7 @@ void MES::run()
         std::cin >> buf;
         if(buf[0] == 'x') fct_client.stopListening();
         if(buf[0] == 'f') MES_INFO(factory);
-        if(buf[0] == 's') MES_TRACE(scheduler);
+        if(buf[0] == 's') MES_INFO(scheduler);
         if(buf[0] == 'q') break;
     }
 }
