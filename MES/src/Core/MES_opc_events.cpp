@@ -110,7 +110,7 @@ void MES::onSendTransform(int cell)
 
 struct opc_unload
 {
-    int16_t type_t;
+    uint16_t type_t;
     int16_t dest;
     int16_t quant;
 };
@@ -137,7 +137,7 @@ void MES::onSendUnload()
         return;
 
     std::shared_ptr<UnloadOrder> next_order = scheduler.getUnloadOrders()[0];
-    opc_unload opc_u = {(int16_t)next_order->getPiece(), (int16_t)next_order->getDest(), (int16_t)next_order->getQuantity()};
+    opc_unload opc_u = {(uint16_t)next_order->getPiece(), (int16_t)next_order->getDest(), (int16_t)next_order->getQuantity()};
 
     if(!writeUnload(fct_client, opc_u))
         MES_ERROR("Could not send unload order.");

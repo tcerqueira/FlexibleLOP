@@ -1,7 +1,10 @@
 <ORDERS>
-<!-- <Order Number="123">
-    <Unload Type="P1" Destination="PM3" Quantity="2"/>
-</Order> -->
+<Order Number="123">
+    <Unload Type="P3" Destination="PM2" Quantity="2"/>
+</Order> 
+<Order Number="124">
+    <Unload Type="P7" Destination="PM2" Quantity="2"/>
+</Order> 
 <Order Number="321">
     <Transform From="P2" To="P7" Quantity="1" Time="1615744339" MaxDelay="259200"
     Penalty="100"/>
