@@ -58,6 +58,8 @@ public:
     int readValueBool(UA_NodeId nodeid, UA_Variant &value);
     int readValueInt16(UA_NodeId nodeid, UA_Variant &value);
     int readValueInt32(UA_NodeId nodeid, UA_Variant &value);
+    int readValueUInt16(UA_NodeId nodeid, UA_Variant &value);
+    int readValueUInt32(UA_NodeId nodeid, UA_Variant &value);
     // write values
     int writeValue(UA_NodeId nodeid, UA_Variant &newValue);
     int writeValue(UA_NodeId nodeid, int16_t value);
@@ -84,7 +86,7 @@ private:
     std::string endpoint;
     UA_StatusCode connectionStatus;
     volatile bool isListening = false;
-    std::mutex write_mtx, read_mtx;
+    std::mutex opc_call_mtx;
     std::unordered_map<NodeKey, std::vector<evtHandler>, NodeKey::KeyHasher> listeners;
     std::unordered_set<NodeKey, NodeKey::KeyHasher> event_nodes;
 };

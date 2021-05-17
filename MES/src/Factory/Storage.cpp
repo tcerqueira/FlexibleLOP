@@ -14,12 +14,22 @@ Storage::Storage(const int* count)
 
 int Storage::countPiece(piece_t type) const
 {
-    return count[type-1];
+    return count[(int)type-1];
 }
 
 void Storage::setCount(piece_t type, int count)
 {
-    this->count[type-1] = count;
+    this->count[(int)type-1] = count;
+}
+
+void Storage::addCount(piece_t type, int count)
+{
+    this->count[(int)type-1] += count;
+}
+
+void Storage::subCount(piece_t type, int count)
+{
+    this->count[(int)type-1] -= count;
 }
 
 int Storage::total() const

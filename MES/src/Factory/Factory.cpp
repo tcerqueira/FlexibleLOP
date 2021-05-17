@@ -16,7 +16,7 @@ void Factory::machined(int number, piece_t p, unsigned int time)
     machines_stats[number].total_time += time;
 }
 
-void Factory::unloaded(piece_t p)
+void Factory::unloaded(piece_t p, dest_t d)
 {
     unload_stats[p-1]++;
 }
