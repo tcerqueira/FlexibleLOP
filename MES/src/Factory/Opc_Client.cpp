@@ -164,7 +164,7 @@ void OpcClient::addListener(NodeKey type, evtHandler handler)
 
 int OpcClient::readValueBool(UA_NodeId nodeid, UA_Variant &value)
 {
-    std::lock_guard<std::mutex> lck(read_mtx);
+    std::lock_guard<std::mutex> lck(opc_call_mtx);
     UA_StatusCode read_status = UA_Client_readValueAttribute(client, nodeid, &value);
     if (read_status == UA_STATUSCODE_GOOD && UA_Variant_hasScalarType(&value, &UA_TYPES[UA_TYPES_BOOLEAN]))
     {
@@ -175,6 +175,7 @@ int OpcClient::readValueBool(UA_NodeId nodeid, UA_Variant &value)
 
 int OpcClient::readValueInt16(UA_NodeId nodeid, UA_Variant &value)
 {
+    std::lock_guard<std::mutex> lck(opc_call_mtx);
     UA_StatusCode read_status = UA_Client_readValueAttribute(client, nodeid, &value);
     if (read_status == UA_STATUSCODE_GOOD && UA_Variant_hasScalarType(&value, &UA_TYPES[UA_TYPES_INT16]))
     {
@@ -185,6 +186,7 @@ int OpcClient::readValueInt16(UA_NodeId nodeid, UA_Variant &value)
 
 int OpcClient::readValueInt32(UA_NodeId nodeid, UA_Variant &value)
 {
+    std::lock_guard<std::mutex> lck(opc_call_mtx);
     UA_StatusCode read_status = UA_Client_readValueAttribute(client, nodeid, &value);
     if (read_status == UA_STATUSCODE_GOOD && UA_Variant_hasScalarType(&value, &UA_TYPES[UA_TYPES_INT32]))
     {
@@ -195,7 +197,7 @@ int OpcClient::readValueInt32(UA_NodeId nodeid, UA_Variant &value)
 
 int OpcClient::writeValue(UA_NodeId nodeid, UA_Variant &newValue)
 {
-    std::lock_guard<std::mutex> lck(write_mtx);
+    std::lock_guard<std::mutex> lck(opc_call_mtx);
     UA_StatusCode write_status = UA_Client_writeValueAttribute(client, nodeid, &newValue);
     if (write_status == UA_STATUSCODE_GOOD)
     {
