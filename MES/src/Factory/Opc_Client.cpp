@@ -93,7 +93,7 @@ int OpcClient::startListening(int t_ms)
                 })));
 
 #elif OPC_LISTEN_ASYNC_MODE == 3
-                futures.push_back(std::move(std::async(std::launch::async, [=, this](){
+                futures.push_back(std::move(std::async(std::launch::async, [&, this](){
                     notify({node_key, 0});
                     // clearFlag(flag_node);
                 })));
