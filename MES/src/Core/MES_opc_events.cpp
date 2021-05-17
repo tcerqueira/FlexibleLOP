@@ -168,7 +168,6 @@ void MES::onStartOrder(int cell)
 void MES::onFinishOrder(int cell)
 {
     // Update scheduler by id
-    // Read numbber from
     std::stringstream ss_node;
     ss_node << OPC_GLOBAL_NODE_STR << "finishing_piece_numberC" << cell;
     const std::string &str_node = ss_node.str();
@@ -186,8 +185,16 @@ void MES::onFinishOrder(int cell)
 void MES::onUnloaded(dest_t dest)
 {
     // Update stats
-    // Read unload piece type from factory
-    piece_t unload_piece = P1;
+    std::stringstream ss_node;
+    ss_node << OPC_GLOBAL_NODE_STR << "unloaded_PM" << (int)dest << "_type";
+    const std::string &str_node = ss_node.str();
+
+    UA_Variant type_var;
+    UA_Variant_init(&type_var);
+    if(!fct_client.readValueUInt16(UA_NODEID_STRING_ALLOC(4, str_node.c_str()), type_var)) {
+        MES_ERROR("Could not read from node \"{}\".", str_node);
+    }
+    piece_t unload_piece = (piece_t)(int)*(uint16_t*)type_var.data;
     factory.unloaded(unload_piece, dest);
 }
 

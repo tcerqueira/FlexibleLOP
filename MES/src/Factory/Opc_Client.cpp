@@ -196,6 +196,28 @@ int OpcClient::readValueInt32(UA_NodeId nodeid, UA_Variant &value)
     return 0;
 }
 
+int OpcClient::readValueUInt16(UA_NodeId nodeid, UA_Variant &value)
+{
+    std::lock_guard<std::mutex> lck(opc_call_mtx);
+    UA_StatusCode read_status = UA_Client_readValueAttribute(client, nodeid, &value);
+    if (read_status == UA_STATUSCODE_GOOD && UA_Variant_hasScalarType(&value, &UA_TYPES[UA_TYPES_UINT16]))
+    {
+        return 1;
+    };
+    return 0;
+}
+
+int OpcClient::readValueUInt32(UA_NodeId nodeid, UA_Variant &value)
+{
+    std::lock_guard<std::mutex> lck(opc_call_mtx);
+    UA_StatusCode read_status = UA_Client_readValueAttribute(client, nodeid, &value);
+    if (read_status == UA_STATUSCODE_GOOD && UA_Variant_hasScalarType(&value, &UA_TYPES[UA_TYPES_UINT32]))
+    {
+        return 1;
+    };
+    return 0;
+}
+
 int OpcClient::writeValue(UA_NodeId nodeid, UA_Variant &newValue)
 {
     std::lock_guard<std::mutex> lck(opc_call_mtx);
