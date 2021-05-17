@@ -6,6 +6,7 @@
 
 // Data structures
 #include <string>
+#include <array>
 #include <sstream>
 #include <vector>
 

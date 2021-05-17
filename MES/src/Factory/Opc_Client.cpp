@@ -1,6 +1,9 @@
 #include "Opc_Client.h"
 
 #include <chrono>
+#include <future>
+#include <boost/asio/post.hpp>
+#include <boost/asio/thread_pool.hpp>
 
 OpcClient::OpcClient(const std::string &opc_endpoint)
     : endpoint(opc_endpoint)
@@ -9,7 +12,7 @@ OpcClient::OpcClient(const std::string &opc_endpoint)
     UA_ClientConfig_setDefault(UA_Client_getConfig(client));
 }
 
-OpcClient::OpcClient(std::string&& opc_endpoint)
+OpcClient::OpcClient(std::string &&opc_endpoint)
     : endpoint(std::move(opc_endpoint))
 {
     client = UA_Client_new();
@@ -28,32 +31,96 @@ int OpcClient::connect()
     return 1;
 }
 
+void OpcClient::disconnect()
+{
+    if (isConnected())
+        UA_Client_disconnect(client);
+}
+
+bool OpcClient::isConnected()
+{
+    return (connectionStatus == UA_STATUSCODE_GOOD);
+}
+
+#define OPC_LISTEN_ASYNC_MODE 3
 int OpcClient::startListening(int t_ms)
 {
-    if (connectionStatus != UA_STATUSCODE_GOOD)
+#if OPC_LISTEN_ASYNC_MODE == 0
+    MES_TRACE("Single thread mode.");
+#elif OPC_LISTEN_ASYNC_MODE == 1
+    MES_TRACE("Boost asio mode.");
+#elif OPC_LISTEN_ASYNC_MODE == 2
+    MES_TRACE("Fully threaded mode.");
+#elif OPC_LISTEN_ASYNC_MODE == 3
+    MES_TRACE("Standard async mode.");
+#endif
+    if (!isConnected())
     {
         return 0;
     }
 
     isListening = true;
+#if OPC_LISTEN_ASYNC_MODE == 3
+    std::vector<std::future<void>> futures;
+
+#elif OPC_LISTEN_ASYNC_MODE == 2
+    std::vector<std::thread> threads(event_nodes.size());
+#endif
     // polling loop
     while (isListening)
     {
         UA_NodeId flag_node;
         auto start = std::chrono::high_resolution_clock::now();
+#if OPC_LISTEN_ASYNC_MODE == 1
+        boost::asio::thread_pool pool(4);
+#endif
         // for each subscribed event flag
         for (NodeKey node_key : event_nodes)
         {
             flag_node = UA_NODEID_STRING_ALLOC(node_key.name_space, node_key.id_str.c_str());
             if (checkFlag(flag_node))
             {
+#if OPC_LISTEN_ASYNC_MODE == 1
+                boost::asio::post(pool, [=, this]() {
+                    notify({node_key, 0});
+                    // clearFlag(flag_node);
+                });
+
+#elif OPC_LISTEN_ASYNC_MODE == 2
+                threads.push_back(std::move(
+                    std::thread([=, this]() { // if it doesnt work, comment it out and uncomment code bellow
+                        notify({node_key, 0});
+                        // clearFlag(flag_node);
+                })));
+
+#elif OPC_LISTEN_ASYNC_MODE == 3
+                futures.push_back(std::move(std::async(std::launch::async, [=, this](){
+                    notify({node_key, 0});
+                    // clearFlag(flag_node);
+                })));
+
+#elif OPC_LISTEN_ASYNC_MODE == 0
                 notify({node_key, 0});
+#endif
                 clearFlag(flag_node);
             }
         }
+#if OPC_LISTEN_ASYNC_MODE == 3
+        for(auto &fut : futures)
+            fut.get();
+        futures.clear();
+
+#elif OPC_LISTEN_ASYNC_MODE == 2
+        for(std::thread &th : threads)
+            if(th.joinable()) th.join();
+        threads.clear();
+
+#elif OPC_LISTEN_ASYNC_MODE == 1
+        pool.join();
+#endif
         auto end = std::chrono::high_resolution_clock::now();
         auto sleep_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::milliseconds(t_ms) - (end - start));
-        // MES_TRACE("duration {}", sleep_duration.count());
+        //MES_TRACE(sleep_duration.count());
         std::this_thread::sleep_for(sleep_duration);
     }
     return 1;
@@ -80,7 +147,9 @@ bool OpcClient::checkFlag(UA_NodeId node)
     {
         return false;
     }
-    return *(bool *)flag.data;
+    bool result = *(bool *)flag.data;
+    UA_Variant_clear(&flag);
+    return result;
 }
 
 void OpcClient::clearFlag(UA_NodeId node)
@@ -96,6 +165,7 @@ void OpcClient::addListener(NodeKey type, evtHandler handler)
 
 int OpcClient::readValueBool(UA_NodeId nodeid, UA_Variant &value)
 {
+    std::lock_guard<std::mutex> lck(opc_call_mtx);
     UA_StatusCode read_status = UA_Client_readValueAttribute(client, nodeid, &value);
     if (read_status == UA_STATUSCODE_GOOD && UA_Variant_hasScalarType(&value, &UA_TYPES[UA_TYPES_BOOLEAN]))
     {
@@ -106,6 +176,7 @@ int OpcClient::readValueBool(UA_NodeId nodeid, UA_Variant &value)
 
 int OpcClient::readValueInt16(UA_NodeId nodeid, UA_Variant &value)
 {
+    std::lock_guard<std::mutex> lck(opc_call_mtx);
     UA_StatusCode read_status = UA_Client_readValueAttribute(client, nodeid, &value);
     if (read_status == UA_STATUSCODE_GOOD && UA_Variant_hasScalarType(&value, &UA_TYPES[UA_TYPES_INT16]))
     {
@@ -116,6 +187,7 @@ int OpcClient::readValueInt16(UA_NodeId nodeid, UA_Variant &value)
 
 int OpcClient::readValueInt32(UA_NodeId nodeid, UA_Variant &value)
 {
+    std::lock_guard<std::mutex> lck(opc_call_mtx);
     UA_StatusCode read_status = UA_Client_readValueAttribute(client, nodeid, &value);
     if (read_status == UA_STATUSCODE_GOOD && UA_Variant_hasScalarType(&value, &UA_TYPES[UA_TYPES_INT32]))
     {
@@ -126,6 +198,7 @@ int OpcClient::readValueInt32(UA_NodeId nodeid, UA_Variant &value)
 
 int OpcClient::writeValue(UA_NodeId nodeid, UA_Variant &newValue)
 {
+    std::lock_guard<std::mutex> lck(opc_call_mtx);
     UA_StatusCode write_status = UA_Client_writeValueAttribute(client, nodeid, &newValue);
     if (write_status == UA_STATUSCODE_GOOD)
     {
@@ -229,8 +302,6 @@ int OpcClient::writeValue(UA_NodeId nodeid, bool *value, int len)
     UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_BOOLEAN]);
     return writeValue(nodeid, var_value);
 }
-
-
 
 OpcClient::~OpcClient()
 {
