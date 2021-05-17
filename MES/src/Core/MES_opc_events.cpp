@@ -30,15 +30,9 @@ void MES::onSendTransform(int cell)
     opc_transform order;
     std::shared_ptr<TransformOrder> next_order;
     if(cell == 1){
-        if(scheduler.getTransformOrdersC1().empty()){
-            return;
-        }
         next_order = scheduler.getTransformOrdersC1()[0];
     }
     else{
-        if(scheduler.getTransformOrdersC2().empty()){
-            return;
-        }
         next_order = scheduler.getTransformOrdersC2()[0];
     }
     //auto next_order = std::make_unique<TransformOrder>(111, 0, 1, P1, P7, 1, 30);
@@ -110,7 +104,7 @@ void MES::onSendTransform(int cell)
 
 struct opc_unload
 {
-    int16_t type_t;
+    uint16_t type_t;
     int16_t dest;
     int16_t quant;
 };
@@ -137,7 +131,7 @@ void MES::onSendUnload()
         return;
 
     std::shared_ptr<UnloadOrder> next_order = scheduler.getUnloadOrders()[0];
-    opc_unload opc_u = {(int16_t)next_order->getPiece(), (int16_t)next_order->getDest(), (int16_t)next_order->getQuantity()};
+    opc_unload opc_u = {(uint16_t)next_order->getPiece(), (int16_t)next_order->getDest(), (int16_t)next_order->getQuantity()};
 
     if(!writeUnload(fct_client, opc_u))
         MES_ERROR("Could not send unload order.");
@@ -147,28 +141,42 @@ void MES::onSendUnload()
 void MES::onLoadOrder(int conveyor)
 {
     // Convert to a piece
+    piece_t load_piece = P1;
 
     // Update Storage
+    store.addCount(load_piece, 1);
 }
 
 void MES::onStartOrder(int cell)
 {
     // Update scheduler by id
+    // Read numbber from factory
+    int number = 123;
+    scheduler.updatePieceStarted(number);
 }
 
 void MES::onFinishOrder(int cell)
 {
     // Update scheduler by id
+    // Read numbber from factory
+    int number = 123;
+    scheduler.updatePieceStarted(number);
 }
 
 void MES::onUnloaded(dest_t dest)
 {
-    // Update stats 
+    // Update stats
+    // Read unload piece type from factory
+    piece_t unload_piece = P1;
+    factory.unloaded(unload_piece, dest);
 }
 
 void MES::onFinishProcessing()
 {
     // Update stats
+    // Read machined piece type and number of machine from factory
+    piece_t machined_piece = P1;
+    factory.machined(0, machined_piece, 15);
 }
 
 // ############################################ AUXILIAR FUNCTIONS #################################################
