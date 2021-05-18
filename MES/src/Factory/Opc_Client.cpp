@@ -42,7 +42,7 @@ bool OpcClient::isConnected()
     return (connectionStatus == UA_STATUSCODE_GOOD);
 }
 
-#define OPC_LISTEN_ASYNC_MODE 1
+#define OPC_LISTEN_ASYNC_MODE 0
 int OpcClient::startListening(int t_ms)
 {
 #if OPC_LISTEN_ASYNC_MODE == 0
