@@ -14,7 +14,7 @@ struct opc_transform
     int16_t quantity;
     int16_t to_do;
     int16_t done;
-    int16_t *tool_set;
+    int16_t tool_set[4] = {0,0,0,0};
     int16_t path[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     uint64_t tool_time[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     bool warehouse_intermediate;
@@ -55,13 +55,11 @@ void MES::onSendTransform(int cell)
     //MES_TRACE("Tool time: {}; {}; {}; {}; {}; {}; {};", order.tool_time[0], order.tool_time[1], order.tool_time[2], order.tool_time[3], order.tool_time[4], order.tool_time[5],  order.tool_time[6]);
 
     // Choose toolset
-    int16_t tool_set[4] = {0,0,0,0};
-    chooseToolSet(tool_set, tools);
-    order.tool_set = tool_set;
+    chooseToolSet(order.tool_set, tools);
     // MES_TRACE("Tool_set: {}; {}; {}; {};", order.tool_set[0], order.tool_set[1], order.tool_set[2], order.tool_set[3]);
 
     // Choose route
-    chooseRoute(order.path, tool_set, tools);
+    chooseRoute(order.path, order.tool_set, tools);
     //order.path = path;
     // MES_TRACE("Path: {}; {}; {}; {}; {}; {}; {}; {};", order.path[0], order.path[1], order.path[2], order.path[3], order.path[4], order.path[5], order.path[6], order.path[7]);
     

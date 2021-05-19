@@ -1,6 +1,8 @@
 #include "Scheduler.h"
 #include <algorithm>
 
+std::shared_ptr<SubOrder> toSubOrder(const std::shared_ptr<TransformOrder> order);
+
 Scheduler::Scheduler()
 {
     std::make_heap(to_dispatch.begin(), to_dispatch.end(), OrderPriority());
@@ -39,6 +41,8 @@ void Scheduler::schedule()
         auto order = to_dispatch.back();
         to_dispatch.pop_back();
 
+        auto sub_order = toSubOrder(order);
+
         if (getTotalWork(1) <= getTotalWork(2))
         {
             t1_orders.push_back(order);
@@ -75,13 +79,18 @@ int Scheduler::getTotalWork(int cell)
     return work;
 }
 
-bool Scheduler::OrderPriority::operator()(std::shared_ptr<TransformOrder> o1, std::shared_ptr<TransformOrder> o2) const
+bool Scheduler::OrderPriority::operator()(const std::shared_ptr<TransformOrder> o1, const std::shared_ptr<TransformOrder> o2) const
 {
     time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
     long p1 = (o1->getReadyTime() - now - o1->getEstimatedWork() * WORK_TRANSFORM) * o1->getDailyPenalty();
     long p2 = (o2->getReadyTime() - now - o2->getEstimatedWork() * WORK_TRANSFORM) * o2->getDailyPenalty();
 
     return p1 > p2;
+}
+
+bool Scheduler::OrderPriority::operator()(const std::shared_ptr<SubOrder> o1, const std::shared_ptr<SubOrder> o2) const
+{
+    return true;
 }
 
 void Scheduler::updatePieceStarted(int number)
@@ -100,4 +109,27 @@ bool Scheduler::hasTransform(int cell) const
 bool Scheduler::hasUnload() const
 {
     return !u_orders.empty();
+}
+
+// ########################### AUXILIAR FUNCTIONS ####################################
+// ###################################################################################
+
+std::shared_ptr<SubOrder> toSubOrder(const std::shared_ptr<TransformOrder> order)
+{
+    auto sub_order = std::make_shared<SubOrder>();
+    sub_order->orderID = (int16_t)order->getId();
+    sub_order->init_p = (uint16_t)order->getInitial();
+    sub_order->quantity = (int16_t)order->getQuantity();
+    sub_order->to_do = (int16_t)order->getToDo();
+    sub_order->done = (int16_t)order->getDone();
+    // sub_ortder->tool_set = ;
+    // sub_order->path = ;
+    // sub_order->tool_time = ;
+    // sub_order->warehouse_intermediate = ;
+    // sub_order->piece_intermediate = ;
+    sub_order->readyTime = order->getReadyTime();
+    sub_order->work = order->getEstimatedWork();
+    sub_order->penalty = order->getDailyPenalty();
+
+    return sub_order;
 }
