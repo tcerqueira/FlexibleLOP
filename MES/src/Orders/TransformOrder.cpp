@@ -5,6 +5,16 @@ TransformOrder::TransformOrder(int id, time_t receivedAt, int quantity, piece_t 
 {
 }
 
+time_t TransformOrder::getReadyTime() const
+{
+    return (sentAt + (time_t)maxSecDelay);
+}
+
+int TransformOrder::getEstimatedWork() const
+{
+    return getToDo() * ((int)finalp - (int)initial);
+}
+
 int TransformOrder::getPenalty() const
 {
     // penalty * (time_finish - max_time_finish)

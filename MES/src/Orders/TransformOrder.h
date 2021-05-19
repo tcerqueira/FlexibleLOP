@@ -14,6 +14,8 @@ public:
     int getDailyPenalty() const { return penaltyPerDay; }
     int getMaxDelay() const { return maxSecDelay; }
     int getPenalty() const;
+    time_t getReadyTime() const;
+    int getEstimatedWork() const;
 
     template <typename OStream>
     friend OStream &operator<<(OStream &os, const TransformOrder &o);

@@ -24,7 +24,7 @@
 ]>
 <ORDERS>
 <Order Number="101">
-<Transform From="P1" To="P5" Quantity="15" Time="0" MaxDelay="250" Penalty="100"/>
+<Transform From="P1" To="P5" Quantity="10" Time="0" MaxDelay="250" Penalty="100"/>
 </Order>
 <Order Number="102">
 <Transform From="P5" To="P6" Quantity="16" Time="0" MaxDelay="300" Penalty="100"/>
