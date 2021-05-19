@@ -30,8 +30,8 @@ private:
     std::vector<std::shared_ptr<TransformOrder>> t1_orders;
     std::vector<std::shared_ptr<TransformOrder>> t2_orders;
     std::vector<std::shared_ptr<UnloadOrder>> u_orders;
-    std::vector<std::shared_ptr<TransformOrder>> transform_done;
-    std::vector<std::shared_ptr<UnloadOrder>> unload_done;
+    std::vector<std::shared_ptr<TransformOrder>> dispatched_transforms;
+    std::vector<std::shared_ptr<UnloadOrder>> dispatched_unloads;
     Storage *store;
 };
 

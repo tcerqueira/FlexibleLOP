@@ -31,8 +31,8 @@ private:
     void onSendTransform(int cell);
     void onSendUnload();
     void onLoadOrder(piece_t piece);
-    void onStartOrder(int cell);
-    void onFinishOrder(int cell);
+    void onStartPiece(int cell);
+    void onFinishPiece(int cell);
     void onUnloaded(dest_t dest);
     void onFinishProcessing(int machine);
     // Factory of orders from xml

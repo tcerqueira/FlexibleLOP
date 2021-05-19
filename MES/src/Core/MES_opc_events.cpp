@@ -149,7 +149,7 @@ void MES::onLoadOrder(piece_t piece)
     store.addCount(piece, 1);
 }
 
-void MES::onStartOrder(int cell)
+void MES::onStartPiece(int cell)
 {
     // Update scheduler by id
     std::stringstream ss_node;
@@ -167,7 +167,7 @@ void MES::onStartOrder(int cell)
     UA_Variant_clear(&number_var);
 }
 
-void MES::onFinishOrder(int cell)
+void MES::onFinishPiece(int cell)
 {
     // Update scheduler by id
     std::stringstream ss_node;

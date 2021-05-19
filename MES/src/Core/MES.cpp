@@ -133,22 +133,22 @@ void MES::setUp()
     // set listener to start order C1
     fct_client.addListener(OPC_GLOBAL_NODE("start_orderC1_flag"), [this](opc_evt evt) {
         MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
-        onStartOrder(1);
+        onStartPiece(1);
     });
     // set listener to start order C2
     fct_client.addListener(OPC_GLOBAL_NODE("start_orderC2_flag"), [this](opc_evt evt) {
         MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
-        onStartOrder(2);
+        onStartPiece(2);
     });
     // set listener to finished order C1
     fct_client.addListener(OPC_GLOBAL_NODE("finish_orderC1_flag"), [this](opc_evt evt) {
         MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
-        onFinishOrder(1);
+        onFinishPiece(1);
     });
     // set listener to finished order C2
     fct_client.addListener(OPC_GLOBAL_NODE("finish_orderC2_flag"), [this](opc_evt evt) {
         MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
-        onFinishOrder(2);
+        onFinishPiece(2);
     });
     // set listener to know factory is ready to receive unload orders
     fct_client.addListener(OPC_GLOBAL_NODE("unload_order_flag"), [this](opc_evt evt) {
