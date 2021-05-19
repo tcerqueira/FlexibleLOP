@@ -20,9 +20,9 @@ CREATE TABLE IF NOT EXISTS TransformOrder (
 );
 
 -- Unload Order
--- CREATE TABLE IF NOT EXISTS UnloadOrder (
+CREATE TABLE IF NOT EXISTS UnloadOrder (
 
--- );
+);
 
 -- Storage Order
 CREATE TABLE IF NOT EXISTS PieceStorage (
@@ -32,3 +32,15 @@ CREATE TABLE IF NOT EXISTS PieceStorage (
     CHECK (id_number>=1), CHECK (id_number<=9),
     CHECK (amount>=0)
 );
+
+-- Machine stats
+CREATE TABLE IF NOT EXISTS MachineStats (
+    id INTEGER,
+    piece_count, 
+)
+
+-- Machined piece
+CREATE TABLE IF NOT EXISTS MachinePiece (
+    id INTEGER,
+    p_count INTEGER
+)
