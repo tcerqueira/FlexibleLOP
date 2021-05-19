@@ -11,7 +11,7 @@
 MES::MES(const std::string& opc_endpoint)
 :   erp_server(io_service, UDP_LISTEN_PORT),
     fct_client(opc_endpoint),
-    store((const int[]){1,2,4,8,16,32,64,128,256})
+    store((const int[]){100,200,400,800,160,0,0,0,0})
 {
     std::array<Machine, NMACHINES> machines_array = {{
         {{1,0,0,0,0,0,0,0,0}, 1 },
@@ -23,13 +23,14 @@ MES::MES(const std::string& opc_endpoint)
         {{0,0,0,0,0,0,1,0,0}, 7 },
         {{0,0,0,0,0,0,0,1,0}, 8 }
     }};
-    factory = Factory(std::move(machines_array), (std::array<int, NPIECES>){1,2,4,8,16,32,64,128,256});
+    std::array<std::array<int, NPIECES>, NDEST> unloads = {{{1,2,3,4,5,6,7,8,9},{11,12,13,14,15,16,17,18,19},{21,21,23,24,25,26,27,28,29}}};
+    factory = Factory(std::move(machines_array), std::move(unloads));
 }
 
 MES::MES(std::string&& opc_endpoint)
 :   erp_server(io_service, UDP_LISTEN_PORT),
     fct_client(std::move(opc_endpoint)),
-    store((const int[]){1,2,4,8,16,32,64,128,256})
+    store((const int[]){100,200,400,800,160,0,0,0,0})
 {
     std::array<Machine, NMACHINES> machines_array = {{
         {{1,0,0,0,0,0,0,0,0}, 1 },
@@ -41,7 +42,8 @@ MES::MES(std::string&& opc_endpoint)
         {{0,0,0,0,0,0,1,0,0}, 7 },
         {{0,0,0,0,0,0,0,1,0}, 8 }
     }};
-    factory = Factory(std::move(machines_array), (std::array<int, NPIECES>){1,2,4,8,16,32,64,128,256});
+    std::array<std::array<int, NPIECES>, NDEST> unloads = {{{1,2,3,4,5,6,7,8,9},{11,12,13,14,15,16,17,18,19},{21,21,23,24,25,26,27,28,29}}};
+    factory = Factory(std::move(machines_array), std::move(unloads));
 }
 
 void MES::start()

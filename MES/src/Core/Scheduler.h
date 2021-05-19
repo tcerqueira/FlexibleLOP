@@ -8,6 +8,24 @@
 #define WORK_UNLOAD 15
 #define WORK_CHANGETOOLS 20
 
+struct SubOrder
+{
+    int16_t orderID;
+    uint16_t init_p;
+    int16_t quantity;
+    int16_t to_do;
+    int16_t done;
+    int16_t *tool_set;
+    int16_t path[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    uint64_t tool_time[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    bool warehouse_intermediate;
+    uint16_t piece_intermediate;
+    // necessary for calculating priority
+    time_t readyTime;
+    int work;
+    int penalty;
+};
+
 class Scheduler
 {  
 public:
@@ -16,22 +34,27 @@ public:
     void addOrderList(std::vector<std::shared_ptr<TransformOrder>> &list);
     void addTransform(std::shared_ptr<TransformOrder> order);
     void addUnload(std::shared_ptr<UnloadOrder> order);
+    std::shared_ptr<UnloadOrder> popUnload();
     bool hasTransform(int cell) const;
     bool hasUnload() const;
-    void updatePieceStarted(int number);
-    void updatePieceFinished(int number);
-    std::shared_ptr<TransformOrder> getTransform(int number);
+
+    void updatePieceStarted(int cell, int number);
+    void updatePieceFinished(int cell, int number);
     int getTotalWork(int cell);
+
+    std::shared_ptr<TransformOrder> getTransform(int number);
 
     void schedule();
     
     // TransformOrder popOrder();
+    std::vector<std::shared_ptr<TransformOrder>> &getAllOrders() { return orders_list; };
     std::vector<std::shared_ptr<TransformOrder>> &getTransformOrdersC1() { return t1_orders; };
     std::vector<std::shared_ptr<TransformOrder>> &getTransformOrdersC2() { return t2_orders; };
     std::vector<std::shared_ptr<UnloadOrder>> &getUnloadOrders() { return u_orders; };
 
     struct OrderPriority {
-        bool operator()(std::shared_ptr<TransformOrder> o1, std::shared_ptr<TransformOrder> o2) const;
+        bool operator()(const std::shared_ptr<TransformOrder> o1, const std::shared_ptr<TransformOrder> o2) const;
+        bool operator()(const std::shared_ptr<SubOrder> o1, const std::shared_ptr<SubOrder> o2) const;
     };
 
     template <typename OStream>

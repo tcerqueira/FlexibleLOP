@@ -15,7 +15,7 @@ class Factory
 {
 public:
     Factory() = default;
-    Factory(std::array<Machine, NMACHINES> &&other_machines, std::array<int, NPIECES> &&other_unloaded);
+    Factory(std::array<Machine, NMACHINES> &&other_machines, std::array<std::array<int, NPIECES>, NDEST> &&other_unloaded);
 
     void machined(int cell, int number, piece_t p, unsigned int time);
     void machined(int number, piece_t p, unsigned int time);
@@ -26,7 +26,7 @@ public:
 
 public:
     std::array<Machine, NMACHINES> machines_stats;
-    std::array<int, NPIECES> unload_stats;
+    std::array<std::array<int, NPIECES>, NDEST> unload_stats;
 };
 
 // STREAM OVERLOADS

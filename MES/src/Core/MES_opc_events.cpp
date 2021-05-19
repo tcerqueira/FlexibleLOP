@@ -14,95 +14,14 @@ struct opc_transform
     int16_t quantity;
     int16_t to_do;
     int16_t done;
-    int16_t tool_set[4] = {0, 0, 0, 0};
+    int16_t* tool_set;
     int16_t path[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     uint64_t tool_time[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     bool warehouse_intermediate;
     uint16_t piece_intermediate;
 };
 
-int writeTransform(OpcClient &opc_client,opc_transform &order, int cell);
-
-void MES::onSendTransform(int cell)
-{
-    if(!scheduler.hasTransform(cell))
-        return;
-
-    std::stringstream ss_node;
-    ss_node << "orders_C" << cell;
-    opc_transform order;
-    std::shared_ptr<TransformOrder> next_order;
-    if(cell == 1){
-        next_order = scheduler.getTransformOrdersC1()[0];
-    }
-    else{
-        next_order = scheduler.getTransformOrdersC2()[0];
-    }
-    //auto next_order = std::make_unique<TransformOrder>(111, 0, 1, P1, P7, 1, 30);
-    if(next_order == nullptr){
-        return;
-    }
-    order.orderID = next_order->getId();
-    order.init_p = next_order->getInitial();
-    order.quantity = next_order->getQuantity();
-    order.to_do = next_order->getQuantity();
-    order.done = 0;
-
-    // Get tools
-    std::vector<int16_t> tools; tools.reserve(6);
-    uint16_t piece_intermediate;
-    chooseTools(tools, piece_intermediate, order.tool_time, *next_order);
-    order.piece_intermediate = piece_intermediate;
-    //MES_TRACE("Piece Init: {}", order.init_p);
-    //MES_TRACE("Tool time: {}; {}; {}; {}; {}; {}; {};", order.tool_time[0], order.tool_time[1], order.tool_time[2], order.tool_time[3], order.tool_time[4], order.tool_time[5],  order.tool_time[6]);
-
-    // Choose toolset
-    chooseToolSet(order.tool_set, tools);
-    // MES_TRACE("Tool_set: {}; {}; {}; {};", order.tool_set[0], order.tool_set[1], order.tool_set[2], order.tool_set[3]);
-
-    // Choose route
-    chooseRoute(order.path, order.tool_set, tools);
-    //order.path = path;
-    // MES_TRACE("Path: {}; {}; {}; {}; {}; {}; {}; {};", order.path[0], order.path[1], order.path[2], order.path[3], order.path[4], order.path[5], order.path[6], order.path[7]);
-    
-    //Check for warehouse intermediate
-    order.warehouse_intermediate = false;
-    for(int i = 0; i<8; i++){
-        if(order.path[i]==5){
-            order.warehouse_intermediate = true;
-        }
-    }
-    // MES_TRACE("Warehouse intermediate: {}", order.warehouse_intermediate);
-
-    // Write to factory
-
-    writeTransform(fct_client, order, cell);
-}
-
-struct opc_unload
-{
-    uint16_t type_t;
-    int16_t dest;
-    int16_t quant;
-};
-
-int writeUnload(OpcClient &opc_client, const opc_unload &order)
-{
-    std::string unload_node = "unload_orders";
-
-    std::string node = std::move(std::string(OPC_GLOBAL_NODE_STR) + unload_node + std::string("[1].type_t"));
-    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.type_t)) return 0;
-
-    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + unload_node + std::string("[1].dest"));
-    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.dest)) return 0;
-
-    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + unload_node + std::string("[1].quant"));
-    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.quant)) return 0;
-
-    return 1;
-}
-
-int writeTransform(OpcClient &opc_client,opc_transform &order, int cell)
+int writeTransform(OpcClient &opc_client, opc_transform &order, int cell)
 {
     std::stringstream ss_node;
     ss_node << "orders_C" << cell;
@@ -136,17 +55,89 @@ int writeTransform(OpcClient &opc_client,opc_transform &order, int cell)
 
     node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].piece_intermidiate"));
     if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.piece_intermediate))   return 0;
+
+    return 1;
+}
+
+void MES::onSendTransform(int cell)
+{
+    if(!scheduler.hasTransform(cell))
+        return;
+
+    opc_transform order;
+    std::shared_ptr<TransformOrder> next_order;
+    if(cell == 1){
+        next_order = scheduler.getTransformOrdersC1()[0];
+    }
+    else{
+        next_order = scheduler.getTransformOrdersC2()[0];
+    }
+    //auto next_order = std::make_unique<TransformOrder>(111, 0, 1, P1, P7, 1, 30);
+    if(next_order == nullptr){
+        return;
+    }
+    order.orderID = next_order->getId();
+    order.init_p = next_order->getInitial();
+    order.quantity = next_order->getQuantity();
+    order.to_do = next_order->getQuantity();
+    order.done = 0;
+
+    // Get tools
+    std::vector<int16_t> tools; tools.reserve(6);
+    uint16_t piece_intermediate;
+    chooseTools(tools, piece_intermediate, order.tool_time, *next_order);
+    order.piece_intermediate = piece_intermediate;
     
+    // Choose toolset
+    int16_t tool_set[4] = {0,0,0,0};
+    chooseToolSet(tool_set, tools);
+    order.tool_set = tool_set;
+
+    // Choose route
+    chooseRoute(order.path, tool_set, tools);
+    
+    //Check for warehouse intermediate
+    order.warehouse_intermediate = false;
+    for(int i = 0; i<8; i++){
+        if(order.path[i]==5){
+            order.warehouse_intermediate = true;
+        }
+    }
+
+    // Write to factory
+    writeTransform(fct_client, order, cell);
+}
+
+struct opc_unload
+{
+    uint16_t type_t;
+    int16_t dest;
+    int16_t quant;
+};
+
+int writeUnload(OpcClient &opc_client, const opc_unload &order)
+{
+    std::string unload_node = "unload_orders";
+
+    std::string node = std::move(std::string(OPC_GLOBAL_NODE_STR) + unload_node + std::string("[1].type_t"));
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.type_t)) return 0;
+
+    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + unload_node + std::string("[1].dest"));
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.dest)) return 0;
+
+    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + unload_node + std::string("[1].quant"));
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.quant)) return 0;
+
     return 1;
 }
 
 void MES::onSendUnload()
 {
-    if(!scheduler.hasUnload())
+    std::shared_ptr<UnloadOrder> next_unload = scheduler.popUnload();
+    if(next_unload == nullptr)
         return;
 
-    std::shared_ptr<UnloadOrder> next_order = scheduler.getUnloadOrders()[0];
-    opc_unload opc_u = {(uint16_t)next_order->getPiece(), (int16_t)next_order->getDest(), (int16_t)next_order->getQuantity()};
+    opc_unload opc_u = {(uint16_t)next_unload->getPiece(), (int16_t)next_unload->getDest(), (int16_t)next_unload->getQuantity()};
 
     if(!writeUnload(fct_client, opc_u))
         MES_ERROR("Could not send unload order.");
@@ -173,7 +164,7 @@ void MES::onStartPiece(int cell)
     }
     int number = *(int*)number_var.data;
     MES_TRACE("Piece of order {} started on cell {}.", number, cell);
-    scheduler.updatePieceStarted(number);
+    scheduler.updatePieceStarted(cell, number);
     UA_Variant_clear(&number_var);
 }
 
@@ -191,7 +182,7 @@ void MES::onFinishPiece(int cell)
     }
     int number = *(int*)number_var.data;
     MES_TRACE("Piece of order {} finished on cell {}.", number, cell);
-    scheduler.updatePieceStarted(number);
+    scheduler.updatePieceFinished(cell, number);
     UA_Variant_clear(&number_var);
 }
 

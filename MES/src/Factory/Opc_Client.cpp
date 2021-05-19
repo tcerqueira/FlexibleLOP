@@ -120,7 +120,7 @@ int OpcClient::startListening(int t_ms)
 #endif
         auto end = std::chrono::high_resolution_clock::now();
         auto sleep_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::milliseconds(t_ms) - (end - start));
-        MES_TRACE(sleep_duration.count());
+        // MES_TRACE(sleep_duration.count());
         std::this_thread::sleep_for(sleep_duration);
     }
     return 1;
@@ -234,7 +234,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, int16_t value)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setScalar(&var_value, &value, &UA_TYPES[UA_TYPES_INT16]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, int32_t value)
@@ -242,7 +243,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, int32_t value)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setScalar(&var_value, &value, &UA_TYPES[UA_TYPES_INT32]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, uint16_t value)
@@ -250,7 +252,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, uint16_t value)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setScalar(&var_value, &value, &UA_TYPES[UA_TYPES_UINT16]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, uint32_t value)
@@ -258,7 +261,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, uint32_t value)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setScalar(&var_value, &value, &UA_TYPES[UA_TYPES_UINT32]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, bool value)
@@ -266,7 +270,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, bool value)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setScalar(&var_value, &value, &UA_TYPES[UA_TYPES_BOOLEAN]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, int16_t *value, int len)
@@ -274,7 +279,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, int16_t *value, int len)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_INT16]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, int32_t *value, int len)
@@ -282,7 +288,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, int32_t *value, int len)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_INT32]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, int64_t *value, int len)
@@ -290,7 +297,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, int64_t *value, int len)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_INT64]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, uint16_t *value, int len)
@@ -298,7 +306,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, uint16_t *value, int len)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_UINT16]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, uint32_t *value, int len)
@@ -306,7 +315,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, uint32_t *value, int len)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_UINT32]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, uint64_t *value, int len)
@@ -314,7 +324,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, uint64_t *value, int len)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_UINT64]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, bool *value, int len)
@@ -322,7 +333,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, bool *value, int len)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_BOOLEAN]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 OpcClient::~OpcClient()

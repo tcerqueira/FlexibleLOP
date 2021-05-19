@@ -18,5 +18,6 @@ public:
     int total() const;
 
 private:
+    mutable std::mutex mtx;
     int count[NPIECES];
 };

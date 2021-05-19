@@ -1,6 +1,8 @@
 #include "Scheduler.h"
 #include <algorithm>
 
+std::shared_ptr<SubOrder> toSubOrder(const std::shared_ptr<TransformOrder> order);
+
 Scheduler::Scheduler()
 {
     std::make_heap(to_dispatch.begin(), to_dispatch.end(), OrderPriority());
@@ -31,6 +33,23 @@ void Scheduler::addUnload(std::shared_ptr<UnloadOrder> order)
     u_orders.push_back(order);
 }
 
+std::shared_ptr<UnloadOrder> Scheduler::popUnload()
+{
+    int i = 0;
+    for(auto unload : u_orders)
+    {
+        if(unload->getQuantity() <= store->countPiece(unload->getPiece()))
+        {
+            dispatched_unloads.push_back(unload);
+            u_orders.erase(u_orders.begin()+i);
+            return unload;
+        }
+        i++;
+    }
+    
+    return nullptr;
+}
+
 void Scheduler::schedule()
 {
     while(to_dispatch.size() > 0)
@@ -38,6 +57,8 @@ void Scheduler::schedule()
         std::pop_heap(to_dispatch.begin(), to_dispatch.end());
         auto order = to_dispatch.back();
         to_dispatch.pop_back();
+
+        auto sub_order = toSubOrder(order);
 
         if (getTotalWork(1) <= getTotalWork(2))
         {
@@ -75,7 +96,7 @@ int Scheduler::getTotalWork(int cell)
     return work;
 }
 
-bool Scheduler::OrderPriority::operator()(std::shared_ptr<TransformOrder> o1, std::shared_ptr<TransformOrder> o2) const
+bool Scheduler::OrderPriority::operator()(const std::shared_ptr<TransformOrder> o1, const std::shared_ptr<TransformOrder> o2) const
 {
     time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
     long p1 = (o1->getReadyTime() - now - o1->getEstimatedWork() * WORK_TRANSFORM) * o1->getDailyPenalty();
@@ -84,8 +105,14 @@ bool Scheduler::OrderPriority::operator()(std::shared_ptr<TransformOrder> o1, st
     return p1 > p2;
 }
 
-void Scheduler::updatePieceStarted(int number)
+bool Scheduler::OrderPriority::operator()(const std::shared_ptr<SubOrder> o1, const std::shared_ptr<SubOrder> o2) const
 {
+    return true;
+}
+
+void Scheduler::updatePieceStarted(int cell, int number)
+{
+    // store->subCount(piece, 1);
     auto order = this->getTransform(number);
     if(order == nullptr)
         return;
@@ -96,7 +123,7 @@ void Scheduler::updatePieceStarted(int number)
     order->pieceDoing();
 }
 
-void Scheduler::updatePieceFinished(int number)
+void Scheduler::updatePieceFinished(int cell, int number)
 {
     auto order = this->getTransform(number);
     if(order == nullptr)
@@ -143,3 +170,25 @@ std::shared_ptr<TransformOrder> Scheduler::getTransform(int number)
 
 //     return order;
 // }
+// ########################### AUXILIAR FUNCTIONS ####################################
+// ###################################################################################
+
+std::shared_ptr<SubOrder> toSubOrder(const std::shared_ptr<TransformOrder> order)
+{
+    auto sub_order = std::make_shared<SubOrder>();
+    sub_order->orderID = (int16_t)order->getId();
+    sub_order->init_p = (uint16_t)order->getInitial();
+    sub_order->quantity = (int16_t)order->getQuantity();
+    sub_order->to_do = (int16_t)order->getToDo();
+    sub_order->done = (int16_t)order->getDone();
+    // sub_ortder->tool_set = ;
+    // sub_order->path = ;
+    // sub_order->tool_time = ;
+    // sub_order->warehouse_intermediate = ;
+    // sub_order->piece_intermediate = ;
+    sub_order->readyTime = order->getReadyTime();
+    sub_order->work = order->getEstimatedWork();
+    sub_order->penalty = order->getDailyPenalty();
+
+    return sub_order;
+}
