@@ -33,6 +33,23 @@ void Scheduler::addUnload(std::shared_ptr<UnloadOrder> order)
     u_orders.push_back(order);
 }
 
+std::shared_ptr<UnloadOrder> Scheduler::popUnload()
+{
+    int i = 0;
+    for(auto unload : u_orders)
+    {
+        if(unload->getQuantity() <= store->countPiece(unload->getPiece()))
+        {
+            dispatched_unloads.push_back(unload);
+            u_orders.erase(u_orders.begin()+i);
+            return unload;
+        }
+        i++;
+    }
+    
+    return nullptr;
+}
+
 void Scheduler::schedule()
 {
     while(to_dispatch.size() > 0)
@@ -93,11 +110,12 @@ bool Scheduler::OrderPriority::operator()(const std::shared_ptr<SubOrder> o1, co
     return true;
 }
 
-void Scheduler::updatePieceStarted(int number)
+void Scheduler::updatePieceStarted(int cell, int number)
 {
+    // store->subCount(piece, 1);
 }
 
-void Scheduler::updatePieceFinished(int number)
+void Scheduler::updatePieceFinished(int cell, int number)
 {
 }
 

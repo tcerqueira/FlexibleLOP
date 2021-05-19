@@ -1,6 +1,7 @@
 #pragma once
 
 #define NPIECES 9
+#define NDEST 3
 
 enum piece_t
 {

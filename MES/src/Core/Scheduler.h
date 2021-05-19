@@ -34,10 +34,11 @@ public:
     void addOrderList(std::vector<std::shared_ptr<TransformOrder>> &list);
     void addTransform(std::shared_ptr<TransformOrder> order);
     void addUnload(std::shared_ptr<UnloadOrder> order);
+    std::shared_ptr<UnloadOrder> popUnload();
     bool hasTransform(int cell) const;
     bool hasUnload() const;
-    void updatePieceStarted(int number);
-    void updatePieceFinished(int number);
+    void updatePieceStarted(int cell, int number);
+    void updatePieceFinished(int cell, int number);
     int getTotalWork(int cell);
 
     void schedule();
