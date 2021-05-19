@@ -14,12 +14,14 @@ struct opc_transform
     int16_t quantity;
     int16_t to_do;
     int16_t done;
-    int16_t *tool_set;
+    int16_t tool_set[4] = {0, 0, 0, 0};
     int16_t path[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     uint64_t tool_time[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     bool warehouse_intermediate;
     uint16_t piece_intermediate;
 };
+
+int writeTransform(OpcClient &opc_client,opc_transform &order, int cell);
 
 void MES::onSendTransform(int cell)
 {
@@ -55,13 +57,11 @@ void MES::onSendTransform(int cell)
     //MES_TRACE("Tool time: {}; {}; {}; {}; {}; {}; {};", order.tool_time[0], order.tool_time[1], order.tool_time[2], order.tool_time[3], order.tool_time[4], order.tool_time[5],  order.tool_time[6]);
 
     // Choose toolset
-    int16_t tool_set[4] = {0,0,0,0};
-    chooseToolSet(tool_set, tools);
-    order.tool_set = tool_set;
+    chooseToolSet(order.tool_set, tools);
     // MES_TRACE("Tool_set: {}; {}; {}; {};", order.tool_set[0], order.tool_set[1], order.tool_set[2], order.tool_set[3]);
 
     // Choose route
-    chooseRoute(order.path, tool_set, tools);
+    chooseRoute(order.path, order.tool_set, tools);
     //order.path = path;
     // MES_TRACE("Path: {}; {}; {}; {}; {}; {}; {}; {};", order.path[0], order.path[1], order.path[2], order.path[3], order.path[4], order.path[5], order.path[6], order.path[7]);
     
@@ -76,35 +76,7 @@ void MES::onSendTransform(int cell)
 
     // Write to factory
 
-    std::string node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].init_p"));
-    fct_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.init_p);
-
-    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].orderID"));
-    fct_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.orderID);
-
-    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].quantity"));
-    int debug = fct_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.quantity);
-
-    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].to_do"));
-    fct_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.to_do);
-
-    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].done"));
-    fct_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.done);
-
-    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].tool_set"));
-    fct_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.tool_set, TOOLSET_BUFLEN);
-
-    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].path"));
-    fct_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.path, 8);
-
-    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].tool_time"));
-    fct_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.tool_time, 8);
-
-    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].warehouse_intermidiate"));
-    fct_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.warehouse_intermediate);
-
-    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].piece_intermidiate"));
-    fct_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.piece_intermediate);
+    writeTransform(fct_client, order, cell);
 }
 
 struct opc_unload
@@ -127,6 +99,44 @@ int writeUnload(OpcClient &opc_client, const opc_unload &order)
     node = std::move(std::string(OPC_GLOBAL_NODE_STR) + unload_node + std::string("[1].quant"));
     if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.quant)) return 0;
 
+    return 1;
+}
+
+int writeTransform(OpcClient &opc_client,opc_transform &order, int cell)
+{
+    std::stringstream ss_node;
+    ss_node << "orders_C" << cell;
+
+    std::string node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].init_p"));
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.init_p))   return 0;
+
+    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].orderID"));
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.orderID))  return 0;
+
+    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].quantity"));
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.quantity)) return 0;
+
+    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].to_do"));
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.to_do))    return 0;
+
+    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].done"));
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.done)) return 0;
+
+    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].tool_set"));
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.tool_set, TOOLSET_BUFLEN)) return 0;
+
+    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].path"));
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.path, 8))  return 0;
+
+    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].tool_time"));
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.tool_time, 8)) return 0;
+
+    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].warehouse_intermidiate"));
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.warehouse_intermediate))   return 0;
+
+    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].piece_intermidiate"));
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.piece_intermediate))   return 0;
+    
     return 1;
 }
 
