@@ -68,9 +68,11 @@ void MES::onSendTransform(int cell)
     std::shared_ptr<TransformOrder> next_order;
     if(cell == 1){
         next_order = scheduler.getTransformOrdersC1()[0];
+        scheduler.getTransformOrdersC1().erase(scheduler.getTransformOrdersC1().begin());
     }
     else{
         next_order = scheduler.getTransformOrdersC2()[0];
+        scheduler.getTransformOrdersC2().erase(scheduler.getTransformOrdersC2().begin());
     }
     //auto next_order = std::make_unique<TransformOrder>(111, 0, 1, P1, P7, 1, 30);
     if(next_order == nullptr){
