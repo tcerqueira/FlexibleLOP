@@ -24,12 +24,26 @@ void Scheduler::addUnload(std::shared_ptr<UnloadOrder> order)
 
 void Scheduler::updatePieceStarted(int number)
 {
-    
+    auto order = this->getTransform(number);
+    if(order == nullptr)
+        return;
+
+    if(order->getDoing() == 0) 
+        order->started();
+
+    order->pieceDoing();
 }
 
 void Scheduler::updatePieceFinished(int number)
 {
+    auto order = this->getTransform(number);
+    if(order == nullptr)
+        return;
 
+    if(order->getDone() == order->getQuantity()) 
+        order->finished();
+
+    order->pieceDone();
 }
 
 bool Scheduler::hasTransform(int cell) const
@@ -40,6 +54,20 @@ bool Scheduler::hasTransform(int cell) const
 bool Scheduler::hasUnload() const
 {
     return !u_orders.empty();
+}
+
+std::shared_ptr<TransformOrder> Scheduler::getTransform(int number) 
+{
+    for(auto order : this->t1_orders)
+        if(order->getId() == number) return order;
+
+    for(auto order : this->t2_orders)
+        if(order->getId() == number) return order;
+    
+    for(auto order : this->dispatched_transforms)
+        if(order->getId() == number) return order;
+    
+    return nullptr;
 }
 
 // TransformOrder Scheduler::popOrder()
