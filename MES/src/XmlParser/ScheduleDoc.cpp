@@ -8,7 +8,7 @@ ScheduleDoc::ScheduleDoc(Scheduler &schedule)
 {
     pugi::xml_node schedule_root = this->append_child(SCHEDULE_ROOT_NODE);
     pugi::xml_node order_node, curr_node;
-    const std::vector<std::shared_ptr<TransformOrder>> &ordersC1 = schedule.getTransformOrdersC1();
+    const std::vector<std::shared_ptr<TransformOrder>> &ordersC1 = schedule.getAllOrders();
 
     for (int i = 0; i < ordersC1.size(); i++)
     {

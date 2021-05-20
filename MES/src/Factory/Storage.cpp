@@ -14,20 +14,40 @@ Storage::Storage(const int* count)
 
 int Storage::countPiece(piece_t type) const
 {
-    return count[type-1];
+    // std::lock_guard<std::mutex> lck(mtx);
+    return count[(int)type-1];
 }
 
 void Storage::setCount(piece_t type, int count)
 {
-    this->count[type-1] = count;
+    std::lock_guard<std::mutex> lck(mtx);
+    this->count[(int)type-1] = count;
+}
+
+void Storage::addCount(piece_t type, int count)
+{
+    std::lock_guard<std::mutex> lck(mtx);
+    this->count[(int)type-1] += count;
+}
+
+void Storage::subCount(piece_t type, int count)
+{
+    std::lock_guard<std::mutex> lck(mtx);
+    this->count[(int)type-1] -= count;
 }
 
 int Storage::total() const
 {
+    std::lock_guard<std::mutex> lck(mtx);
     int total = 0;
     for(int i=0; i < NPIECES; i++)
     {
         total += count[i];
     }
     return total;
+}
+
+int Storage::operator[](piece_t piece)
+{
+    return countPiece(piece);
 }
