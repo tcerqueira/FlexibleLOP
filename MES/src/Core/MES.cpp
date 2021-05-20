@@ -4,7 +4,7 @@
 #include "Database/Database.h"
 
 #define UDP_LISTEN_PORT 54321
-#define OPC_LISTEN_PERIOD_MS 50
+#define OPC_LISTEN_PERIOD_MS 100
 
 #define OPC_GLOBAL_NODE(x) { 4, std::string(OPC_GLOBAL_NODE_STR) + x }
 
@@ -116,12 +116,12 @@ void MES::setUp()
     // ################################################################
     // set listener to request order C1
     fct_client.addListener(OPC_GLOBAL_NODE("req_orderC1_flag"), [this](opc_evt evt) {
-        MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        // MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
         onSendTransform(1);
     });
     // set listener to request order C2
     fct_client.addListener(OPC_GLOBAL_NODE("req_orderC2_flag"), [this](opc_evt evt) {
-        MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        // MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
         onSendTransform(2);
     });
     // set listener to load order C1
