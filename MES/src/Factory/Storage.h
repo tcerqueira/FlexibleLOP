@@ -17,6 +17,9 @@ public:
     void subCount(piece_t type, int count);
     int total() const;
 
+    // operator overload
+    int operator[](piece_t piece);
+
 private:
     mutable std::mutex mtx;
     int count[NPIECES];

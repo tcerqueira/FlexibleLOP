@@ -11,7 +11,8 @@
 MES::MES(const std::string& opc_endpoint)
 :   erp_server(io_service, UDP_LISTEN_PORT),
     fct_client(opc_endpoint),
-    store((const int[]){100,200,400,800,160,0,0,0,0})
+    store((const int[]){100,200,400,800,160,0,0,0,0}),
+    scheduler(&store)
 {
     std::array<Machine, NMACHINES> machines_array = {{
         {{1,0,0,0,0,0,0,0,0}, 1 },
@@ -30,7 +31,8 @@ MES::MES(const std::string& opc_endpoint)
 MES::MES(std::string&& opc_endpoint)
 :   erp_server(io_service, UDP_LISTEN_PORT),
     fct_client(std::move(opc_endpoint)),
-    store((const int[]){100,200,400,800,160,0,0,0,0})
+    store((const int[]){100,200,400,800,160,0,0,0,0}),
+    scheduler(&store)
 {
     std::array<Machine, NMACHINES> machines_array = {{
         {{1,0,0,0,0,0,0,0,0}, 1 },

@@ -143,6 +143,8 @@ void MES::onSendUnload()
 
     if(!writeUnload(fct_client, opc_u))
         MES_ERROR("Could not send unload order.");
+    else
+        MES_INFO("Unload sent: {}", *next_unload);
 }
 
 void MES::onLoadOrder(piece_t piece)

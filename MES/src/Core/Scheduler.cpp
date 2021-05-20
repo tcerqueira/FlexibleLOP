@@ -3,7 +3,8 @@
 
 std::shared_ptr<SubOrder> toSubOrder(const std::shared_ptr<TransformOrder> order);
 
-Scheduler::Scheduler()
+Scheduler::Scheduler(Storage *store)
+: store(store)
 {
     std::make_heap(to_dispatch.begin(), to_dispatch.end(), OrderPriority());
     std::make_heap(t1_orders.begin(), t1_orders.end(), OrderPriority());
@@ -147,6 +148,9 @@ bool Scheduler::hasUnload() const
 
 std::shared_ptr<TransformOrder> Scheduler::getTransform(int number) 
 {
+    for(auto order : orders_list)
+        if(order->getId() == number) return order;
+
     for(auto order : this->t1_orders)
         if(order->getId() == number) return order;
 
