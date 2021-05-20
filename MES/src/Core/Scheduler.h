@@ -15,6 +15,7 @@ struct SubOrder
     int16_t quantity;
     int16_t to_do;
     int16_t done;
+    std::vector<int16_t> tools;
     int16_t tool_set[4] = {0, 0, 0, 0};
     int16_t path[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     uint64_t tool_time[8] = {0, 0, 0, 0, 0, 0, 0, 0};

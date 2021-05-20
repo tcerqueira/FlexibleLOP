@@ -56,10 +56,10 @@ int writeTransform(OpcClient &opc_client, std::shared_ptr<SubOrder> order, int c
 
 void MES::onSendTransform(int cell)
 {
-    if(!scheduler.hasTransform(cell))
-        return;
-
     auto next_order = scheduler.popOrderCell(cell);
+    if(next_order == nullptr)
+        return;
+    MES_INFO("Transform order requested on cell {}.", cell);
 
     // Write to factory
     writeTransform(fct_client, next_order, cell);

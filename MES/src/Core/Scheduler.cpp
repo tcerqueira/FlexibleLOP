@@ -1,7 +1,9 @@
 #include "Scheduler.h"
 #include <algorithm>
+#include <cstdlib>
 
 std::shared_ptr<SubOrder> toSubOrder(const std::shared_ptr<TransformOrder> order);
+void separateRoute(std::shared_ptr<SubOrder> sub_order, int iter);
 
 Scheduler::Scheduler(Storage *store)
 : store(store)
@@ -36,6 +38,7 @@ void Scheduler::addUnload(std::shared_ptr<UnloadOrder> order)
 
 std::shared_ptr<UnloadOrder> Scheduler::popUnload()
 {
+    const std::lock_guard<std::mutex> lock(unloadVec_mutex);
     int i = 0;
     for(auto unload : u_orders)
     {
@@ -53,6 +56,7 @@ std::shared_ptr<UnloadOrder> Scheduler::popUnload()
 
 std::shared_ptr<SubOrder> Scheduler::popOrderCell(int cell)
 {
+    const std::lock_guard<std::mutex> lock(transformVec_mutex);
     if(cell == 1)
     {
         int i = 0;
@@ -85,26 +89,69 @@ std::shared_ptr<SubOrder> Scheduler::popOrderCell(int cell)
 
 void Scheduler::schedule()
 {
+    const std::lock_guard<std::mutex> lock(transformVec_mutex);
+    int work_cell1, work_cell2;
     while(to_dispatch.size() > 0)
     {
         std::pop_heap(to_dispatch.begin(), to_dispatch.end());
         auto order = to_dispatch.back();
         to_dispatch.pop_back();
 
-        auto sub_order = toSubOrder(order);
+        work_cell1 = getTotalWork(1);
+        work_cell2 = getTotalWork(2);
 
-        if (getTotalWork(1) <= getTotalWork(2))
+        auto sub_order = toSubOrder(order);
+        
+        if(sub_order->tools.size() <= 2 && sub_order->tools.size() > 0)
         {
-            t1_orders.push_back(sub_order);
-            // std::push_heap(t1_orders.begin(), t1_orders.end(), OrderPriority());
+            for(int i = 0; i<sub_order->quantity; i++)
+            {
+                auto order_aux = std::make_shared<SubOrder>(*sub_order);
+                order_aux->quantity = 1;
+                order_aux->to_do = 1;
+                order_aux->work = (sub_order->work * order_aux->quantity) / sub_order->quantity;
+                separateRoute(order_aux, i);
+                if (work_cell1 <= work_cell2)
+                {
+                    t1_orders.push_back(order_aux);
+                    // std::push_heap(t1_orders.begin(), t1_orders.end(), OrderPriority());
+                }
+                else
+                {
+                    t2_orders.push_back(order_aux);
+                    // std::push_heap(t2_orders.begin(), t2_orders.end(), OrderPriority());
+                }
+            }
+        }
+        else if(sub_order->quantity >= 10 && std::abs(work_cell1-work_cell2) < 150)
+        {
+            auto order_c1 = std::make_shared<SubOrder>(*sub_order);
+            auto order_c2 = std::make_shared<SubOrder>(*sub_order);
+            order_c1->quantity = sub_order->quantity / 2 + sub_order->quantity % 2;
+            order_c1->to_do = sub_order->quantity / 2 + sub_order->quantity % 2;
+            order_c1->work = (sub_order->work * order_c1->quantity) / sub_order->quantity;
+            t1_orders.push_back(order_c1);
+            order_c2->quantity = sub_order->quantity / 2;
+            order_c2->to_do = sub_order->quantity / 2 + sub_order->quantity % 2;
+            order_c2->work = (sub_order->work * order_c2->quantity) / sub_order->quantity;
+            t2_orders.push_back(order_c2);
         }
         else
         {
-            t2_orders.push_back(sub_order);
-            // std::push_heap(t2_orders.begin(), t2_orders.end(), OrderPriority());
+            if (work_cell1 <= work_cell2)
+            {
+                t1_orders.push_back(sub_order);
+                // std::push_heap(t1_orders.begin(), t1_orders.end(), OrderPriority());
+            }
+            else
+            {
+                t2_orders.push_back(sub_order);
+                // std::push_heap(t2_orders.begin(), t2_orders.end(), OrderPriority());
+            }
         }
+
     }
-    MES_TRACE("Work cell 1:{}  Work cell 2:{}", getTotalWork(1), getTotalWork(2));
+    MES_TRACE("Work cell 1:{}  Work cell 2:{}", work_cell1, work_cell2);
     to_dispatch.clear();
 }
 
@@ -215,21 +262,16 @@ std::shared_ptr<SubOrder> toSubOrder(const std::shared_ptr<TransformOrder> order
     sub_order->quantity = (int16_t)order->getQuantity();
     sub_order->to_do = (int16_t)order->getToDo();
     sub_order->done = (int16_t)order->getDone();
-    // sub_ortder->tool_set = ;
     std::vector<int16_t> tools; tools.reserve(6);
-    chooseTools(sub_order, tools, order);
-    chooseToolSet(sub_order->tool_set, tools);
-    // sub_order->path = ;
-    chooseRoute(sub_order, tools);
-    // sub_order->tool_time = ;
-    // sub_order->warehouse_intermediate = ;
+    chooseTools(sub_order, sub_order->tools, order);
+    chooseToolSet(sub_order->tool_set, sub_order->tools);
+    chooseRoute(sub_order, sub_order->tools);
     sub_order->warehouse_intermediate = false;
     for(int i = 0; i<8; i++){
         if(sub_order->path[i]==5){
             sub_order->warehouse_intermediate = true;
         }
     }
-    // sub_order->piece_intermediate = ;
     sub_order->readyTime = order->getReadyTime();
     sub_order->work = order->getEstimatedWork();
     sub_order->penalty = order->getDailyPenalty();
@@ -321,10 +363,10 @@ void chooseToolSet(int16_t *tool_set, const std::vector<int16_t> &tools)
             }
         }
     }
-    // if(tools.size() <= 2){
-    //     for(int i = tools.size(); i < 4; i++)
-    //     tool_set[i] = tool_set[i-tools.size()]; 
-    // }
+    if(tools.size() <= 2){
+        for(int i = tools.size(); i < 4; i++)
+        tool_set[i] = tool_set[i-tools.size()]; 
+    }
 }
 
 // choose route
@@ -333,6 +375,12 @@ void chooseRoute(std::shared_ptr<SubOrder> sub_order, const std::vector<int16_t>
     int intermediate = 0;
     int mac_act = 0; //starts at warehouse
 
+    if(tools.size() <= 2){
+
+    }
+    else{
+
+    }
     for(int i = 0; i<tools.size(); i++){
         for(int j = mac_act; j < 4; j++){   //piece can't go back to other conveyors
             if(tools[i] == sub_order->tool_set[j]){
@@ -351,4 +399,22 @@ void chooseRoute(std::shared_ptr<SubOrder> sub_order, const std::vector<int16_t>
             }
         }
     }
+}
+
+void separateRoute(std::shared_ptr<SubOrder> sub_order, int iter)
+{
+    if(sub_order->tools.size() == 1)
+    {
+        sub_order->path[0] = 3 - (iter % 4) + 1;
+    }
+    else{
+        sub_order->path[0] = (1 - iter % 2) * 2 + 1;
+        sub_order->path[1] = (1 - iter % 2) * 2 + 2;
+    }
+
+    // int maq_div = 4/sub_order->tools.size();
+    // for(int i = 0; i<sub_order->tools.size(); i++)
+    // {
+    //     sub_order->path[i] = maq_div - (iter % maq_div) * sub_order->tools.size() + 1 + i;
+    // }
 }
