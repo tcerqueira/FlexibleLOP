@@ -7,8 +7,8 @@ Scheduler::Scheduler(Storage *store)
 : store(store)
 {
     std::make_heap(to_dispatch.begin(), to_dispatch.end(), OrderPriority());
-    std::make_heap(t1_orders.begin(), t1_orders.end(), OrderPriority());
-    std::make_heap(t2_orders.begin(), t2_orders.end(), OrderPriority());
+    // std::make_heap(t1_orders.begin(), t1_orders.end(), OrderPriority());
+    // std::make_heap(t2_orders.begin(), t2_orders.end(), OrderPriority());
 }
 
 void Scheduler::addOrderList(std::vector<std::shared_ptr<TransformOrder>> &list)
@@ -56,11 +56,12 @@ std::shared_ptr<SubOrder> Scheduler::popOrderCell(int cell)
     if(cell == 1)
     {
         int i = 0;
-        for(auto sub_order : t1_orders)
+        for(std::list<std::shared_ptr<SubOrder>>::iterator it=t1_orders.begin(); it != t1_orders.end(); ++it)
         {
+            std::shared_ptr<SubOrder> sub_order = *it;
             if(sub_order->quantity <= store->countPiece((piece_t)sub_order->init_p))
             {
-                t1_orders.erase(t1_orders.begin() + i);
+                t1_orders.erase(it);
                 return sub_order;
             }
             i++;
@@ -68,11 +69,12 @@ std::shared_ptr<SubOrder> Scheduler::popOrderCell(int cell)
     }
     else{
         int i = 0;
-        for(auto sub_order : t2_orders)
+        for(std::list<std::shared_ptr<SubOrder>>::iterator it=t2_orders.begin(); it != t2_orders.end(); ++it)
         {
+            std::shared_ptr<SubOrder> sub_order = *it;
             if(sub_order->quantity <= store->countPiece((piece_t)sub_order->init_p))
             {
-                t2_orders.erase(t2_orders.begin() + i);
+                t2_orders.erase(it);
                 return sub_order;
             }
             i++;
@@ -94,12 +96,12 @@ void Scheduler::schedule()
         if (getTotalWork(1) <= getTotalWork(2))
         {
             t1_orders.push_back(sub_order);
-            std::push_heap(t1_orders.begin(), t1_orders.end(), OrderPriority());
+            // std::push_heap(t1_orders.begin(), t1_orders.end(), OrderPriority());
         }
         else
         {
             t2_orders.push_back(sub_order);
-            std::push_heap(t2_orders.begin(), t2_orders.end(), OrderPriority());
+            // std::push_heap(t2_orders.begin(), t2_orders.end(), OrderPriority());
         }
     }
     MES_TRACE("Work cell 1:{}  Work cell 2:{}", getTotalWork(1), getTotalWork(2));

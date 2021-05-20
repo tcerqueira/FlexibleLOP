@@ -55,8 +55,8 @@ public:
     
     // TransformOrder popOrder();
     std::vector<std::shared_ptr<TransformOrder>> &getAllOrders() { return orders_list; };
-    std::vector<std::shared_ptr<SubOrder>> &getTransformOrdersC1() { return t1_orders; };
-    std::vector<std::shared_ptr<SubOrder>> &getTransformOrdersC2() { return t2_orders; };
+    std::list<std::shared_ptr<SubOrder>> &getTransformOrdersC1() { return t1_orders; };
+    std::list<std::shared_ptr<SubOrder>> &getTransformOrdersC2() { return t2_orders; };
     std::vector<std::shared_ptr<UnloadOrder>> &getUnloadOrders() { return u_orders; };
 
     struct OrderPriority {
@@ -75,8 +75,8 @@ private:
     // temporary orders to schedule
     std::vector<std::shared_ptr<TransformOrder>> to_dispatch;
     // sub orders for the cells
-    std::vector<std::shared_ptr<SubOrder>> t1_orders;
-    std::vector<std::shared_ptr<SubOrder>> t2_orders;
+    std::list<std::shared_ptr<SubOrder>> t1_orders;
+    std::list<std::shared_ptr<SubOrder>> t2_orders;
     // queue of unload orders TODO: change to queue data structure
     std::vector<std::shared_ptr<UnloadOrder>> u_orders;
     // orders already dispatched by the factory
