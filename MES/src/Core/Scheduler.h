@@ -29,7 +29,7 @@ struct SubOrder
 class Scheduler
 {  
 public:
-    Scheduler();
+    Scheduler(Storage *store);
     // note: takes ownership of the Order objects in the container
     void addOrderList(std::vector<std::shared_ptr<TransformOrder>> &list);
     void addTransform(std::shared_ptr<TransformOrder> order);

@@ -143,6 +143,8 @@ void MES::onSendUnload()
 
     if(!writeUnload(fct_client, opc_u))
         MES_ERROR("Could not send unload order.");
+    else
+        MES_INFO("Unload sent: {}", *next_unload);
 }
 
 void MES::onLoadOrder(piece_t piece)
@@ -163,6 +165,7 @@ void MES::onStartPiece(int cell)
     UA_Variant_init(&number_var);
     if(!fct_client.readValueInt16(UA_NODEID_STRING_ALLOC(4, str_node.c_str()), number_var)) {
         MES_ERROR("Could not read from node \"{}\".", str_node);
+        return;
     }
     int number = *(int*)number_var.data;
     MES_TRACE("Piece of order {} started on cell {}.", number, cell);
@@ -181,6 +184,7 @@ void MES::onFinishPiece(int cell)
     UA_Variant_init(&number_var);
     if(!fct_client.readValueInt16(UA_NODEID_STRING_ALLOC(4, str_node.c_str()), number_var)) {
         MES_ERROR("Could not read from node \"{}\".", str_node);
+        return;
     }
     int number = *(int*)number_var.data;
     MES_TRACE("Piece of order {} finished on cell {}.", number, cell);
@@ -199,6 +203,7 @@ void MES::onUnloaded(dest_t dest)
     UA_Variant_init(&type_var);
     if(!fct_client.readValueUInt16(UA_NODEID_STRING_ALLOC(4, str_node.c_str()), type_var)) {
         MES_ERROR("Could not read from node \"{}\".", str_node);
+        return;
     }
     piece_t unload_piece = (piece_t)(int)*(uint16_t*)type_var.data;
     MES_TRACE("Unloaded type {} on destination {}.", (int)unload_piece, (int)dest);
@@ -220,11 +225,13 @@ void MES::onFinishProcessing(int machine)
     UA_Variant_init(&type_var);
     if(!fct_client.readValueUInt16(UA_NODEID_STRING_ALLOC(4, str_type_node.c_str()), type_var)) {
         MES_ERROR("Could not read from node \"{}\".", str_type_node);
+        return;
     }
 
     UA_Variant_init(&time_var);
     if(!fct_client.readValueInt16(UA_NODEID_STRING_ALLOC(4, str_time_node.c_str()), time_var)) {
         MES_ERROR("Could not read from node \"{}\".", str_time_node);
+        return;
     }
 
     piece_t machined_piece = (piece_t)(int)*(uint16_t*)type_var.data;
