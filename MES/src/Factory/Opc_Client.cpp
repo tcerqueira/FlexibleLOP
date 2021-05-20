@@ -71,8 +71,9 @@ int OpcClient::startListening(int t_ms)
     {
         UA_NodeId flag_node;
         auto start = std::chrono::high_resolution_clock::now();
+
 #if OPC_LISTEN_ASYNC_MODE == 1
-        boost::asio::thread_pool pool(4);
+        boost::asio::thread_pool listen_threadpool(2);
 #endif
         // for each subscribed event flag
         for (NodeKey node_key : event_nodes)
@@ -81,33 +82,34 @@ int OpcClient::startListening(int t_ms)
             if (checkFlag(flag_node))
             {
 #if OPC_LISTEN_ASYNC_MODE == 1
-                boost::asio::post(pool, [=, this]() {
+                boost::asio::post(listen_threadpool, [=, this]() {
                     notify({node_key, 0});
-                    // clearFlag(flag_node);
+                    clearFlag(flag_node);
                 });
 
 #elif OPC_LISTEN_ASYNC_MODE == 2
                 threads.push_back(std::move(
                     std::thread([=, this]() { // if it doesnt work, comment it out and uncomment code bellow
                         notify({node_key, 0});
-                        // clearFlag(flag_node);
+                        clearFlag(flag_node);
                 })));
 
 #elif OPC_LISTEN_ASYNC_MODE == 3
-                futures.push_back(std::move(std::async(std::launch::async, [=, this](){
+                futures.push_back(std::move(std::async(std::launch::async, [&, this](){
                     notify({node_key, 0});
                     // clearFlag(flag_node);
                 })));
 
 #elif OPC_LISTEN_ASYNC_MODE == 0
                 notify({node_key, 0});
-#endif
                 clearFlag(flag_node);
+#endif
+                // clearFlag(flag_node);
             }
         }
 #if OPC_LISTEN_ASYNC_MODE == 3
         for(auto &fut : futures)
-            fut.get();
+            fut.wait();
         futures.clear();
 
 #elif OPC_LISTEN_ASYNC_MODE == 2
@@ -116,11 +118,11 @@ int OpcClient::startListening(int t_ms)
         threads.clear();
 
 #elif OPC_LISTEN_ASYNC_MODE == 1
-        pool.join();
+        listen_threadpool.join();
 #endif
         auto end = std::chrono::high_resolution_clock::now();
         auto sleep_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::milliseconds(t_ms) - (end - start));
-        //MES_TRACE(sleep_duration.count());
+        // MES_TRACE(sleep_duration.count());
         std::this_thread::sleep_for(sleep_duration);
     }
     return 1;
@@ -234,7 +236,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, int16_t value)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setScalar(&var_value, &value, &UA_TYPES[UA_TYPES_INT16]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, int32_t value)
@@ -242,7 +245,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, int32_t value)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setScalar(&var_value, &value, &UA_TYPES[UA_TYPES_INT32]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, uint16_t value)
@@ -250,7 +254,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, uint16_t value)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setScalar(&var_value, &value, &UA_TYPES[UA_TYPES_UINT16]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, uint32_t value)
@@ -258,7 +263,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, uint32_t value)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setScalar(&var_value, &value, &UA_TYPES[UA_TYPES_UINT32]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, bool value)
@@ -266,7 +272,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, bool value)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setScalar(&var_value, &value, &UA_TYPES[UA_TYPES_BOOLEAN]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, int16_t *value, int len)
@@ -274,7 +281,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, int16_t *value, int len)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_INT16]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, int32_t *value, int len)
@@ -282,7 +290,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, int32_t *value, int len)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_INT32]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, int64_t *value, int len)
@@ -290,7 +299,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, int64_t *value, int len)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_INT64]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, uint16_t *value, int len)
@@ -298,7 +308,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, uint16_t *value, int len)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_UINT16]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, uint32_t *value, int len)
@@ -306,7 +317,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, uint32_t *value, int len)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_UINT32]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, uint64_t *value, int len)
@@ -314,7 +326,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, uint64_t *value, int len)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_UINT64]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, bool *value, int len)
@@ -322,7 +335,8 @@ int OpcClient::writeValue(UA_NodeId nodeid, bool *value, int len)
     UA_Variant var_value;
     UA_Variant_init(&var_value);
     UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_BOOLEAN]);
-    return writeValue(nodeid, var_value);
+    int res = writeValue(nodeid, var_value);
+    return res;
 }
 
 OpcClient::~OpcClient()

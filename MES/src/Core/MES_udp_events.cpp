@@ -26,6 +26,7 @@ void MES::erpRequestDispatcher(char* data, std::size_t len, std::shared_ptr<std:
             MES_WARN("Unknown node name: \"{}\"", node_name);
         }
     }
+    scheduler.schedule();
 }
 
 std::shared_ptr<Order> MES::OrderFactory(const OrderNode &order_node)

@@ -4,14 +4,15 @@
 #include "Database/Database.h"
 
 #define UDP_LISTEN_PORT 54321
-#define OPC_LISTEN_PERIOD_MS 50
+#define OPC_LISTEN_PERIOD_MS 100
 
 #define OPC_GLOBAL_NODE(x) { 4, std::string(OPC_GLOBAL_NODE_STR) + x }
 
 MES::MES(const std::string& opc_endpoint)
 :   erp_server(io_service, UDP_LISTEN_PORT),
     fct_client(opc_endpoint),
-    store((const int[]){1,2,4,8,16,32,64,128,256})
+    store((const int[]){100,200,400,800,160,0,0,0,0}),
+    scheduler(&store)
 {
     std::array<Machine, NMACHINES> machines_array = {{
         {{1,0,0,0,0,0,0,0,0}, 1 },
@@ -23,13 +24,15 @@ MES::MES(const std::string& opc_endpoint)
         {{0,0,0,0,0,0,1,0,0}, 7 },
         {{0,0,0,0,0,0,0,1,0}, 8 }
     }};
-    factory = Factory(std::move(machines_array), (std::array<int, NPIECES>){1,2,4,8,16,32,64,128,256});
+    std::array<std::array<int, NPIECES>, NDEST> unloads = {{{1,2,3,4,5,6,7,8,9},{11,12,13,14,15,16,17,18,19},{21,21,23,24,25,26,27,28,29}}};
+    factory = Factory(std::move(machines_array), std::move(unloads));
 }
 
 MES::MES(std::string&& opc_endpoint)
 :   erp_server(io_service, UDP_LISTEN_PORT),
     fct_client(std::move(opc_endpoint)),
-    store((const int[]){1,2,4,8,16,32,64,128,256})
+    store((const int[]){100,200,400,800,160,0,0,0,0}),
+    scheduler(&store)
 {
     std::array<Machine, NMACHINES> machines_array = {{
         {{1,0,0,0,0,0,0,0,0}, 1 },
@@ -41,7 +44,8 @@ MES::MES(std::string&& opc_endpoint)
         {{0,0,0,0,0,0,1,0,0}, 7 },
         {{0,0,0,0,0,0,0,1,0}, 8 }
     }};
-    factory = Factory(std::move(machines_array), (std::array<int, NPIECES>){1,2,4,8,16,32,64,128,256});
+    std::array<std::array<int, NPIECES>, NDEST> unloads = {{{1,2,3,4,5,6,7,8,9},{11,12,13,14,15,16,17,18,19},{21,21,23,24,25,26,27,28,29}}};
+    factory = Factory(std::move(machines_array), std::move(unloads));
 }
 
 void MES::start()
@@ -112,12 +116,12 @@ void MES::setUp()
     // ################################################################
     // set listener to request order C1
     fct_client.addListener(OPC_GLOBAL_NODE("req_orderC1_flag"), [this](opc_evt evt) {
-        MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        // MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
         onSendTransform(1);
     });
     // set listener to request order C2
     fct_client.addListener(OPC_GLOBAL_NODE("req_orderC2_flag"), [this](opc_evt evt) {
-        MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        // MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
         onSendTransform(2);
     });
     // set listener to load order C1
@@ -133,22 +137,22 @@ void MES::setUp()
     // set listener to start order C1
     fct_client.addListener(OPC_GLOBAL_NODE("start_orderC1_flag"), [this](opc_evt evt) {
         MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
-        onStartOrder(1);
+        onStartPiece(1);
     });
     // set listener to start order C2
     fct_client.addListener(OPC_GLOBAL_NODE("start_orderC2_flag"), [this](opc_evt evt) {
         MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
-        onStartOrder(2);
+        onStartPiece(2);
     });
     // set listener to finished order C1
     fct_client.addListener(OPC_GLOBAL_NODE("finish_orderC1_flag"), [this](opc_evt evt) {
         MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
-        onFinishOrder(1);
+        onFinishPiece(1);
     });
     // set listener to finished order C2
     fct_client.addListener(OPC_GLOBAL_NODE("finish_orderC2_flag"), [this](opc_evt evt) {
         MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
-        onFinishOrder(2);
+        onFinishPiece(2);
     });
     // set listener to know factory is ready to receive unload orders
     fct_client.addListener(OPC_GLOBAL_NODE("unload_order_flag"), [this](opc_evt evt) {
