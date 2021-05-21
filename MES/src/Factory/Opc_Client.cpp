@@ -71,8 +71,9 @@ int OpcClient::startListening(int t_ms)
     {
         UA_NodeId flag_node;
         auto start = std::chrono::high_resolution_clock::now();
+
 #if OPC_LISTEN_ASYNC_MODE == 1
-        boost::asio::thread_pool pool(4);
+        boost::asio::thread_pool listen_threadpool(2);
 #endif
         // for each subscribed event flag
         for (NodeKey node_key : event_nodes)
@@ -81,16 +82,16 @@ int OpcClient::startListening(int t_ms)
             if (checkFlag(flag_node))
             {
 #if OPC_LISTEN_ASYNC_MODE == 1
-                boost::asio::post(pool, [=, this]() {
+                boost::asio::post(listen_threadpool, [=, this]() {
                     notify({node_key, 0});
-                    // clearFlag(flag_node);
+                    clearFlag(flag_node);
                 });
 
 #elif OPC_LISTEN_ASYNC_MODE == 2
                 threads.push_back(std::move(
                     std::thread([=, this]() { // if it doesnt work, comment it out and uncomment code bellow
                         notify({node_key, 0});
-                        // clearFlag(flag_node);
+                        clearFlag(flag_node);
                 })));
 
 #elif OPC_LISTEN_ASYNC_MODE == 3
@@ -101,13 +102,14 @@ int OpcClient::startListening(int t_ms)
 
 #elif OPC_LISTEN_ASYNC_MODE == 0
                 notify({node_key, 0});
-#endif
                 clearFlag(flag_node);
+#endif
+                // clearFlag(flag_node);
             }
         }
 #if OPC_LISTEN_ASYNC_MODE == 3
         for(auto &fut : futures)
-            fut.get();
+            fut.wait();
         futures.clear();
 
 #elif OPC_LISTEN_ASYNC_MODE == 2
@@ -116,7 +118,7 @@ int OpcClient::startListening(int t_ms)
         threads.clear();
 
 #elif OPC_LISTEN_ASYNC_MODE == 1
-        pool.join();
+        listen_threadpool.join();
 #endif
         auto end = std::chrono::high_resolution_clock::now();
         auto sleep_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::milliseconds(t_ms) - (end - start));

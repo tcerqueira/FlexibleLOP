@@ -2,11 +2,6 @@
 
 #define TOOLSET_BUFLEN 4
 
-// Auxiliar Declarations
-void chooseTools(std::vector<int16_t> &tools, uint16_t& piece_intermediate, uint64_t *tool_time, const TransformOrder &next_order);
-void chooseToolSet(int16_t *tool_set, const std::vector<int16_t> &tools);
-void chooseRoute(int16_t *route, const int16_t *tool_set, const std::vector<int16_t> &tools);
-
 struct opc_transform
 {
     int16_t orderID;
@@ -21,89 +16,53 @@ struct opc_transform
     uint16_t piece_intermediate;
 };
 
-int writeTransform(OpcClient &opc_client, opc_transform &order, int cell)
+int writeTransform(OpcClient &opc_client, std::shared_ptr<SubOrder> order, int cell)
 {
     std::stringstream ss_node;
     ss_node << "orders_C" << cell;
 
     std::string node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].init_p"));
-    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.init_p))   return 0;
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->init_p))   return 0;
 
     node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].orderID"));
-    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.orderID))  return 0;
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->orderID))  return 0;
 
     node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].quantity"));
-    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.quantity)) return 0;
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->quantity)) return 0;
 
     node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].to_do"));
-    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.to_do))    return 0;
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->to_do))    return 0;
 
     node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].done"));
-    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.done)) return 0;
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->done)) return 0;
 
     node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].tool_set"));
-    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.tool_set, TOOLSET_BUFLEN)) return 0;
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->tool_set, TOOLSET_BUFLEN)) return 0;
 
     node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].path"));
-    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.path, 8))  return 0;
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->path, 8))  return 0;
 
     node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].tool_time"));
-    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.tool_time, 8)) return 0;
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->tool_time, 8)) return 0;
 
     node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].warehouse_intermidiate"));
-    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.warehouse_intermediate))   return 0;
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->warehouse_intermediate))   return 0;
 
     node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].piece_intermidiate"));
-    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order.piece_intermediate))   return 0;
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->piece_intermediate))   return 0;
 
     return 1;
 }
 
 void MES::onSendTransform(int cell)
 {
-    if(!scheduler.hasTransform(cell))
+    auto next_order = scheduler.popOrderCell(cell);
+    if(next_order == nullptr)
         return;
-
-    opc_transform order;
-    std::shared_ptr<TransformOrder> next_order;
-    if(cell == 1){
-        next_order = scheduler.getTransformOrdersC1()[0];
-        scheduler.getTransformOrdersC1().erase(scheduler.getTransformOrdersC1().begin());
-    }
-    else{
-        next_order = scheduler.getTransformOrdersC2()[0];
-        scheduler.getTransformOrdersC2().erase(scheduler.getTransformOrdersC2().begin());
-    }
-    //auto next_order = std::make_unique<TransformOrder>(111, 0, 1, P1, P7, 1, 30);
-    if(next_order == nullptr){
-        return;
-    }
-    order.orderID = next_order->getId();
-    order.init_p = next_order->getInitial();
-    order.quantity = next_order->getQuantity();
-    order.to_do = next_order->getQuantity();
-    order.done = 0;
-
-    // Get tools
-    std::vector<int16_t> tools; tools.reserve(6);
-    chooseTools(tools, order.piece_intermediate, order.tool_time, *next_order);
-    
-    // Choose toolset
-    chooseToolSet(order.tool_set, tools);
-
-    // Choose route
-    chooseRoute(order.path, order.tool_set, tools);
-    
-    //Check for warehouse intermediate
-    order.warehouse_intermediate = false;
-    for(int i = 0; i<8; i++){
-        if(order.path[i]==5){
-            order.warehouse_intermediate = true;
-        }
-    }
+    MES_INFO("Transform order requested on cell {}.", cell);
 
     // Write to factory
-    writeTransform(fct_client, order, cell);
+    writeTransform(fct_client, next_order, cell);
 }
 
 struct opc_unload
@@ -240,114 +199,3 @@ void MES::onFinishProcessing(int machine)
 
 // ############################################ AUXILIAR FUNCTIONS #################################################
 // #################################################################################################################
-
-// get tools
-void chooseTools(std::vector<int16_t>& tools, uint16_t& piece_intermediate, uint64_t *tool_time, const TransformOrder& next_order)
-{
-    piece_t piece_act = next_order.getInitial();
-    int i = 0, intermediate = 0;
-    while(piece_act != next_order.getFinal()){   
-        switch (piece_act){     //Find next tool (incomplete)
-        case P1:
-            tools.push_back(0);
-            tool_time[i+intermediate] = 15000;
-            piece_act = P2;
-            break;
-        case P2:
-            tools.push_back(1);
-            tool_time[i+intermediate] = 15000;
-            piece_act = P3;
-            break;
-        case P3:
-            tools.push_back(2);
-            tool_time[i+intermediate] = 15000;
-            piece_act = P4;
-            break;
-        case P4:
-            tools.push_back(0);
-            tool_time[i+intermediate] = 15000;
-            piece_act = P5;
-            break;
-        case P5:
-            if(i==4){
-                piece_intermediate = 5;
-                tool_time[i+intermediate] = 0;
-                intermediate++;
-            }
-            if(next_order.getFinal() == P9){
-                tools.push_back(2);
-                tool_time[i+intermediate] = 30000;
-                piece_act = P9;
-            }
-            else{
-                tools.push_back(1);
-                tool_time[i+intermediate] = 30000;
-                piece_act = P6;
-            }
-            break;
-        case P6:
-            if(i==4){
-                piece_intermediate = 6;
-                tool_time[i+intermediate] = 0;
-                intermediate++;
-            }
-            if(next_order.getFinal() == P8){
-                tools.push_back(0);
-                tool_time[i+intermediate] = 15000;
-                piece_act = P8;
-            }
-            else{
-                tools.push_back(2);
-                tool_time[i+intermediate] = 30000;
-                piece_act = P7;
-            }
-            break;
-        }
-        i++;
-    }
-    
-}
-
-// choose toolset
-void chooseToolSet(int16_t *tool_set, const std::vector<int16_t> &tools)
-{
-    for(int i = 0; i<tools.size(); i++){
-        if(i <= 3){
-            tool_set[i] = tools[i];
-            continue;
-        }
-        for(int j = 0; j < TOOLSET_BUFLEN; j++){
-            if(j == TOOLSET_BUFLEN-1){
-                tool_set[j] = tools[i]; //in case there is a missing tool
-            }
-            if(tools[i]==tool_set[j]){
-                break;
-            }
-        }
-    }
-}
-
-// choose route
-void chooseRoute(int16_t *route, const int16_t *tool_set, const std::vector<int16_t> &tools)
-{
-    int intermediate = 0;
-    int mac_act = 0; //starts at warehouse
-    for(int i = 0; i<tools.size(); i++){
-        for(int j = mac_act; j < TOOLSET_BUFLEN; j++){   //piece can't go back to other conveyors
-            if(tools[i] == tool_set[j]){
-                route[i+intermediate] = (j+1);
-                mac_act = j;
-                break;
-            }
-            else{
-                if(j == TOOLSET_BUFLEN-1){
-                    route[i] = 5;
-                    intermediate++;
-                    // order.warehouse_intermediate = true;
-                    mac_act = 0;
-                    j = 0;
-                }
-            }
-        }
-    }
-}
