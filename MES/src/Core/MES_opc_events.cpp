@@ -100,7 +100,7 @@ void MES::onSendUnload()
         MES_ERROR("Could not send unload order.");
         return;
     }
-    store.subCount(next_unload->getPiece(), 1);
+    store.subCount(next_unload->getPiece(), next_unload->getQuantity());
     MES_INFO("Unload sent: {}", *next_unload);
 }
 
