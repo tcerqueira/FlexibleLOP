@@ -45,9 +45,9 @@ project "MES"
     }
 
     filter "configurations:Debug"
-        defines {"DEBUG", "OPC_LISTEN_ASYNC_MODE=3"}
+        defines {"DEBUG", "OPC_LISTEN_ASYNC_MODE=0"}
         symbols "On"
 
     filter "configurations:Release"
-        defines {"NDEBUG"}
+        defines {"NDEBUG", "OPC_LISTEN_ASYNC_MODE=0"}
         optimize "On"

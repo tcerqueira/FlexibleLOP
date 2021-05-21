@@ -23,7 +23,7 @@ void MES::erpRequestDispatcher(char* data, std::size_t len, std::shared_ptr<std:
             onScheduleRequest(response);
         }
         else{
-            MES_WARN("Unknown node name: \"{}\"", node_name);
+            MES_WARN("Unknown request node name: \"{}\"", node_name);
         }
     }
     scheduler.schedule();
@@ -74,6 +74,7 @@ void MES::onStorageRequest(std::shared_ptr<std::string> response)
     StorageDoc storeDoc(store);
     storeDoc.save(ss);
     *response = ss.str();
+    MES_INFO("ERP: Storage request.");
 }
 
 void MES::onScheduleRequest(std::shared_ptr<std::string> response)
@@ -82,4 +83,5 @@ void MES::onScheduleRequest(std::shared_ptr<std::string> response)
     ScheduleDoc scheduleDoc(scheduler);
     scheduleDoc.save(ss);
     *response = ss.str();
+    MES_INFO("ERP: Schedule request.");
 }

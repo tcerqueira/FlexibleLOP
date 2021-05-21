@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS Machine (
     id_mac INTEGER,
     total_time INTEGER,
     PRIMARY KEY (id_mac)
-)
+);
 
 -- Machine stats
 CREATE TABLE IF NOT EXISTS MachineStat (
@@ -57,4 +57,4 @@ CREATE TABLE IF NOT EXISTS MachineStat (
     CHECK (piece_type>=1), CHECK (piece_type<=9),
     CHECK (id_mac>=0), CHECK (piece_type<=7),
     CONSTRAINT fk_mac FOREIGN KEY (id_mac) REFERENCES Machine(id_mac)
-)
+);
