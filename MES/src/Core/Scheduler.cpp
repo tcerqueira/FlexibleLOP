@@ -4,6 +4,7 @@
 
 std::shared_ptr<SubOrder> toSubOrder(const std::shared_ptr<TransformOrder> order);
 void separateRoute(std::shared_ptr<SubOrder> sub_order, int iter);
+void chooseToolSet(int16_t *tool_set, const std::vector<int16_t> &tools);
 
 Scheduler::Scheduler(Storage *store)
 : store(store)
@@ -123,6 +124,53 @@ void Scheduler::schedule()
                 }
             }
         }
+        else if(sub_order->warehouse_intermediate)
+        {
+            sub_order->warehouse_intermediate = false;
+            if (work_cell1 <= work_cell2)
+                {
+                    t1_orders.push_back(sub_order);
+                    // std::push_heap(t1_orders.begin(), t1_orders.end(), OrderPriority());
+                }
+                else
+                {
+                    t2_orders.push_back(sub_order);
+                    // std::push_heap(t2_orders.begin(), t2_orders.end(), OrderPriority());
+                }
+            auto order_itm = std::make_shared<SubOrder>(*sub_order);
+            order_itm->init_p = sub_order->piece_intermediate;
+            order_itm->tools.clear();
+            if(sub_order->tools.size() >= 5){
+                order_itm->tools.push_back(sub_order->tools[4]);
+                order_itm->tool_time[0] = sub_order->tool_time[5];
+                order_itm->path[1] = 0;
+                if(sub_order->tools.size() == 6){
+                    order_itm->tools.push_back(sub_order->tools[6]);
+                    order_itm->tool_time[5] = sub_order->tool_time[5];
+                    order_itm->path[2] = 0;
+                }
+
+            }
+            chooseToolSet(order_itm->tool_set, order_itm->tools);
+            for(int i = 0; i<order_itm->quantity; i++)
+            {
+                auto order_aux = std::make_shared<SubOrder>(*order_itm);
+                order_aux->quantity = 1;
+                order_aux->to_do = 1;
+                order_aux->work = (order_itm->work * order_aux->quantity) / order_itm->quantity;
+                separateRoute(order_aux, i);
+                if (work_cell1 <= work_cell2)
+                {
+                    t1_orders.push_back(order_aux);
+                    // std::push_heap(t1_orders.begin(), t1_orders.end(), OrderPriority());
+                }
+                else
+                {
+                    t2_orders.push_back(order_aux);
+                    // std::push_heap(t2_orders.begin(), t2_orders.end(), OrderPriority());
+                }
+            }
+        }
         else if(sub_order->quantity >= 10 && std::abs(work_cell1-work_cell2) < 150)
         {
             auto order_c1 = std::make_shared<SubOrder>(*sub_order);
@@ -196,7 +244,6 @@ bool Scheduler::OrderPriority::operator()(const std::shared_ptr<SubOrder> o1, co
 
 void Scheduler::updatePieceStarted(int cell, int number)
 {
-    // store->subCount(piece, 1);
     auto order = this->getTransform(number);
     if(order == nullptr)
         return;
@@ -205,6 +252,7 @@ void Scheduler::updatePieceStarted(int cell, int number)
         order->started();
 
     order->pieceDoing();
+    store->subCount(order->getInitial(), 1);
 }
 
 void Scheduler::updatePieceFinished(int cell, int number)
@@ -217,6 +265,7 @@ void Scheduler::updatePieceFinished(int cell, int number)
         order->finished();
 
     order->pieceDone();
+    store->addCount(order->getFinal(), 1);
 }
 
 bool Scheduler::hasTransform(int cell) const
@@ -251,7 +300,6 @@ std::shared_ptr<TransformOrder> Scheduler::getTransform(int number)
 // ########################### AUXILIAR FUNCTIONS ####################################
 // ###################################################################################
 void chooseTools(std::shared_ptr<SubOrder> sub_order, std::vector<int16_t>& tools, const std::shared_ptr<TransformOrder> next_order);
-void chooseToolSet(int16_t *tool_set, const std::vector<int16_t> &tools);
 void chooseRoute(std::shared_ptr<SubOrder> sub_order, const std::vector<int16_t> &tools);
 
 std::shared_ptr<SubOrder> toSubOrder(const std::shared_ptr<TransformOrder> order)
@@ -398,11 +446,11 @@ void separateRoute(std::shared_ptr<SubOrder> sub_order, int iter)
 {
     if(sub_order->tools.size() == 1)
     {
-        sub_order->path[0] = 3 - (iter % 4) + 1;
+        sub_order->path[0] =(iter % 4) + 1;
     }
     else{
-        sub_order->path[0] = (1 - iter % 2) * 2 + 1;
-        sub_order->path[1] = (1 - iter % 2) * 2 + 2;
+        sub_order->path[0] = (iter % 2) * 2 + 1;
+        sub_order->path[1] = (iter % 2) * 2 + 2;
     }
 
     // int maq_div = 4/sub_order->tools.size();

@@ -96,10 +96,12 @@ void MES::onSendUnload()
 
     opc_unload opc_u = {(uint16_t)next_unload->getPiece(), (int16_t)next_unload->getDest(), (int16_t)next_unload->getQuantity()};
 
-    if(!writeUnload(fct_client, opc_u))
+    if(!writeUnload(fct_client, opc_u)){
         MES_ERROR("Could not send unload order.");
-    else
-        MES_INFO("Unload sent: {}", *next_unload);
+        return;
+    }
+    store.subCount(next_unload->getPiece(), 1);
+    MES_INFO("Unload sent: {}", *next_unload);
 }
 
 void MES::onLoadOrder(piece_t piece)
