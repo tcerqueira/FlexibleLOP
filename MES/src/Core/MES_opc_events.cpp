@@ -9,7 +9,7 @@ struct opc_transform
     int16_t quantity;
     int16_t to_do;
     int16_t done;
-    int16_t* tool_set;
+    int16_t tool_set[4] = {0, 0, 0, 0};
     int16_t path[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     uint64_t tool_time[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     bool warehouse_intermediate;
@@ -96,10 +96,12 @@ void MES::onSendUnload()
 
     opc_unload opc_u = {(uint16_t)next_unload->getPiece(), (int16_t)next_unload->getDest(), (int16_t)next_unload->getQuantity()};
 
-    if(!writeUnload(fct_client, opc_u))
+    if(!writeUnload(fct_client, opc_u)){
         MES_ERROR("Could not send unload order.");
-    else
-        MES_INFO("Unload sent: {}", *next_unload);
+        return;
+    }
+    store.subCount(next_unload->getPiece(), 1);
+    MES_INFO("Unload sent: {}", *next_unload);
 }
 
 void MES::onLoadOrder(piece_t piece)

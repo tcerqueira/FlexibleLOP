@@ -14,11 +14,11 @@
     Penalty="100"/>
 </Order>
 <Order Number="323">
-    <Transform From="P4" To="P6" Quantity="4" Time="1615744339" MaxDelay="259200"
+    <Transform From="P5" To="P6" Quantity="4" Time="1615744339" MaxDelay="259200"
     Penalty="100"/>
 </Order> 
 <Order Number="325">
-    <Transform From="P4" To="P7" Quantity="5" Time="1615744339" MaxDelay="259200"
+    <Transform From="P1" To="P8" Quantity="2" Time="1615744339" MaxDelay="259200"
     Penalty="100"/>
 </Order>  
 </ORDERS>

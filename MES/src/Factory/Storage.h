@@ -17,6 +17,9 @@ public:
     void subCount(piece_t type, int count);
     int total() const;
 
+    template <typename OStream>
+    friend OStream &operator<<(OStream &os, const Storage &stg);
+
     // operator overload
     int operator[](piece_t piece);
 
@@ -24,3 +27,15 @@ private:
     mutable std::mutex mtx;
     int count[NPIECES];
 };
+
+// STREAM OVERLOADS
+template <typename OStream>
+OStream &operator<<(OStream &os, const Storage &stg)
+{
+    os << std::endl << "==== Storage ====" << std::endl;
+    for(int i = 0; i < NPIECES; i++)
+    {
+        os << "P" << i+1 << ": " << stg.count[i]<< "\n";
+    }
+    return os;
+}
