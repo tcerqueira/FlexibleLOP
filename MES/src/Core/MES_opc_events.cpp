@@ -14,7 +14,7 @@ struct opc_transform
     int16_t quantity;
     int16_t to_do;
     int16_t done;
-    int16_t* tool_set;
+    int16_t tool_set[4] = {0, 0, 0, 0};
     int16_t path[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     uint64_t tool_time[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     bool warehouse_intermediate;
@@ -86,17 +86,13 @@ void MES::onSendTransform(int cell)
 
     // Get tools
     std::vector<int16_t> tools; tools.reserve(6);
-    uint16_t piece_intermediate;
-    chooseTools(tools, piece_intermediate, order.tool_time, *next_order);
-    order.piece_intermediate = piece_intermediate;
+    chooseTools(tools, order.piece_intermediate, order.tool_time, *next_order);
     
     // Choose toolset
-    int16_t tool_set[4] = {0,0,0,0};
-    chooseToolSet(tool_set, tools);
-    order.tool_set = tool_set;
+    chooseToolSet(order.tool_set, tools);
 
     // Choose route
-    chooseRoute(order.path, tool_set, tools);
+    chooseRoute(order.path, order.tool_set, tools);
     
     //Check for warehouse intermediate
     order.warehouse_intermediate = false;

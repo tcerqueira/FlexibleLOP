@@ -196,3 +196,124 @@ std::shared_ptr<SubOrder> toSubOrder(const std::shared_ptr<TransformOrder> order
 
     return sub_order;
 }
+
+// get tools
+void chooseTools1(std::shared_ptr<SubOrder>sub_order, std::vector<int16_t>& tools, const TransformOrder& next_order)
+{
+    piece_t piece_act = next_order.getInitial();
+    int i = 0, intermediate = 0;
+    while(piece_act != next_order.getFinal()){   
+        switch (piece_act){     //Find next tool (incomplete)
+        case P1:
+            tools.push_back(0);
+            sub_order->tool_time[i+intermediate] = 15000;
+            piece_act = P2;
+            break;
+        case P2:
+            tools.push_back(1);
+            sub_order->tool_time[i+intermediate] = 15000;
+            piece_act = P3;
+            break;
+        case P3:
+            tools.push_back(2);
+            sub_order->tool_time[i+intermediate] = 15000;
+            piece_act = P4;
+            break;
+        case P4:
+            tools.push_back(0);
+            sub_order->tool_time[i+intermediate] = 15000;
+            piece_act = P5;
+            break;
+        case P5:
+            if(i==4){
+                sub_order->piece_intermediate = 5;
+                sub_order->tool_time[i+intermediate] = 0;
+                intermediate++;
+            }
+            if(next_order.getFinal() == P9){
+                tools.push_back(2);
+                sub_order->tool_time[i+intermediate] = 30000;
+                piece_act = P9;
+            }
+            else{
+                tools.push_back(1);
+                sub_order->tool_time[i+intermediate] = 30000;
+                piece_act = P6;
+            }
+            break;
+        case P6:
+            if(i==4){
+                sub_order->piece_intermediate = 6;
+                sub_order->tool_time[i+intermediate] = 0;
+                intermediate++;
+            }
+            if(next_order.getFinal() == P8){
+                tools.push_back(0);
+                sub_order->tool_time[i+intermediate] = 15000;
+                piece_act = P8;
+            }
+            else{
+                tools.push_back(2);
+                sub_order->tool_time[i+intermediate] = 30000;
+                piece_act = P7;
+            }
+            break;
+        }
+        i++;
+    }
+    
+}
+
+// choose toolset
+void chooseToolSet1(int16_t *tool_set, const std::vector<int16_t> &tools)
+{
+    for(int i = 0; i<tools.size(); i++){
+        if(i <= 3){
+            tool_set[i] = tools[i];
+            continue;
+        }
+        for(int j = 0; j < 4; j++){
+            if(j == 4-1){
+                tool_set[j] = tools[i]; //in case there is a missing tool
+            }
+            if(tools[i]==tool_set[j]){
+                break;
+            }
+        }
+    }
+    if(tools.size() <= 2){
+        for(int i = tools.size(); i < 4; i++)
+        tool_set[i] = tool_set[i-tools.size()]; 
+    }
+}
+
+// choose route
+void chooseRoute1(std::vector<SubOrder> sub_order, const std::vector<int16_t> &tools)
+{
+    int intermediate = 0;
+    int mac_act = 0; //starts at warehouse
+
+    if(tools.size() <= 2){
+        for(int i = 0; i < sub_order[0].quantity; i++){
+            //sub_order[i]
+        }
+    }
+    for(int i = 0; i<tools.size(); i++){
+        for(int j = mac_act; j < 4; j++){   //piece can't go back to other conveyors
+            if(tools[i] == sub_order[0].tool_set[j]){
+                sub_order[0].path[i+intermediate] = (j+1);
+                mac_act = j;
+                break;
+            }
+            else{
+                if(j == 4-1){
+                    sub_order[0].path[i] = 5;
+                    intermediate++;
+                    // order.warehouse_intermediate = true;
+                    mac_act = 0;
+                    j = 0;
+                }
+            }
+        }
+    }
+}
