@@ -12,6 +12,7 @@ project "MES"
     targetdir "build/bin/%{outputdir}"
     objdir "build/obj/%{outputdir}"
     targetname "%{prj.name}"
+    targetextension ""
 
     files {
         "src/**.h",
