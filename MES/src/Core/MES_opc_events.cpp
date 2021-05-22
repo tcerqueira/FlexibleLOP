@@ -1,4 +1,5 @@
 #include "MES.h"
+#include "Database/Database.h"
 
 #define TOOLSET_BUFLEN 4
 
@@ -59,10 +60,13 @@ void MES::onSendTransform(int cell)
     auto next_order = scheduler.popOrderCell(cell);
     if(next_order == nullptr)
         return;
-    MES_INFO("Transform order requested on cell {}.", cell);
 
     // Write to factory
-    writeTransform(fct_client, next_order, cell);
+    if(!writeTransform(fct_client, next_order, cell)){
+        MES_ERROR("Could not send Transform Order.");
+        return;
+    }
+    MES_INFO("Transform Order sent on cell {}: {}", cell, *next_order);
 }
 
 struct opc_unload
@@ -97,17 +101,18 @@ void MES::onSendUnload()
     opc_unload opc_u = {(uint16_t)next_unload->getPiece(), (int16_t)next_unload->getDest(), (int16_t)next_unload->getQuantity()};
 
     if(!writeUnload(fct_client, opc_u)){
-        MES_ERROR("Could not send unload order.");
+        MES_ERROR("Could not send Unload Order.");
         return;
     }
     store.subCount(next_unload->getPiece(), next_unload->getQuantity());
+    Database::Get().updateStorage((int) next_unload->getPiece(), store.countPiece(next_unload->getPiece()));
     MES_INFO("Unload sent: {}", *next_unload);
 }
 
 void MES::onLoadOrder(piece_t piece)
 {
     // Update Storage
-    MES_TRACE("Piece {} loaded.", (int)piece);
+    MES_INFO("Piece {} loaded.", (int)piece);
     store.addCount(piece, 1);
 }
 
@@ -163,7 +168,7 @@ void MES::onUnloaded(dest_t dest)
         return;
     }
     piece_t unload_piece = (piece_t)(int)*(uint16_t*)type_var.data;
-    MES_TRACE("Unloaded type {} on destination {}.", (int)unload_piece, (int)dest);
+    MES_INFO("Piece unloaded of type {} on destination {}.", (int)unload_piece, (int)dest);
     factory.unloaded(unload_piece, dest);
     UA_Variant_clear(&type_var);
 }

@@ -1,6 +1,7 @@
 #include "Scheduler.h"
 #include <algorithm>
 #include <cstdlib>
+#include "Database/Database.h"
 
 std::shared_ptr<SubOrder> toSubOrder(const std::shared_ptr<TransformOrder> order);
 void separateRoute(std::shared_ptr<SubOrder> sub_order, int iter);
@@ -253,6 +254,7 @@ void Scheduler::updatePieceStarted(int cell, int number)
 
     order->pieceDoing();
     store->subCount(order->getInitial(), 1);
+    Database::Get().updateStorage((int) order->getInitial(), store->countPiece(order->getInitial()));
 }
 
 void Scheduler::updatePieceFinished(int cell, int number)
@@ -266,6 +268,7 @@ void Scheduler::updatePieceFinished(int cell, int number)
 
     order->pieceDone();
     store->addCount(order->getFinal(), 1);
+    Database::Get().updateStorage((int) order->getFinal(), store->countPiece(order->getFinal()));
 }
 
 bool Scheduler::hasTransform(int cell) const
