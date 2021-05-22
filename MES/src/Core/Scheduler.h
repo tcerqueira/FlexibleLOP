@@ -5,7 +5,7 @@
 #include "Factory/Storage.h"
 
 #define WORK_TRANSFORM 30
-#define WORK_UNLOAD 15
+#define WORK_UNLOAD 10
 #define WORK_CHANGETOOLS 20
 
 struct SubOrder
