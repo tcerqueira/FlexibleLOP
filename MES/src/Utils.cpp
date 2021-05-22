@@ -60,7 +60,7 @@ char* pieceToString(piece_t piece)
 
 char* destToString(dest_t dest)
 {
-    char* str =  new char[3];
+    char* str =  new char[4];
     str[0] = '\0';
     switch (dest)
     {

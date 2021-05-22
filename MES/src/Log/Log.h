@@ -14,7 +14,11 @@ private:
 };
 
 // Log macros
+#ifdef DEBUG
 #define MES_TRACE(...)      ::Log::getLogger()->trace(__VA_ARGS__)
+#else
+#define MES_TRACE(...)
+#endif
 #define MES_INFO(...)       ::Log::getLogger()->info(__VA_ARGS__)
 #define MES_WARN(...)       ::Log::getLogger()->warn(__VA_ARGS__)
 #define MES_ERROR(...)      ::Log::getLogger()->error(__VA_ARGS__)
