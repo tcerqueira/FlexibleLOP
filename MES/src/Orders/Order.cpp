@@ -1,5 +1,7 @@
 #include "Order.h"
 
+static std::mutex mtx;
+
 Order::Order(int id, time_t receivedAt, int quantity)
     : id(id), receivedAt(receivedAt), totalAmount(quantity), doneAmount(0), doingAmount(0)
 {
@@ -7,11 +9,13 @@ Order::Order(int id, time_t receivedAt, int quantity)
 
 void Order::pieceDone()
 {
+    std::lock_guard<std::mutex> lck(mtx);
     doneAmount++;
 }
 
 void Order::pieceDoing()
 {
+    std::lock_guard<std::mutex> lck(mtx);
     doingAmount++;
 }
 
