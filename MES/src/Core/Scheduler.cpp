@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include "Database/Database.h"
 
+#define N_ORDERDIV 8
+
 std::shared_ptr<SubOrder> toSubOrder(const std::shared_ptr<TransformOrder> order);
 void separateRoute(std::shared_ptr<SubOrder> sub_order, int iter);
 void chooseToolSet(int16_t *tool_set, const std::vector<int16_t> &tools);
@@ -29,6 +31,7 @@ void Scheduler::addTransform(std::shared_ptr<TransformOrder> order)
     const std::lock_guard<std::mutex> lock(transformVec_mutex);
     orders_list.push_back(order);
     to_dispatch.push_back(order);
+    // TODO: insert order to db
     std::push_heap(to_dispatch.begin(), to_dispatch.end(), OrderPriority());
 }
 
@@ -58,9 +61,17 @@ std::shared_ptr<UnloadOrder> Scheduler::popUnload()
 
 std::shared_ptr<SubOrder> Scheduler::popOrderCell(int cell)
 {
-    const std::lock_guard<std::mutex> lock(transformVec_mutex);
+    std::unique_lock<std::mutex> lock(transformVec_mutex);
     if(cell == 1)
     {
+        // if(t1_orders.empty())
+        // {
+        //     if(!t2_orders.empty())
+        //     {
+        //         lock.unlock();
+        //         t1_orders.push_back(popOrderCell(2));
+        //     }
+        // }
         int i = 0;
         for(std::list<std::shared_ptr<SubOrder>>::iterator it=t1_orders.begin(); it != t1_orders.end(); ++it)
         {
@@ -74,6 +85,15 @@ std::shared_ptr<SubOrder> Scheduler::popOrderCell(int cell)
         }
     }
     else{
+        // if(t2_orders.empty())
+        // {
+        //     if(!t1_orders.empty())
+        //     {
+        //         lock.unlock();
+        //         t2_orders.push_back(popOrderCell(1));
+        //     }
+   
+        // }
         int i = 0;
         for(std::list<std::shared_ptr<SubOrder>>::iterator it=t2_orders.begin(); it != t2_orders.end(); ++it)
         {
@@ -86,7 +106,8 @@ std::shared_ptr<SubOrder> Scheduler::popOrderCell(int cell)
             i++;
         }
     }
-    return nullptr;
+    // lock.unlock();
+    return nullptr; 
 }
 
 void Scheduler::schedule()
@@ -172,7 +193,7 @@ void Scheduler::schedule()
                 }
             }
         }
-        else if(sub_order->quantity >= 10 && std::abs(work_cell1-work_cell2) < 150)
+        else if(sub_order->quantity >= N_ORDERDIV && std::abs(work_cell1-work_cell2) < 150)
         {
             auto order_c1 = std::make_shared<SubOrder>(*sub_order);
             auto order_c2 = std::make_shared<SubOrder>(*sub_order);
@@ -254,6 +275,7 @@ void Scheduler::updatePieceStarted(int cell, int number)
 
     order->pieceDoing();
     store->subCount(order->getInitial(), 1);
+    // TODO async query
     Database::Get().updateStorage((int) order->getInitial(), store->countPiece(order->getInitial()));
 }
 
@@ -268,6 +290,7 @@ void Scheduler::updatePieceFinished(int cell, int number)
 
     order->pieceDone();
     store->addCount(order->getFinal(), 1);
+    // TODO async query
     Database::Get().updateStorage((int) order->getFinal(), store->countPiece(order->getFinal()));
 }
 

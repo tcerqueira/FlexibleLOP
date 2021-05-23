@@ -1,4 +1,5 @@
 #include "Database.h"
+#include "Orders/Orders.h"
 
 Database* Database::instance{nullptr};
 std::mutex Database::mutex;
@@ -41,6 +42,7 @@ Database::~Database()
 
 int Database::updateStorage(int piece_type, int amount)
 {
+    if(conn.isConnected()) return 0;
     SACommand update(&conn, _TSA("UPDATE PieceStorage SET amount = :1 WHERE piece_type = :2"));
     update << (long) amount << (long) piece_type;
     try{
@@ -48,8 +50,7 @@ int Database::updateStorage(int piece_type, int amount)
     }
     catch(const SAException& e)
     {
-        MES_TRACE("{}", e.ErrText().GetMultiByteChars());
-        MES_TRACE("ERROR updating db storage piece: {} amount: {}", piece_type, amount);
+        MES_WARN("{}", e.ErrText().GetMultiByteChars());
         return 0;
     }
 
@@ -58,6 +59,7 @@ int Database::updateStorage(int piece_type, int amount)
 
 int Database::getPieceAmount(int piece_type)
 {
+    if(conn.isConnected()) return -1;
     if(piece_type > 9 || piece_type < 1) return -1;
 
     SACommand get(&conn, _TSA("SELECT amount FROM PieceStorage WHERE piece_type = :1"));
@@ -78,13 +80,11 @@ int* Database::getStorage()
 {
     SACommand get(&conn, _TSA("SELECT * FROM PieceStorage"));
     get.Execute();
-    int *count = (int*) malloc(sizeof(int)*9);
+    int *count = new int[9]; //(int*) malloc(sizeof(int)*9);
     while(get.FetchNext())
     {
-        long piece_typeL = get[1];
-        int piece_type = (int) piece_typeL;
-        long amountL = get[2];
-        int amount = (int) amountL;
+        int piece_type = get[1].asInt64();
+        int amount = get[2].asInt64();
 
         if(piece_type > 9 || piece_type < 1) continue;
 
@@ -159,4 +159,25 @@ int Database::getMachinePieceCount(int id_mac, int piece_type)
         i++;
     }
     return piece_count;
+}
+
+std::shared_ptr<TransformOrder> Database::getOrder(int number)
+{
+    // TODO
+
+    return nullptr;
+}
+
+int Database::insertOrder(std::shared_ptr<TransformOrder> order)
+{
+    // TODO
+
+    return 0;
+}
+
+int Database::deleteOrder(int number)
+{
+    // TODO
+
+    return 0;
 }

@@ -11,18 +11,18 @@
 MES::MES(const std::string& opc_endpoint)
 :   erp_server(io_service, UDP_LISTEN_PORT),
     fct_client(opc_endpoint),
-    store((const int[]){100,200,400,800,160,0,0,0,0}),
+    store((const int[]){238,34,20,20,20,20,0,0,0}),
     scheduler(&store)
 {
     std::array<Machine, NMACHINES> machines_array = {{
-        {{1,0,0,0,0,0,0,0,0}, 1 },
-        {{0,1,0,0,0,0,0,0,0}, 2 },
-        {{0,0,1,0,0,0,0,0,0}, 3 },
-        {{0,0,0,1,0,0,0,0,0}, 4 },
-        {{0,0,0,0,1,0,0,0,0}, 5 },
-        {{0,0,0,0,0,1,0,0,0}, 6 },
-        {{0,0,0,0,0,0,1,0,0}, 7 },
-        {{0,0,0,0,0,0,0,1,0}, 8 }
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 }
     }};
     std::array<std::array<int, NPIECES>, NDEST> unloads = {{{1,2,3,4,5,6,7,8,9},{11,12,13,14,15,16,17,18,19},{21,21,23,24,25,26,27,28,29}}};
     factory = Factory(std::move(machines_array), std::move(unloads));
@@ -31,18 +31,18 @@ MES::MES(const std::string& opc_endpoint)
 MES::MES(std::string&& opc_endpoint)
 :   erp_server(io_service, UDP_LISTEN_PORT),
     fct_client(std::move(opc_endpoint)),
-    store((const int[]){100,200,400,800,160,0,0,0,0}),
+    store((const int[]){238,34,20,20,20,20,0,0,0}),
     scheduler(&store)
 {
     std::array<Machine, NMACHINES> machines_array = {{
-        {{1,0,0,0,0,0,0,0,0}, 1 },
-        {{0,1,0,0,0,0,0,0,0}, 2 },
-        {{0,0,1,0,0,0,0,0,0}, 3 },
-        {{0,0,0,1,0,0,0,0,0}, 4 },
-        {{0,0,0,0,1,0,0,0,0}, 5 },
-        {{0,0,0,0,0,1,0,0,0}, 6 },
-        {{0,0,0,0,0,0,1,0,0}, 7 },
-        {{0,0,0,0,0,0,0,1,0}, 8 }
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 }
     }};
     std::array<std::array<int, NPIECES>, NDEST> unloads = {{{1,2,3,4,5,6,7,8,9},{11,12,13,14,15,16,17,18,19},{21,21,23,24,25,26,27,28,29}}};
     factory = Factory(std::move(machines_array), std::move(unloads));
@@ -185,11 +185,13 @@ void MES::setUp()
             onFinishProcessing(i);
         });
     }
+    // TODO async query
     // get storage from db
-    for(int i = 0; i< NPIECES; i++)
-    {
-        store.setCount(static_cast<piece_t> (i+1), Database::Get().getPieceAmount(i+1));
-    }
+    // for(int i = 0; i< NPIECES; i++)
+    // {
+    //     store.setCount(static_cast<piece_t> (i+1), Database::Get().getPieceAmount(i+1));
+    // }
+
 }
 
 MES::~MES()

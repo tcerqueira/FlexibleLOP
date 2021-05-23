@@ -3,6 +3,7 @@
 #include "l_comms.h"
 #include <mutex>
 #include <SQLAPI.h>
+#include "Orders/Orders.h"
 
 class Database
 {
@@ -19,6 +20,9 @@ public:
     int getMachine(int id_mac);
     int updateMachineStat(int id_mac, int piece_type, int piece_count);
     int getMachinePieceCount(int id_mac, int piece_type);
+    std::shared_ptr<TransformOrder> getOrder(int number);
+    int insertOrder(std::shared_ptr<TransformOrder> order);
+    int deleteOrder(int number);
 
 protected:
     Database();
