@@ -147,7 +147,7 @@ bool OpcClient::checkFlag(UA_NodeId node)
     UA_Variant_init(&flag);
     if (!readValueBool(node, flag))
     {
-        MES_WARN("Could not read flag \"???\".");
+        MES_WARN("Could not read flag.");
         return false;
     }
     bool result = *(bool *)flag.data;
