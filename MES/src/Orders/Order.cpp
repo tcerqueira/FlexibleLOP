@@ -21,16 +21,19 @@ void Order::pieceDoing()
 
 void Order::sent()
 {
+    std::lock_guard<std::mutex> lck(mtx);
     sentAt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 }
 
 void Order::started()
 {
+    std::lock_guard<std::mutex> lck(mtx);
     startedAt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 }
 
 void Order::finished()
 {
+    std::lock_guard<std::mutex> lck(mtx);
     finishedAt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 }
 

@@ -62,6 +62,8 @@ std::shared_ptr<UnloadOrder> Scheduler::popUnload()
 std::shared_ptr<SubOrder> Scheduler::popOrderCell(int cell)
 {
     std::unique_lock<std::mutex> lock(transformVec_mutex);
+    static int last_order_numberC[2] = {0,0};
+    std::shared_ptr<SubOrder> sub_order = nullptr;
     if(cell == 1)
     {
         // if(t1_orders.empty())
@@ -75,11 +77,11 @@ std::shared_ptr<SubOrder> Scheduler::popOrderCell(int cell)
         int i = 0;
         for(std::list<std::shared_ptr<SubOrder>>::iterator it=t1_orders.begin(); it != t1_orders.end(); ++it)
         {
-            std::shared_ptr<SubOrder> sub_order = *it;
+            sub_order = *it;
             if(sub_order->quantity <= store->countPiece((piece_t)sub_order->init_p))
             {
                 t1_orders.erase(it);
-                return sub_order;
+                break;
             }
             i++;
         }
@@ -97,17 +99,25 @@ std::shared_ptr<SubOrder> Scheduler::popOrderCell(int cell)
         int i = 0;
         for(std::list<std::shared_ptr<SubOrder>>::iterator it=t2_orders.begin(); it != t2_orders.end(); ++it)
         {
-            std::shared_ptr<SubOrder> sub_order = *it;
+            sub_order = *it;
             if(sub_order->quantity <= store->countPiece((piece_t)sub_order->init_p))
             {
                 t2_orders.erase(it);
-                return sub_order;
+                break;
             }
             i++;
         }
     }
     // lock.unlock();
-    return nullptr; 
+    // checks if its the first sub order of an order and records that it was sent to the factory
+    if(sub_order != nullptr && sub_order->orderID != last_order_numberC[cell-1])
+    {
+        auto curr_order = getTransform(sub_order->orderID);
+        if(curr_order->getDoing() == 0)
+            curr_order->sent();
+        last_order_numberC[cell-1] = sub_order->orderID;
+    }
+    return sub_order; 
 }
 
 void Scheduler::schedule()
