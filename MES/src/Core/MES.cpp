@@ -24,7 +24,7 @@ MES::MES(const std::string& opc_endpoint)
         {{0,0,0,0,0,0,0,0,0}, 0 },
         {{0,0,0,0,0,0,0,0,0}, 0 }
     }};
-    std::array<std::array<int, NPIECES>, NDEST> unloads = {{{1,2,3,4,5,6,7,8,9},{11,12,13,14,15,16,17,18,19},{21,21,23,24,25,26,27,28,29}}};
+    std::array<std::array<int, NPIECES>, NDEST> unloads = {{{0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0}}};
     factory = Factory(std::move(machines_array), std::move(unloads));
 }
 
@@ -44,7 +44,7 @@ MES::MES(std::string&& opc_endpoint)
         {{0,0,0,0,0,0,0,0,0}, 0 },
         {{0,0,0,0,0,0,0,0,0}, 0 }
     }};
-    std::array<std::array<int, NPIECES>, NDEST> unloads = {{{1,2,3,4,5,6,7,8,9},{11,12,13,14,15,16,17,18,19},{21,21,23,24,25,26,27,28,29}}};
+    std::array<std::array<int, NPIECES>, NDEST> unloads = {{{0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0}}};
     factory = Factory(std::move(machines_array), std::move(unloads));
 }
 
