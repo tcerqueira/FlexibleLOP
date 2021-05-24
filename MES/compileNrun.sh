@@ -1,5 +1,5 @@
 #! /bin/bash
 
-make -j
+make config=debug -j
 echo "==== Running ===="
-./build/bin/Debug-windows/MES.exe 
+./build/bin/Debug-windows/MES

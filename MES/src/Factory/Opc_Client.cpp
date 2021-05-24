@@ -147,6 +147,7 @@ bool OpcClient::checkFlag(UA_NodeId node)
     UA_Variant_init(&flag);
     if (!readValueBool(node, flag))
     {
+        MES_WARN("Could not read flag.");
         return false;
     }
     bool result = *(bool *)flag.data;
@@ -165,60 +166,61 @@ void OpcClient::addListener(NodeKey type, evtHandler handler)
     event_nodes.insert(type);
 }
 
+// ############################################# READ OPC UA ##############################################
+// ########################################################################################################
+
+#define READ_OPCUA(type)\
+    UA_StatusCode read_status = UA_Client_readValueAttribute(client, nodeid, &value);\
+    if (read_status == UA_STATUSCODE_GOOD && UA_Variant_hasScalarType(&value, &UA_TYPES[type]))\
+    {\
+        return 1;\
+    };\
+    return 0;\
+
 int OpcClient::readValueBool(UA_NodeId nodeid, UA_Variant &value)
 {
     std::lock_guard<std::mutex> lck(opc_call_mtx);
-    UA_StatusCode read_status = UA_Client_readValueAttribute(client, nodeid, &value);
-    if (read_status == UA_STATUSCODE_GOOD && UA_Variant_hasScalarType(&value, &UA_TYPES[UA_TYPES_BOOLEAN]))
-    {
-        return 1;
-    };
-    return 0;
+    READ_OPCUA(UA_TYPES_BOOLEAN);
 }
 
 int OpcClient::readValueInt16(UA_NodeId nodeid, UA_Variant &value)
 {
     std::lock_guard<std::mutex> lck(opc_call_mtx);
-    UA_StatusCode read_status = UA_Client_readValueAttribute(client, nodeid, &value);
-    if (read_status == UA_STATUSCODE_GOOD && UA_Variant_hasScalarType(&value, &UA_TYPES[UA_TYPES_INT16]))
-    {
-        return 1;
-    };
-    return 0;
+    READ_OPCUA(UA_TYPES_INT16);
 }
 
 int OpcClient::readValueInt32(UA_NodeId nodeid, UA_Variant &value)
 {
     std::lock_guard<std::mutex> lck(opc_call_mtx);
-    UA_StatusCode read_status = UA_Client_readValueAttribute(client, nodeid, &value);
-    if (read_status == UA_STATUSCODE_GOOD && UA_Variant_hasScalarType(&value, &UA_TYPES[UA_TYPES_INT32]))
-    {
-        return 1;
-    };
-    return 0;
+    READ_OPCUA(UA_TYPES_INT32);
+}
+
+int OpcClient::readValueInt64(UA_NodeId nodeid, UA_Variant &value)
+{
+    std::lock_guard<std::mutex> lck(opc_call_mtx);
+    READ_OPCUA(UA_TYPES_INT64);
 }
 
 int OpcClient::readValueUInt16(UA_NodeId nodeid, UA_Variant &value)
 {
     std::lock_guard<std::mutex> lck(opc_call_mtx);
-    UA_StatusCode read_status = UA_Client_readValueAttribute(client, nodeid, &value);
-    if (read_status == UA_STATUSCODE_GOOD && UA_Variant_hasScalarType(&value, &UA_TYPES[UA_TYPES_UINT16]))
-    {
-        return 1;
-    };
-    return 0;
+    READ_OPCUA(UA_TYPES_UINT16);
 }
 
 int OpcClient::readValueUInt32(UA_NodeId nodeid, UA_Variant &value)
 {
     std::lock_guard<std::mutex> lck(opc_call_mtx);
-    UA_StatusCode read_status = UA_Client_readValueAttribute(client, nodeid, &value);
-    if (read_status == UA_STATUSCODE_GOOD && UA_Variant_hasScalarType(&value, &UA_TYPES[UA_TYPES_UINT32]))
-    {
-        return 1;
-    };
-    return 0;
+    READ_OPCUA(UA_TYPES_UINT32);
 }
+
+int OpcClient::readValueUInt64(UA_NodeId nodeid, UA_Variant &value)
+{
+    std::lock_guard<std::mutex> lck(opc_call_mtx);
+    READ_OPCUA(UA_TYPES_UINT64);
+}
+
+// ############################################ WRITE OPC UA ##############################################
+// ########################################################################################################
 
 int OpcClient::writeValue(UA_NodeId nodeid, UA_Variant &newValue)
 {
@@ -231,112 +233,78 @@ int OpcClient::writeValue(UA_NodeId nodeid, UA_Variant &newValue)
     return 0;
 }
 
+#define WRITE_OPCUA_SCALAR(type)\
+    UA_Variant var_value;\
+    UA_Variant_init(&var_value);\
+    UA_Variant_setScalar(&var_value, &value, &UA_TYPES[type]);\
+    int res = writeValue(nodeid, var_value);\
+    return res;\
+
 int OpcClient::writeValue(UA_NodeId nodeid, int16_t value)
 {
-    UA_Variant var_value;
-    UA_Variant_init(&var_value);
-    UA_Variant_setScalar(&var_value, &value, &UA_TYPES[UA_TYPES_INT16]);
-    int res = writeValue(nodeid, var_value);
-    return res;
+    WRITE_OPCUA_SCALAR(UA_TYPES_INT16);
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, int32_t value)
 {
-    UA_Variant var_value;
-    UA_Variant_init(&var_value);
-    UA_Variant_setScalar(&var_value, &value, &UA_TYPES[UA_TYPES_INT32]);
-    int res = writeValue(nodeid, var_value);
-    return res;
+    WRITE_OPCUA_SCALAR(UA_TYPES_INT32);
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, uint16_t value)
 {
-    UA_Variant var_value;
-    UA_Variant_init(&var_value);
-    UA_Variant_setScalar(&var_value, &value, &UA_TYPES[UA_TYPES_UINT16]);
-    int res = writeValue(nodeid, var_value);
-    return res;
+    WRITE_OPCUA_SCALAR(UA_TYPES_UINT16);
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, uint32_t value)
 {
-    UA_Variant var_value;
-    UA_Variant_init(&var_value);
-    UA_Variant_setScalar(&var_value, &value, &UA_TYPES[UA_TYPES_UINT32]);
-    int res = writeValue(nodeid, var_value);
-    return res;
+    WRITE_OPCUA_SCALAR(UA_TYPES_UINT32);
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, bool value)
 {
-    UA_Variant var_value;
-    UA_Variant_init(&var_value);
-    UA_Variant_setScalar(&var_value, &value, &UA_TYPES[UA_TYPES_BOOLEAN]);
-    int res = writeValue(nodeid, var_value);
-    return res;
+    WRITE_OPCUA_SCALAR(UA_TYPES_BOOLEAN);
 }
+
+#define WRITE_OPCUA_ARRAY(type)\
+    UA_Variant var_value;\
+    UA_Variant_init(&var_value);\
+    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[type]);\
+    int res = writeValue(nodeid, var_value);\
+    return res;\
 
 int OpcClient::writeValue(UA_NodeId nodeid, int16_t *value, int len)
 {
-    UA_Variant var_value;
-    UA_Variant_init(&var_value);
-    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_INT16]);
-    int res = writeValue(nodeid, var_value);
-    return res;
+    WRITE_OPCUA_ARRAY(UA_TYPES_INT16);
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, int32_t *value, int len)
 {
-    UA_Variant var_value;
-    UA_Variant_init(&var_value);
-    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_INT32]);
-    int res = writeValue(nodeid, var_value);
-    return res;
+    WRITE_OPCUA_ARRAY(UA_TYPES_INT32);
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, int64_t *value, int len)
 {
-    UA_Variant var_value;
-    UA_Variant_init(&var_value);
-    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_INT64]);
-    int res = writeValue(nodeid, var_value);
-    return res;
+    WRITE_OPCUA_ARRAY(UA_TYPES_INT64);
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, uint16_t *value, int len)
 {
-    UA_Variant var_value;
-    UA_Variant_init(&var_value);
-    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_UINT16]);
-    int res = writeValue(nodeid, var_value);
-    return res;
+    WRITE_OPCUA_ARRAY(UA_TYPES_UINT16);
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, uint32_t *value, int len)
 {
-    UA_Variant var_value;
-    UA_Variant_init(&var_value);
-    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_UINT32]);
-    int res = writeValue(nodeid, var_value);
-    return res;
+    WRITE_OPCUA_ARRAY(UA_TYPES_UINT32);
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, uint64_t *value, int len)
 {
-    UA_Variant var_value;
-    UA_Variant_init(&var_value);
-    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_UINT64]);
-    int res = writeValue(nodeid, var_value);
-    return res;
+    WRITE_OPCUA_ARRAY(UA_TYPES_UINT64);
 }
 
 int OpcClient::writeValue(UA_NodeId nodeid, bool *value, int len)
 {
-    UA_Variant var_value;
-    UA_Variant_init(&var_value);
-    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_BOOLEAN]);
-    int res = writeValue(nodeid, var_value);
-    return res;
+    WRITE_OPCUA_ARRAY(UA_TYPES_BOOLEAN);
 }
 
 OpcClient::~OpcClient()

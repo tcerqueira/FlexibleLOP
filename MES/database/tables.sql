@@ -55,6 +55,6 @@ CREATE TABLE IF NOT EXISTS MachineStat (
     piece_count INTEGER, 
     PRIMARY KEY (id_mac, piece_type),
     CHECK (piece_type>=1), CHECK (piece_type<=9),
-    CHECK (id_mac>=0), CHECK (piece_type<=7),
+    CHECK (id_mac>=0), CHECK (id_mac<=7),
     CONSTRAINT fk_mac FOREIGN KEY (id_mac) REFERENCES Machine(id_mac)
 );

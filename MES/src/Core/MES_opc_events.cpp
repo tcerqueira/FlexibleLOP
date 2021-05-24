@@ -1,4 +1,5 @@
 #include "MES.h"
+#include "Database/Database.h"
 
 #define TOOLSET_BUFLEN 4
 
@@ -103,7 +104,9 @@ void MES::onSendUnload()
         MES_ERROR("Could not send Unload Order.");
         return;
     }
-    store.subCount(next_unload->getPiece(), 1);
+    store.subCount(next_unload->getPiece(), next_unload->getQuantity());
+    // TODO async query
+    Database::Get().updateStorage((int) next_unload->getPiece(), store.countPiece(next_unload->getPiece()));
     MES_INFO("Unload sent: {}", *next_unload);
 }
 
@@ -183,13 +186,13 @@ void MES::onFinishProcessing(int machine)
     UA_Variant type_var, time_var;
 
     UA_Variant_init(&type_var);
-    if(!fct_client.readValueUInt16(UA_NODEID_STRING_ALLOC(4, str_type_node.c_str()), type_var)) {
+    if(!fct_client.readValueInt16(UA_NODEID_STRING_ALLOC(4, str_type_node.c_str()), type_var)) {
         MES_ERROR("Could not read from node \"{}\".", str_type_node);
         return;
     }
 
     UA_Variant_init(&time_var);
-    if(!fct_client.readValueInt16(UA_NODEID_STRING_ALLOC(4, str_time_node.c_str()), time_var)) {
+    if(!fct_client.readValueUInt64(UA_NODEID_STRING_ALLOC(4, str_time_node.c_str()), time_var)) {
         MES_ERROR("Could not read from node \"{}\".", str_time_node);
         return;
     }
