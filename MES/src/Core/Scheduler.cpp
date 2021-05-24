@@ -235,6 +235,19 @@ void Scheduler::schedule()
     to_dispatch.clear();
 }
 
+void Scheduler::clean()
+{
+    if(!t1_orders.empty() || !t2_orders.empty())
+    {
+        MES_WARN("Scheduler still has pending work, wait for it to finish.");
+        return;
+    }
+    orders_list.clear();
+    to_dispatch.clear();
+    u_orders.clear();
+    dispatched_unloads.clear();
+}
+
 int Scheduler::getTotalWork(int cell)
 {
     int work = 0;

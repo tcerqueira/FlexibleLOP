@@ -11,7 +11,7 @@
 MES::MES(const std::string& opc_endpoint)
 :   erp_server(io_service, UDP_LISTEN_PORT),
     fct_client(opc_endpoint),
-    store((const int[]){238,34,20,20,20,20,0,0,0}),
+    store((const int[]){400,40,20,20,20,20,0,0,0}),
     scheduler(&store)
 {
     std::array<Machine, NMACHINES> machines_array = {{
@@ -31,7 +31,7 @@ MES::MES(const std::string& opc_endpoint)
 MES::MES(std::string&& opc_endpoint)
 :   erp_server(io_service, UDP_LISTEN_PORT),
     fct_client(std::move(opc_endpoint)),
-    store((const int[]){238,34,20,20,20,20,0,0,0}),
+    store((const int[]){400,40,20,20,20,20,0,0,0}),
     scheduler(&store)
 {
     std::array<Machine, NMACHINES> machines_array = {{
@@ -81,6 +81,7 @@ void MES::run()
     {
         std::cin >> buf;
         if(buf[0] == 'x') fct_client.stopListening();
+        if(buf[0] == 'r') scheduler.clean();
         if(buf[0] == 'f') MES_INFO(factory);
         if(buf[0] == 'c') MES_INFO(store);
         if(buf[0] == 's') MES_INFO(scheduler);

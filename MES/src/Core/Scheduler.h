@@ -53,6 +53,7 @@ public:
     std::shared_ptr<TransformOrder> getTransform(int number);
 
     void schedule();
+    void clean();
     
     // TransformOrder popOrder();
     std::vector<std::shared_ptr<TransformOrder>> &getAllOrders() { return orders_list; };
