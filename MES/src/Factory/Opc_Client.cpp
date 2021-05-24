@@ -268,7 +268,7 @@ int OpcClient::writeValue(UA_NodeId nodeid, bool value)
 #define WRITE_OPCUA_ARRAY(type)\
     UA_Variant var_value;\
     UA_Variant_init(&var_value);\
-    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[UA_TYPES_INT16]);\
+    UA_Variant_setArray(&var_value, value, len, &UA_TYPES[type]);\
     int res = writeValue(nodeid, var_value);\
     return res;\
 
