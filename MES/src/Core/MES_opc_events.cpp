@@ -177,8 +177,8 @@ void MES::onUnloaded(dest_t dest)
 void MES::onFinishProcessing(int machine)
 {
     // Update stats
-    std::stringstream ss_type_node; ss_type_node << "machined_type" << "[" << machine << "]";
-    std::stringstream ss_time_node; ss_time_node << "machined_time" << "[" << machine << "]";
+    std::stringstream ss_type_node; ss_type_node << OPC_GLOBAL_NODE_STR << "machined_type" << "[" << machine << "]";
+    std::stringstream ss_time_node; ss_time_node << OPC_GLOBAL_NODE_STR << "machined_time" << "[" << machine << "]";
 
     const std::string &str_type_node = ss_type_node.str();
     const std::string &str_time_node = ss_time_node.str();
@@ -197,8 +197,8 @@ void MES::onFinishProcessing(int machine)
         return;
     }
 
-    piece_t machined_piece = (piece_t)(int)*(uint16_t*)type_var.data;
-    unsigned int machined_time = (unsigned int)*(int16_t*)time_var.data;
+    piece_t machined_piece = (piece_t)(int)*(int16_t*)type_var.data;
+    unsigned int machined_time = (unsigned int)*(uint64_t*)time_var.data;
     MES_TRACE("Machine {}: type {} and time {}.", machine, (int)machined_piece, machined_time);
     factory.machined(machine, machined_piece, machined_time);
     UA_Variant_clear(&type_var);
