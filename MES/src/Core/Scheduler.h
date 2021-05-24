@@ -5,7 +5,7 @@
 #include "Factory/Storage.h"
 
 #define WORK_TRANSFORM 30
-#define WORK_UNLOAD 15
+#define WORK_UNLOAD 10
 #define WORK_CHANGETOOLS 20
 
 struct SubOrder
@@ -53,6 +53,7 @@ public:
     std::shared_ptr<TransformOrder> getTransform(int number);
 
     void schedule();
+    void clean();
     
     // TransformOrder popOrder();
     std::vector<std::shared_ptr<TransformOrder>> &getAllOrders() { return orders_list; };

@@ -11,18 +11,18 @@
 MES::MES(const std::string& opc_endpoint)
 :   erp_server(io_service, UDP_LISTEN_PORT),
     fct_client(opc_endpoint),
-    store((const int[]){100,200,400,800,160,0,0,0,0}),
+    store((const int[]){400,40,20,20,20,20,0,0,0}),
     scheduler(&store)
 {
     std::array<Machine, NMACHINES> machines_array = {{
-        {{1,0,0,0,0,0,0,0,0}, 1 },
-        {{0,1,0,0,0,0,0,0,0}, 2 },
-        {{0,0,1,0,0,0,0,0,0}, 3 },
-        {{0,0,0,1,0,0,0,0,0}, 4 },
-        {{0,0,0,0,1,0,0,0,0}, 5 },
-        {{0,0,0,0,0,1,0,0,0}, 6 },
-        {{0,0,0,0,0,0,1,0,0}, 7 },
-        {{0,0,0,0,0,0,0,1,0}, 8 }
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 }
     }};
     std::array<std::array<int, NPIECES>, NDEST> unloads = {{{1,2,3,4,5,6,7,8,9},{11,12,13,14,15,16,17,18,19},{21,21,23,24,25,26,27,28,29}}};
     factory = Factory(std::move(machines_array), std::move(unloads));
@@ -31,18 +31,18 @@ MES::MES(const std::string& opc_endpoint)
 MES::MES(std::string&& opc_endpoint)
 :   erp_server(io_service, UDP_LISTEN_PORT),
     fct_client(std::move(opc_endpoint)),
-    store((const int[]){100,200,400,800,160,0,0,0,0}),
+    store((const int[]){400,40,20,20,20,20,0,0,0}),
     scheduler(&store)
 {
     std::array<Machine, NMACHINES> machines_array = {{
-        {{1,0,0,0,0,0,0,0,0}, 1 },
-        {{0,1,0,0,0,0,0,0,0}, 2 },
-        {{0,0,1,0,0,0,0,0,0}, 3 },
-        {{0,0,0,1,0,0,0,0,0}, 4 },
-        {{0,0,0,0,1,0,0,0,0}, 5 },
-        {{0,0,0,0,0,1,0,0,0}, 6 },
-        {{0,0,0,0,0,0,1,0,0}, 7 },
-        {{0,0,0,0,0,0,0,1,0}, 8 }
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 },
+        {{0,0,0,0,0,0,0,0,0}, 0 }
     }};
     std::array<std::array<int, NPIECES>, NDEST> unloads = {{{1,2,3,4,5,6,7,8,9},{11,12,13,14,15,16,17,18,19},{21,21,23,24,25,26,27,28,29}}};
     factory = Factory(std::move(machines_array), std::move(unloads));
@@ -81,6 +81,7 @@ void MES::run()
     {
         std::cin >> buf;
         if(buf[0] == 'x') fct_client.stopListening();
+        if(buf[0] == 'r') scheduler.clean();
         if(buf[0] == 'f') MES_INFO(factory);
         if(buf[0] == 'c') MES_INFO(store);
         if(buf[0] == 's') MES_INFO(scheduler);
@@ -106,11 +107,12 @@ void MES::setUp()
     // ################################################################
     // set request dispatcher for udp server
     erp_server.setRequestDispatcher([this](char* data, std::size_t len, std::shared_ptr<std::string> response) {
+        MES_INFO("{} bytes received from ERP.", len);
         erpRequestDispatcher(data, len, response);
     });
     // set response dispatcher for udp server
     erp_server.setResponseDispatcher([this](std::shared_ptr<std::string> response, std::size_t len) {
-        MES_TRACE("{} bytes sent to ERP.", len);
+        MES_INFO("{} bytes sent to ERP.", len);
     });
 
     // ####################### OPC HANDLERS ###########################
@@ -127,32 +129,32 @@ void MES::setUp()
     });
     // set listener to load order C1
     fct_client.addListener(OPC_GLOBAL_NODE("load_order1_flag"), [this](opc_evt evt) {
-        MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
         onLoadOrder(P1);
     });
     // set listener to load order C2
     fct_client.addListener(OPC_GLOBAL_NODE("load_order2_flag"), [this](opc_evt evt) {
-        MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
         onLoadOrder(P2);
     });
     // set listener to start order C1
     fct_client.addListener(OPC_GLOBAL_NODE("start_orderC1_flag"), [this](opc_evt evt) {
-        MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
         onStartPiece(1);
     });
     // set listener to start order C2
     fct_client.addListener(OPC_GLOBAL_NODE("start_orderC2_flag"), [this](opc_evt evt) {
-        MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
         onStartPiece(2);
     });
     // set listener to finished order C1
     fct_client.addListener(OPC_GLOBAL_NODE("finish_orderC1_flag"), [this](opc_evt evt) {
-        MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
         onFinishPiece(1);
     });
     // set listener to finished order C2
     fct_client.addListener(OPC_GLOBAL_NODE("finish_orderC2_flag"), [this](opc_evt evt) {
-        MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
         onFinishPiece(2);
     });
     // set listener to know factory is ready to receive unload orders
@@ -162,28 +164,35 @@ void MES::setUp()
     });
     // set listener to order unloaded on PM1
     fct_client.addListener(OPC_GLOBAL_NODE("unload_PM1_flag"), [this](opc_evt evt) {
-        MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
         onUnloaded(PM1);
     });
     // set listener to order unloaded on PM2
     fct_client.addListener(OPC_GLOBAL_NODE("unload_PM2_flag"), [this](opc_evt evt) {
-        MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
         onUnloaded(PM2);
     });
     // set listener to order unloaded on PM3
     fct_client.addListener(OPC_GLOBAL_NODE("unload_PM3_flag"), [this](opc_evt evt) {
-        MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+        MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
         onUnloaded(PM3);
     });
     // set listener to machine finished processing
-    for(int i=0; i < NMACHINES; i++)
+    for(int i=1; i <= NMACHINES; i++)
     {
-        std::stringstream ss_node; ss_node << "machine_end_flag" << "[" << i << "]";
+        std::stringstream ss_node; ss_node << "machines_end_flag" << "[" << i << "]";
         fct_client.addListener(OPC_GLOBAL_NODE(ss_node.str()), [i, this](opc_evt evt) {
-            MES_INFO("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
+            MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
             onFinishProcessing(i);
         });
     }
+    // TODO async query
+    // get storage from db
+    // for(int i = 0; i< NPIECES; i++)
+    // {
+    //     store.setCount(static_cast<piece_t> (i+1), Database::Get().getPieceAmount(i+1));
+    // }
+
 }
 
 MES::~MES()

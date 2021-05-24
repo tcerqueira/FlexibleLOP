@@ -6,11 +6,11 @@
     <Unload Type="P5" Destination="PM1" Quantity="3"/>
 </Order>
  <Order Number="321">
-    <Transform From="P4" To="P7" Quantity="1" Time="1615744339" MaxDelay="259200"
+    <Transform From="P2" To="P3" Quantity="5" Time="1615744339" MaxDelay="259200"
     Penalty="100"/>
 </Order>
 <Order Number="322">
-    <Transform From="P1" To="P8" Quantity="1" Time="1615744339" MaxDelay="259200"
+    <Transform From="P1" To="P3" Quantity="2" Time="1615744339" MaxDelay="259200"
     Penalty="100"/>
 </Order>
 <Order Number="323">
@@ -18,7 +18,7 @@
     Penalty="100"/>
 </Order> 
 <Order Number="325">
-    <Transform From="P1" To="P8" Quantity="2" Time="1615744339" MaxDelay="259200"
+    <Transform From="P1" To="P3" Quantity="4" Time="1615744339" MaxDelay="259200"
     Penalty="100"/>
-</Order>  
+</Order> 
 </ORDERS>

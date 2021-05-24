@@ -3,7 +3,7 @@
 -- Transform Order
 CREATE TABLE IF NOT EXISTS TransformOrder (
     id_number INTEGER,
-    piece_original INTEGER,
+    piece_initial INTEGER,
     piece_final INTEGER,
     total_amount INTEGER,
     done_amount INTEGER,
@@ -16,31 +16,45 @@ CREATE TABLE IF NOT EXISTS TransformOrder (
     finished_at INTEGER,
     penalty INTEGER,
     PRIMARY KEY (id_number),
-    CHECK (penalty_per_day>=0), CHECK (penalty_per_day<=1000)
+    CHECK (penalty_per_day>=0), CHECK (penalty_per_day<=1000),
+    CHECK (piece_initial>=1), CHECK (piece_initial<=9),
+    CHECK (piece_final>=1), CHECK (piece_final<=9),
+    CHECK (piece_initial <= piece_final)
 );
 
 -- Unload Order
 CREATE TABLE IF NOT EXISTS UnloadOrder (
-
+    id_number INTEGER,
+    piece_type INTEGER,
+    destination INTEGER,
+    quantity INTEGER,
+    PRIMARY KEY (id_number),
+    CHECK (piece_type>=1), CHECK (piece_type<=9)
 );
 
 -- Storage Order
 CREATE TABLE IF NOT EXISTS PieceStorage (
-    id_number INTEGER,
+    piece_type INTEGER,
     amount INTEGER,
-    PRIMARY KEY (id_number),
-    CHECK (id_number>=1), CHECK (id_number<=9),
+    PRIMARY KEY (piece_type),
+    CHECK (piece_type>=1), CHECK (piece_type<=9),
     CHECK (amount>=0)
 );
 
--- Machine stats
-CREATE TABLE IF NOT EXISTS MachineStats (
-    id INTEGER,
-    piece_count, 
-)
+-- Machine
+CREATE TABLE IF NOT EXISTS Machine (
+    id_mac INTEGER,
+    total_time INTEGER,
+    PRIMARY KEY (id_mac)
+);
 
--- Machined piece
-CREATE TABLE IF NOT EXISTS MachinePiece (
-    id INTEGER,
-    p_count INTEGER
-)
+-- Machine stats
+CREATE TABLE IF NOT EXISTS MachineStat (
+    id_mac INTEGER,
+    piece_type INTEGER,
+    piece_count INTEGER, 
+    PRIMARY KEY (id_mac, piece_type),
+    CHECK (piece_type>=1), CHECK (piece_type<=9),
+    CHECK (id_mac>=0), CHECK (id_mac<=7),
+    CONSTRAINT fk_mac FOREIGN KEY (id_mac) REFERENCES Machine(id_mac)
+);
