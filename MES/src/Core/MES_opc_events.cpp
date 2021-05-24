@@ -200,6 +200,7 @@ void MES::onFinishProcessing(int machine)
     piece_t machined_piece = (piece_t)(int)*(int16_t*)type_var.data;
     unsigned int machined_time = (unsigned int)*(uint64_t*)time_var.data;
     MES_TRACE("Machine {}: type {} and time {}.", machine, (int)machined_piece, machined_time);
+    if(machined_piece < 1 || machined_piece > NPIECES) return;
     factory.machined(machine, machined_piece, machined_time);
     UA_Variant_clear(&type_var);
     UA_Variant_clear(&time_var);
