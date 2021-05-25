@@ -12,6 +12,7 @@ struct SubOrder
 {
     int16_t orderID;
     uint16_t init_p;
+    uint16_t final_p;
     int16_t quantity;
     int16_t to_do;
     int16_t done;
@@ -25,6 +26,10 @@ struct SubOrder
     time_t readyTime;
     int work;
     int penalty;
+
+    void recalculateWork(){
+        work = to_do * (final_p-init_p);
+    }
 
     template <typename OStream>
     friend OStream &operator<<(OStream &os, const SubOrder &so)
@@ -48,9 +53,9 @@ public:
 
     void updatePieceStarted(int cell, int number);
     void updatePieceFinished(int cell, int number);
-    int getCellWork(int cell);
-    int getQueueWork(int cell);
-    int getTotalWork(int cell);
+    int getCellWork(int cell) const;
+    int getQueueWork(int cell) const;
+    int getTotalWork(int cell) const;
 
     std::shared_ptr<TransformOrder> getTransform(int number);
 
@@ -118,6 +123,7 @@ OStream &operator<<(OStream &os, const Scheduler &sc)
     {
         os << j++ << " - " << *sub_order << std::endl;
     }
+#ifdef DEBUG
     // Dispatched Transforms
     os << "== Dispatched Orders C1 == " << std::endl;
     j = 0;
@@ -132,6 +138,7 @@ OStream &operator<<(OStream &os, const Scheduler &sc)
     {
         os << j++ << " - " << *sub_order << std::endl;
     }
+#endif
     // Unload Orders
     os << "== Unload Orders ==" << std::endl;
     for(int i=0; i < sc.u_orders.size(); i++)
@@ -144,6 +151,11 @@ OStream &operator<<(OStream &os, const Scheduler &sc)
     {
         os << i << " - " << *sc.dispatched_unloads[i] << std::endl;
     }
+    // cell workload
+    os << "== Cell Load ==" << std::endl;
+    os << "Queue work: 1:" << sc.getQueueWork(1) << " 2:" << sc.getQueueWork(2) << std::endl;
+    os << "Cell work: 1:" << sc.getCellWork(1) << " 2:" << sc.getCellWork(2) << std::endl;
+    os << "Total work: 1:" << sc.getTotalWork(1) << " 2:" << sc.getTotalWork(2) << std::endl;
 
     return os;
 }

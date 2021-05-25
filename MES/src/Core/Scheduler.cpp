@@ -255,7 +255,7 @@ void Scheduler::clean()
     dispatched_unloads.clear();
 }
 
-int Scheduler::getCellWork(int cell)
+int Scheduler::getCellWork(int cell) const
 {
     int work = 0;
     if (cell == 1)
@@ -276,7 +276,7 @@ int Scheduler::getCellWork(int cell)
     return work;
 }
 
-int Scheduler::getQueueWork(int cell)
+int Scheduler::getQueueWork(int cell) const
 {
     int work = 0;
     if (cell == 1)
@@ -295,7 +295,7 @@ int Scheduler::getQueueWork(int cell)
     return work;
 }
 
-int Scheduler::getTotalWork(int cell)
+int Scheduler::getTotalWork(int cell) const
 {
     return getCellWork(cell) + getQueueWork(cell);
 }
@@ -303,8 +303,8 @@ int Scheduler::getTotalWork(int cell)
 bool Scheduler::OrderPriority::operator()(const std::shared_ptr<TransformOrder> o1, const std::shared_ptr<TransformOrder> o2) const
 {
     time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    long p1 = (o1->getReadyTime() - now - o1->getEstimatedWork() * WORK_TRANSFORM) * o1->getDailyPenalty() / DAY_OF_WORK;
-    long p2 = (o2->getReadyTime() - now - o2->getEstimatedWork() * WORK_TRANSFORM) * o2->getDailyPenalty() / DAY_OF_WORK;
+    long p1 = (o1->getReadyTime() - now - o1->getEstimatedWork() * WORK_TRANSFORM) * o1->getDailyPenalty(); /// DAY_OF_WORK;
+    long p2 = (o2->getReadyTime() - now - o2->getEstimatedWork() * WORK_TRANSFORM) * o2->getDailyPenalty(); /// DAY_OF_WORK;
 
     return p1 > p2;
 }
@@ -312,8 +312,8 @@ bool Scheduler::OrderPriority::operator()(const std::shared_ptr<TransformOrder> 
 bool Scheduler::OrderPriority::operator()(const std::shared_ptr<SubOrder> o1, const std::shared_ptr<SubOrder> o2) const
 {
     time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    long p1 = (o1->readyTime - now - o1->work * WORK_TRANSFORM) * o1->penalty / DAY_OF_WORK;
-    long p2 = (o2->readyTime - now - o2->work * WORK_TRANSFORM) * o2->penalty / DAY_OF_WORK;
+    long p1 = (o1->readyTime - now - o1->work * WORK_TRANSFORM) * o1->penalty; /// DAY_OF_WORK;
+    long p2 = (o2->readyTime - now - o2->work * WORK_TRANSFORM) * o2->penalty; /// DAY_OF_WORK;
 
     return p1 > p2;
 }
@@ -356,6 +356,7 @@ void Scheduler::updatePieceFinished(int cell, int number)
             if(sub_order->orderID == number){
                 if(--sub_order->to_do == 0)
                     cell1_dispatched_orders.erase(it);
+                sub_order->recalculateWork();
                 break;
             }
         }
@@ -369,6 +370,7 @@ void Scheduler::updatePieceFinished(int cell, int number)
             if(sub_order->orderID == number){
                 if(--sub_order->to_do == 0)
                     cell2_dispatched_orders.erase(it);
+                sub_order->recalculateWork();
                 break;
             }
         }
@@ -418,6 +420,7 @@ std::shared_ptr<SubOrder> toSubOrder(const std::shared_ptr<TransformOrder> order
     auto sub_order = std::make_shared<SubOrder>();
     sub_order->orderID = (int16_t)order->getId();
     sub_order->init_p = (uint16_t)order->getInitial();
+    sub_order->final_p = (uint16_t)order->getFinal();
     sub_order->quantity = (int16_t)order->getQuantity();
     sub_order->to_do = (int16_t)order->getToDo();
     sub_order->done = (int16_t)order->getDone();
