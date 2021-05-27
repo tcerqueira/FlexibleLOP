@@ -12,7 +12,7 @@ void Factory::machined(int cell, int number, piece_t p, unsigned int time)
 
 void Factory::machined(int number, piece_t p, unsigned int time)
 {
-    machines_stats[number].count[p-1]++;
+    machines_stats[number].count[(int)p-1]++;
     machines_stats[number].total_time += time;
 }
 

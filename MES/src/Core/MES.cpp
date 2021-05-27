@@ -11,7 +11,7 @@
 MES::MES(const std::string& opc_endpoint)
 :   erp_server(io_service, UDP_LISTEN_PORT),
     fct_client(opc_endpoint),
-    store((const int[]){238,34,20,20,20,20,0,0,0}),
+    store((const int[]){400,40,20,20,20,20,0,0,0}),
     scheduler(&store)
 {
     std::array<Machine, NMACHINES> machines_array = {{
@@ -24,14 +24,14 @@ MES::MES(const std::string& opc_endpoint)
         {{0,0,0,0,0,0,0,0,0}, 0 },
         {{0,0,0,0,0,0,0,0,0}, 0 }
     }};
-    std::array<std::array<int, NPIECES>, NDEST> unloads = {{{1,2,3,4,5,6,7,8,9},{11,12,13,14,15,16,17,18,19},{21,21,23,24,25,26,27,28,29}}};
+    std::array<std::array<int, NPIECES>, NDEST> unloads = {{{0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0}}};
     factory = Factory(std::move(machines_array), std::move(unloads));
 }
 
 MES::MES(std::string&& opc_endpoint)
 :   erp_server(io_service, UDP_LISTEN_PORT),
     fct_client(std::move(opc_endpoint)),
-    store((const int[]){238,34,20,20,20,20,0,0,0}),
+    store((const int[]){400,40,20,20,20,20,0,0,0}),
     scheduler(&store)
 {
     std::array<Machine, NMACHINES> machines_array = {{
@@ -44,7 +44,7 @@ MES::MES(std::string&& opc_endpoint)
         {{0,0,0,0,0,0,0,0,0}, 0 },
         {{0,0,0,0,0,0,0,0,0}, 0 }
     }};
-    std::array<std::array<int, NPIECES>, NDEST> unloads = {{{1,2,3,4,5,6,7,8,9},{11,12,13,14,15,16,17,18,19},{21,21,23,24,25,26,27,28,29}}};
+    std::array<std::array<int, NPIECES>, NDEST> unloads = {{{0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0}}};
     factory = Factory(std::move(machines_array), std::move(unloads));
 }
 
@@ -81,6 +81,7 @@ void MES::run()
     {
         std::cin >> buf;
         if(buf[0] == 'x') fct_client.stopListening();
+        if(buf[0] == 'r') scheduler.clean();
         if(buf[0] == 'f') MES_INFO(factory);
         if(buf[0] == 'c') MES_INFO(store);
         if(buf[0] == 's') MES_INFO(scheduler);
@@ -177,9 +178,9 @@ void MES::setUp()
         onUnloaded(PM3);
     });
     // set listener to machine finished processing
-    for(int i=0; i < NMACHINES; i++)
+    for(int i=1; i <= NMACHINES; i++)
     {
-        std::stringstream ss_node; ss_node << "machine_end_flag" << "[" << i << "]";
+        std::stringstream ss_node; ss_node << "machines_end_flag" << "[" << i << "]";
         fct_client.addListener(OPC_GLOBAL_NODE(ss_node.str()), [i, this](opc_evt evt) {
             MES_TRACE("Notification received on node: n={}:{}", evt.node.name_space, evt.node.id_str);
             onFinishProcessing(i);

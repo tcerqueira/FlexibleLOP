@@ -4,6 +4,8 @@
 #include "Order.h"
 #include "Order_enums.h"
 
+#define DAY_OF_WORK 50
+
 class TransformOrder : public Order
 {
 public:
