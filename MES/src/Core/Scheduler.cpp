@@ -32,6 +32,7 @@ void Scheduler::addTransform(std::shared_ptr<TransformOrder> order)
     orders_list.push_back(order);
     to_dispatch.push_back(order);
     // TODO: insert order to db
+    Database::Get().insertOrder(order);
     std::push_heap(to_dispatch.begin(), to_dispatch.end(), OrderPriority());
 }
 
