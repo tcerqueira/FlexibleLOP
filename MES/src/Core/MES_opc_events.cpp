@@ -13,6 +13,9 @@ int writeTransform(OpcClient &opc_client, std::shared_ptr<SubOrder> order, int c
     std::string node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].init_p"));
     if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->init_p))   return 0;
 
+    // node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].final_p"));
+    // if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->final_p))  return 0;
+
     node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].orderID"));
     if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->orderID))  return 0;
 
@@ -55,7 +58,7 @@ void MES::onSendTransform(int cell)
         MES_ERROR("Could not send Transform Order.");
         return;
     }
-    store.subCount((piece_t)(int)next_order->init_p, next_order->to_do);
+    store.subCount((piece_t)(int)next_order->init_p, next_order->quantity);
     MES_INFO("Transform Order sent on cell {}: {}", cell, *next_order);
 }
 

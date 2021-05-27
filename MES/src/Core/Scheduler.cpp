@@ -200,19 +200,21 @@ void Scheduler::schedule()
         else if(sub_order->warehouse_intermediate)
         {
             sub_order->warehouse_intermediate = false;
-            if (work_cell1 <= work_cell2)
-                {
-                    // cell1_orders.push_back(sub_order);
-                    priority_push_back(1, sub_order);
-                    // std::push_heap(cell1_orders.begin(), cell1_orders.end(), OrderPriority());
-                }
-                else
-                {
-                    // cell2_orders.push_back(sub_order);
-                    priority_push_back(2, sub_order);
-                    // std::push_heap(cell2_orders.begin(), cell2_orders.end(), OrderPriority());
-                }
             auto order_itm = std::make_shared<SubOrder>(*sub_order);
+            sub_order->final_p = sub_order->piece_intermediate;
+            if (work_cell1 <= work_cell2)
+            {
+                // cell1_orders.push_back(sub_order);
+                priority_push_back(1, sub_order);
+                // std::push_heap(cell1_orders.begin(), cell1_orders.end(), OrderPriority());
+            }
+            else
+            {
+                // cell2_orders.push_back(sub_order);
+                priority_push_back(2, sub_order);
+                // std::push_heap(cell2_orders.begin(), cell2_orders.end(), OrderPriority());
+            }
+            
             order_itm->init_p = sub_order->piece_intermediate;
             order_itm->tools.clear();
             if(sub_order->tools.size() >= 5){
