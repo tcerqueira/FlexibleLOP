@@ -3,19 +3,7 @@
 
 #define TOOLSET_BUFLEN 4
 
-struct opc_transform
-{
-    int16_t orderID;
-    uint16_t init_p;
-    int16_t quantity;
-    int16_t to_do;
-    int16_t done;
-    int16_t tool_set[4] = {0, 0, 0, 0};
-    int16_t path[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-    uint64_t tool_time[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-    bool warehouse_intermediate;
-    uint16_t piece_intermediate;
-};
+static std::mutex cell_mtx;
 
 int writeTransform(OpcClient &opc_client, std::shared_ptr<SubOrder> order, int cell)
 {
@@ -57,6 +45,7 @@ int writeTransform(OpcClient &opc_client, std::shared_ptr<SubOrder> order, int c
 
 void MES::onSendTransform(int cell)
 {
+    std::lock_guard<std::mutex> lock(cell_mtx);
     auto next_order = scheduler.popOrderCell(cell);
     if(next_order == nullptr)
         return;
@@ -66,6 +55,7 @@ void MES::onSendTransform(int cell)
         MES_ERROR("Could not send Transform Order.");
         return;
     }
+    store.subCount((piece_t)(int)next_order->init_p, next_order->to_do);
     MES_INFO("Transform Order sent on cell {}: {}", cell, *next_order);
 }
 
@@ -94,6 +84,7 @@ int writeUnload(OpcClient &opc_client, const opc_unload &order)
 
 void MES::onSendUnload()
 {
+    std::lock_guard<std::mutex> lock(cell_mtx);
     std::shared_ptr<UnloadOrder> next_unload = scheduler.popUnload();
     if(next_unload == nullptr)
         return;

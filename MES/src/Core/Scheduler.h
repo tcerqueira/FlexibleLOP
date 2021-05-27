@@ -17,18 +17,25 @@ struct SubOrder
     int16_t to_do;
     int16_t done;
     std::vector<int16_t> tools;
+    int16_t piece_seq[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     int16_t tool_set[4] = {0, 0, 0, 0};
     int16_t path[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     uint64_t tool_time[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     bool warehouse_intermediate;
     uint16_t piece_intermediate;
     // necessary for calculating priority
+    long priority;
     time_t readyTime;
     int work;
     int penalty;
 
-    void recalculateWork(){
-        work = to_do * (final_p-init_p);
+    int calculateWork() {
+        return to_do * (final_p-init_p);
+    }
+
+    long calculatePriority() {
+        time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+        return (readyTime - now - work * WORK_TRANSFORM) * penalty; /// DAY_OF_WORK;
     }
 
     template <typename OStream>
@@ -68,17 +75,20 @@ public:
     // std::list<std::shared_ptr<SubOrder>> &getTransformOrdersC2() { return cell2_orders; };
     // std::vector<std::shared_ptr<UnloadOrder>> &getUnloadOrders() { return u_orders; };
 
+    template <typename OStream>
+    friend OStream &operator<<(OStream &os, const Scheduler &sc);
+
+protected:
     struct OrderPriority {
         bool operator()(const std::shared_ptr<TransformOrder> o1, const std::shared_ptr<TransformOrder> o2) const;
         bool operator()(const std::shared_ptr<SubOrder> o1, const std::shared_ptr<SubOrder> o2) const;
     };
 
-    template <typename OStream>
-    friend OStream &operator<<(OStream &os, const Scheduler &sc);
+private:
+    void priority_push_back(int cell, std::shared_ptr<SubOrder> sub_order);
 
 private:
-    std::mutex transformVec_mutex;
-    std::mutex unloadVec_mutex;
+    std::mutex transforms_mutex, suborders_mutex, unloads_mutex;
     // all orders instances
     std::vector<std::shared_ptr<TransformOrder>> orders_list;
     // temporary orders to schedule
