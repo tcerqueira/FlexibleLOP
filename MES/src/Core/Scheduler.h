@@ -8,6 +8,11 @@
 #define WORK_UNLOAD 10
 #define WORK_CHANGETOOLS 20
 
+#define TOOLSET_BUFLEN 4
+#define PIECESEQ_BUFLEN 8
+#define PATH_BUFLEN 8
+#define TOOLTIME_BUFLEN 8
+
 struct SubOrder
 {
     int16_t orderID;
@@ -17,10 +22,10 @@ struct SubOrder
     int16_t to_do;
     int16_t done;
     std::vector<int16_t> tools;
-    int16_t piece_seq[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-    int16_t tool_set[4] = {0, 0, 0, 0};
-    int16_t path[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-    uint64_t tool_time[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    int16_t piece_seq[PIECESEQ_BUFLEN] = {0, 0, 0, 0, 0, 0, 0, 0};
+    int16_t tool_set[TOOLSET_BUFLEN] = {0, 0, 0, 0};
+    int16_t path[PATH_BUFLEN] = {0, 0, 0, 0, 0, 0, 0, 0};
+    uint64_t tool_time[TOOLTIME_BUFLEN] = {0, 0, 0, 0, 0, 0, 0, 0};
     bool warehouse_intermediate;
     uint16_t piece_intermediate;
     // necessary for calculating priority

@@ -1,8 +1,6 @@
 #include "MES.h"
 #include "Database/Database.h"
 
-#define TOOLSET_BUFLEN 4
-
 static std::mutex cell_mtx;
 
 int writeTransform(OpcClient &opc_client, std::shared_ptr<SubOrder> order, int cell)
@@ -31,11 +29,14 @@ int writeTransform(OpcClient &opc_client, std::shared_ptr<SubOrder> order, int c
     node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].tool_set"));
     if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->tool_set, TOOLSET_BUFLEN)) return 0;
 
+    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].piece_seq"));
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->piece_seq, PIECESEQ_BUFLEN)) return 0;
+
     node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].path"));
-    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->path, 8))  return 0;
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->path, PATH_BUFLEN))  return 0;
 
     node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].tool_time"));
-    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->tool_time, 8)) return 0;
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->tool_time, TOOLTIME_BUFLEN)) return 0;
 
     node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].warehouse_intermidiate"));
     if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->warehouse_intermediate))   return 0;
