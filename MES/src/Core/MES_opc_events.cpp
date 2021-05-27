@@ -134,18 +134,26 @@ void MES::onStartPiece(int cell)
 void MES::onFinishPiece(int cell)
 {
     // Update scheduler by id
-    std::stringstream ss_node;
-    ss_node << OPC_GLOBAL_NODE_STR << "finishing_piece_numberC" << cell;
-    const std::string &str_node = ss_node.str();
+    std::stringstream ss_node_number, ss_node_type;
+    ss_node_number << OPC_GLOBAL_NODE_STR << "finishing_piece_numberC" << cell;
+    ss_node_type << OPC_GLOBAL_NODE_STR << "finishing_piece_typeC" << cell;
+    const std::string &str_node_number = ss_node_number.str();
+    const std::string &str_node_type = ss_node_type.str();
 
-    UA_Variant number_var;
+    UA_Variant number_var, type_var;
     UA_Variant_init(&number_var);
-    if(!fct_client.readValueInt16(UA_NODEID_STRING_ALLOC(4, str_node.c_str()), number_var)) {
-        MES_ERROR("Could not read from node \"{}\".", str_node);
+    UA_Variant_init(&type_var);
+    if(!fct_client.readValueInt16(UA_NODEID_STRING_ALLOC(4, str_node_number.c_str()), number_var)) {
+        MES_ERROR("Could not read from node \"{}\".", str_node_number);
+        return;
+    }
+    if(!fct_client.readValueUInt16(UA_NODEID_STRING_ALLOC(4, str_node_type.c_str()), type_var)) {
+        MES_ERROR("Could not read from node \"{}\".", str_node_type);
         return;
     }
     int number = *(int*)number_var.data;
-    MES_TRACE("Piece of order {} finished on cell {}.", number, cell);
+    piece_t type = (piece_t)(int)*(uint16_t*)type_var.data;
+    MES_TRACE("Piece type {} of order {} finished on cell {}.", (int)type, number, cell);
     scheduler.updatePieceFinished(cell, number);
     UA_Variant_clear(&number_var);
 }
