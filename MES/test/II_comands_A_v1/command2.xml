@@ -25,11 +25,11 @@
 <ORDERS>
 <Order Number="111">
 <!-- <Transform From="P1" To="P2" Quantity="2" Time="3" MaxDelay="50" Penalty="100"/> -->
-<Unload Type="P1" Destination="PM3" Quantity="2"/>
+<Unload Type="P1" Destination="PM3" Quantity="20"/>
 </Order>
 <Order Number="112">
 <!-- <Transform From="P1" To="P2" Quantity="4" Time="3" MaxDelay="50" Penalty="100"/> -->
-<Unload Type="P2" Destination="PM2" Quantity="4"/>
+<Unload Type="P2" Destination="PM2" Quantity="10"/>
 </Order>
 <Order Number="113">
 <!-- <Transform From="P2" To="P3" Quantity="1" Time="3" MaxDelay="50" Penalty="100"/> -->
