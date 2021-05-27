@@ -1,6 +1,7 @@
 #include "Scheduler.h"
 #include <algorithm>
 #include <cstdlib>
+#include <cstring>
 #include "Database/Database.h"
 
 #define N_ORDERDIV 8
@@ -217,13 +218,18 @@ void Scheduler::schedule()
             
             order_itm->init_p = sub_order->piece_intermediate;
             order_itm->tools.clear();
+            memset(order_itm->path, 0, sizeof(sub_order->path[0])*8);
+            memset(order_itm->tool_time, 0, sizeof(sub_order->tool_time[0])*8);
+            memset(order_itm->piece_seq, 0, sizeof(sub_order->piece_seq[0])*8);
             if(sub_order->tools.size() >= 5){
                 order_itm->tools.push_back(sub_order->tools[4]);
                 order_itm->tool_time[0] = sub_order->tool_time[5];
+                order_itm->piece_seq[0] = sub_order->piece_seq[5];
                 order_itm->path[1] = 0;
                 if(sub_order->tools.size() == 6){
                     order_itm->tools.push_back(sub_order->tools[6]);
-                    order_itm->tool_time[5] = sub_order->tool_time[5];
+                    order_itm->tool_time[1] = sub_order->tool_time[5];
+                    order_itm->piece_seq[0] = sub_order->piece_seq[5];
                     order_itm->path[2] = 0;
                 }
 
@@ -497,37 +503,44 @@ void chooseTools(std::shared_ptr<SubOrder> sub_order, std::vector<int16_t>& tool
             tools.push_back(0);
             sub_order->tool_time[i+intermediate] = 15000;
             piece_act = P2;
+            sub_order->piece_seq[i+intermediate] = (int16_t) piece_act;
             break;
         case P2:
             tools.push_back(1);
             sub_order->tool_time[i+intermediate] = 15000;
             piece_act = P3;
+            sub_order->piece_seq[i+intermediate] = (int16_t) piece_act;
             break;
         case P3:
             tools.push_back(2);
             sub_order->tool_time[i+intermediate] = 15000;
             piece_act = P4;
+            sub_order->piece_seq[i+intermediate] = (int16_t) piece_act;
             break;
         case P4:
             tools.push_back(0);
             sub_order->tool_time[i+intermediate] = 15000;
             piece_act = P5;
+            sub_order->piece_seq[i+intermediate] = (int16_t) piece_act;
             break;
         case P5:
             if(i==4){
                 sub_order->piece_intermediate = 5;
                 sub_order->tool_time[i+intermediate] = 0;
+                sub_order->piece_seq[i+intermediate] = 0;
                 intermediate++;
             }
             if(next_order->getFinal() == P9){
                 tools.push_back(2);
                 sub_order->tool_time[i+intermediate] = 30000;
                 piece_act = P9;
+                sub_order->piece_seq[i+intermediate] = (int16_t) piece_act;
             }
             else{
                 tools.push_back(1);
                 sub_order->tool_time[i+intermediate] = 30000;
                 piece_act = P6;
+                sub_order->piece_seq[i+intermediate] = (int16_t) piece_act;
             }
             break;
         case P6:
@@ -535,21 +548,25 @@ void chooseTools(std::shared_ptr<SubOrder> sub_order, std::vector<int16_t>& tool
                 sub_order->piece_intermediate = 6;
                 sub_order->tool_time[i+intermediate] = 0;
                 intermediate++;
+                sub_order->piece_seq[i+intermediate] = (int16_t) piece_act;
             }
             if(next_order->getFinal() == P8){
                 tools.push_back(0);
                 sub_order->tool_time[i+intermediate] = 15000;
                 piece_act = P8;
+                sub_order->piece_seq[i+intermediate] = (int16_t) piece_act;
             }
             else{
                 tools.push_back(2);
                 sub_order->tool_time[i+intermediate] = 30000;
                 piece_act = P7;
+                sub_order->piece_seq[i+intermediate] = (int16_t) piece_act;
             }
             break;
         }
         i++;
     }
+    sub_order->piece_seq[i+intermediate+1] = (int16_t) sub_order->final_p;
     
 }
 
