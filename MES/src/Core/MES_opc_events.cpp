@@ -11,8 +11,8 @@ int writeTransform(OpcClient &opc_client, std::shared_ptr<SubOrder> order, int c
     std::string node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].init_p"));
     if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->init_p))   return 0;
 
-    // node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].final_p"));
-    // if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->final_p))  return 0;
+    node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].final_p"));
+    if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->final_p))  return 0;
 
     node = std::move(std::string(OPC_GLOBAL_NODE_STR) + std::string(ss_node.str()) + std::string("[1].orderID"));
     if(!opc_client.writeValue(UA_NODEID_STRING_ALLOC(4, node.c_str()), order->orderID))  return 0;
@@ -154,6 +154,7 @@ void MES::onFinishPiece(int cell)
     int number = *(int*)number_var.data;
     piece_t type = (piece_t)(int)*(uint16_t*)type_var.data;
     MES_TRACE("Piece type {} of order {} finished on cell {}.", (int)type, number, cell);
+    store.addCount(type, 1);
     scheduler.updatePieceFinished(cell, number);
     UA_Variant_clear(&number_var);
 }

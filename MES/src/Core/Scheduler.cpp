@@ -392,7 +392,6 @@ void Scheduler::updatePieceFinished(int cell, int number)
         order->finished();
 
     order->pieceDone();
-    store->addCount(order->getFinal(), 1);
 
     // update dispatched lists
     std::lock_guard<std::mutex> lock(suborders_mutex);
