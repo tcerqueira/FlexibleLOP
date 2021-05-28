@@ -288,7 +288,7 @@ void Scheduler::schedule()
         }
 
     }
-    MES_TRACE("Work cell 1:{}  Work cell 2:{}", work_cell1, work_cell2);
+    // MES_TRACE("Work cell 1:{}  Work cell 2:{}", work_cell1, work_cell2);
     to_dispatch.clear();
 }
 
@@ -365,6 +365,7 @@ bool Scheduler::OrderPriority::operator()(const std::shared_ptr<TransformOrder> 
 
 bool Scheduler::OrderPriority::operator()(const std::shared_ptr<SubOrder> o1, const std::shared_ptr<SubOrder> o2) const
 {
+    // MES_TRACE("p{}:{} p{}:{}", o1->orderID, o1->priority, o2->orderID, o2->priority);
     return o1->priority > o2->priority;
 }
 
