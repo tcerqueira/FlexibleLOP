@@ -193,6 +193,14 @@ void MES::setUp()
     //     store.setCount(static_cast<piece_t> (i+1), Database::Get().getPieceAmount(i+1));
     // }
 
+    // get one order test
+    // auto aux = Database::Get().getOrder(102);
+    // if(aux != nullptr)
+    //     MES_TRACE("{}", *aux);
+
+    if(Database::Get().deleteOrder(102))
+        MES_TRACE("Sucessful");
+
 }
 
 MES::~MES()
