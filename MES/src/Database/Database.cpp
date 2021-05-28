@@ -170,9 +170,29 @@ std::shared_ptr<TransformOrder> Database::getOrder(int number)
 
 int Database::insertOrder(std::shared_ptr<TransformOrder> order)
 {
+    SACommand get(&conn, _TSA("SELECT id_number FROM TransformOrder WHERE id_number = :1"));
+    get << (long) order->getId();
+    get.Execute();
+    MES_TRACE("ola");
+    if(get.FetchNext())
+    {
+        MES_WARN("Order id ({}) already exists aborting", order->getId());
+        return 0;
+    }
     // TODO
+    SACommand insert(&conn, _TSA("INSERT INTO TransformOrder (id_number, piece_initial, piece_final, total_amount, done_amount, doing_amount, sent_at, received_at, max_delay, penalty_per_day, started_at, finished_at, penalty) VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :3)"));
+    insert << (long) order->getId() << (long) order->getInitial() << (long) order->getQuantity() << (long) order->getDone() << (long) order->getDoing() << (long) order->getTimeSent() << (long) order->getTimeRcv() << (long) order->getMaxDelay() << (long) order->getDailyPenalty() << (long) order->getTimeStarted() << (long) order->getTimeStarted() << (long) order->getPenalty();
+    try
+    {
+        insert.Execute();
+    }
+    catch(const SAException& e)
+    {
+        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        return 0;
+    }
 
-    return 0;
+    return 1;
 }
 
 int Database::deleteOrder(int number)

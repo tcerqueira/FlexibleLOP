@@ -32,6 +32,7 @@ void Scheduler::addTransform(std::shared_ptr<TransformOrder> order)
     orders_list.push_back(order);
     to_dispatch.push_back(order);
     // TODO: insert order to db
+    // Database::Get().insertOrder(order);
     std::push_heap(to_dispatch.begin(), to_dispatch.end(), OrderPriority());
 }
 
@@ -77,7 +78,8 @@ std::shared_ptr<SubOrder> Scheduler::popOrderCell(int cell)
         //     }
         // }
         int i = 0;
-        for(std::list<std::shared_ptr<SubOrder>>::iterator it=cell1_orders.begin(); it != cell1_orders.end(); ++it)
+        std::list<std::shared_ptr<SubOrder>>::iterator it;
+        for(it=cell1_orders.begin(); it != cell1_orders.end(); ++it)
         {
             sub_order = *it;
             if(sub_order->quantity <= store->countPiece((piece_t)sub_order->init_p))
@@ -87,8 +89,10 @@ std::shared_ptr<SubOrder> Scheduler::popOrderCell(int cell)
             }
             i++;
         }
+        if(it == cell1_orders.end())
+            sub_order = nullptr;
         if(sub_order != nullptr)
-            cell1_dispatched_orders.push_back(sub_order);
+            cell1_dispatched_orders.push_back(sub_order); 
     }
     else{
         // if(cell2_orders.empty())
@@ -102,7 +106,8 @@ std::shared_ptr<SubOrder> Scheduler::popOrderCell(int cell)
         //     }
         // }
         int i = 0;
-        for(std::list<std::shared_ptr<SubOrder>>::iterator it=cell2_orders.begin(); it != cell2_orders.end(); ++it)
+        std::list<std::shared_ptr<SubOrder>>::iterator it;
+        for(it=cell2_orders.begin(); it != cell2_orders.end(); ++it)
         {
             sub_order = *it;
             if(sub_order->quantity <= store->countPiece((piece_t)sub_order->init_p))
@@ -112,6 +117,8 @@ std::shared_ptr<SubOrder> Scheduler::popOrderCell(int cell)
             }
             i++;
         }
+        if(it == cell2_orders.end())
+            sub_order = nullptr;
         if(sub_order != nullptr)
             cell2_dispatched_orders.push_back(sub_order);
     }
@@ -380,7 +387,7 @@ void Scheduler::updatePieceStarted(int cell, int number)
 
     order->pieceDoing();
     // TODO async query
-    Database::Get().updateStorage((int) order->getInitial(), store->countPiece(order->getInitial()));
+    // Database::Get().updateStorage((int) order->getInitial(), store->countPiece(order->getInitial()));
 }
 
 void Scheduler::updatePieceFinished(int cell, int number)
@@ -427,7 +434,7 @@ void Scheduler::updatePieceFinished(int cell, int number)
             MES_WARN("SubOrder number:{} in cell:{} not found in dispatched orders.", number, cell);
     }
     // TODO async query
-    Database::Get().updateStorage((int) order->getFinal(), store->countPiece(order->getFinal()));
+    // Database::Get().updateStorage((int) order->getFinal(), store->countPiece(order->getFinal()));
 }
 
 bool Scheduler::hasTransform(int cell) const

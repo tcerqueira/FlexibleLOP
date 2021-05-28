@@ -1,6 +1,6 @@
 <ORDERS>
 <Order Number="123">
-    <Unload Type="P3" Destination="PM3" Quantity="10"/>
+    <Unload Type="P3" Destination="PM3" Quantity="3"/>
 </Order> 
 <Order Number="124">
     <Unload Type="P5" Destination="PM1" Quantity="3"/>
