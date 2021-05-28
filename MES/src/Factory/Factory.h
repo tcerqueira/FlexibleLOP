@@ -45,6 +45,16 @@ OStream &operator<<(OStream &os, const Factory &fct)
         os << "] - Total time: " << mac.total_time << std::endl;
         i++;
     }
-    // unload stats print
+    i = 1;
+    for(auto dest : fct.unload_stats)
+    {
+        os << "PM" << i << ": [ ";
+        for(int j=0; j < NPIECES; j++)
+        {
+            os << "P" << j+1 << ":" << dest[j] << " ";
+        }
+        os << "]" << std::endl;
+        i++;
+    }
     return os;
 }
