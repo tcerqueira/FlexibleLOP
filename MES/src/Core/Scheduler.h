@@ -13,6 +13,72 @@
 #define PATH_BUFLEN 8
 #define TOOLTIME_BUFLEN 8
 
+struct SubOrder;
+
+class Scheduler
+{  
+public:
+    Scheduler(Storage *store);
+    // note: takes ownership of the Order objects in the container
+    void addOrderList(std::vector<std::shared_ptr<TransformOrder>> &list);
+    void addTransform(std::shared_ptr<TransformOrder> order);
+    void addUnload(std::shared_ptr<UnloadOrder> order);
+    std::shared_ptr<UnloadOrder> requestUnload();
+    std::shared_ptr<SubOrder> requestOrderCell(int cell);
+
+    // Update events 
+    void updatePieceStarted(int cell, int number);
+    void updatePieceFinished(int cell, int number);
+    // Estimated work
+    int getCellWork(int cell) const;
+    int getQueueWork(int cell) const;
+    int getTotalWork(int cell) const;
+
+    // get the transform order with id=number
+    std::shared_ptr<TransformOrder> getTransform(int number);
+
+    // Fetchs orders from the "to dispatch" list and sorts on priority
+    void schedule();
+    // Cleans orders if possible
+    void clean();
+    
+    // TransformOrder popOrder();
+    std::vector<std::shared_ptr<TransformOrder>> &getAllOrders() { return orders_list; };
+
+    template <typename OStream>
+    friend OStream &operator<<(OStream &os, const Scheduler &sc);
+
+protected:
+    struct OrderPriority {
+        bool operator()(const std::shared_ptr<TransformOrder> o1, const std::shared_ptr<TransformOrder> o2) const;
+        bool operator()(const std::shared_ptr<SubOrder> o1, const std::shared_ptr<SubOrder> o2) const;
+    };
+    
+    std::shared_ptr<SubOrder> popSubOrder(int cell);
+
+private:
+    void priority_push_back(int cell, std::shared_ptr<SubOrder> sub_order);
+
+private:
+    std::mutex transforms_mutex, suborders_mutex, unloads_mutex;
+    // all orders instances
+    std::vector<std::shared_ptr<TransformOrder>> orders_list;
+    // temporary orders to schedule
+    std::vector<std::shared_ptr<TransformOrder>> to_dispatch;
+    // sub orders for the cells
+    std::list<std::shared_ptr<SubOrder>> cell1_orders;
+    std::list<std::shared_ptr<SubOrder>> cell2_orders;
+    // sub orders sent to the cells
+    std::list<std::shared_ptr<SubOrder>> cell1_dispatched_orders;
+    std::list<std::shared_ptr<SubOrder>> cell2_dispatched_orders;
+    // queue of unload orders
+    std::vector<std::shared_ptr<UnloadOrder>> unload_orders;
+    // unload orders already dispatched
+    std::vector<std::shared_ptr<UnloadOrder>> dispatched_unloads;
+
+    Storage *store;
+};
+
 struct SubOrder
 {
     int16_t orderID;
@@ -48,72 +114,6 @@ struct SubOrder
     {
         return os << "SubOrder [id=" << so.orderID << " Quantity=" << so.quantity << " ToDo=" << so.to_do << " Initial=" << so.init_p << " Work=" << so.work << " Penalty=" << so.penalty << "]";
     }
-};
-
-class Scheduler
-{  
-public:
-    Scheduler(Storage *store);
-    // note: takes ownership of the Order objects in the container
-    void addOrderList(std::vector<std::shared_ptr<TransformOrder>> &list);
-    void addTransform(std::shared_ptr<TransformOrder> order);
-    void addUnload(std::shared_ptr<UnloadOrder> order);
-    std::shared_ptr<UnloadOrder> requestUnload();
-    std::shared_ptr<SubOrder> requestOrderCell(int cell);
-    bool hasTransform(int cell) const;
-    bool hasUnload() const;
-
-    void updatePieceStarted(int cell, int number);
-    void updatePieceFinished(int cell, int number);
-    int getCellWork(int cell) const;
-    int getQueueWork(int cell) const;
-    int getTotalWork(int cell) const;
-
-    // get the transform order with id=number
-    std::shared_ptr<TransformOrder> getTransform(int number);
-
-    void schedule();
-    void clean();
-    
-    // TransformOrder popOrder();
-    std::vector<std::shared_ptr<TransformOrder>> &getAllOrders() { return orders_list; };
-    // std::list<std::shared_ptr<SubOrder>> &getTransformOrdersC1() { return cell1_orders; };
-    // std::list<std::shared_ptr<SubOrder>> &getTransformOrdersC2() { return cell2_orders; };
-    // std::vector<std::shared_ptr<UnloadOrder>> &getUnloadOrders() { return u_orders; };
-
-    template <typename OStream>
-    friend OStream &operator<<(OStream &os, const Scheduler &sc);
-
-protected:
-    struct OrderPriority {
-        bool operator()(const std::shared_ptr<TransformOrder> o1, const std::shared_ptr<TransformOrder> o2) const;
-        bool operator()(const std::shared_ptr<SubOrder> o1, const std::shared_ptr<SubOrder> o2) const;
-    };
-    
-    std::shared_ptr<SubOrder> popSubOrder(int cell);
-
-private:
-    void priority_push_back(int cell, std::shared_ptr<SubOrder> sub_order);
-
-private:
-    std::mutex transforms_mutex, suborders_mutex, unloads_mutex;
-    // all orders instances
-    std::vector<std::shared_ptr<TransformOrder>> orders_list;
-    // temporary orders to schedule
-    std::vector<std::shared_ptr<TransformOrder>> to_dispatch;
-    // sub orders for the cells
-    std::list<std::shared_ptr<SubOrder>> cell1_orders;
-    std::list<std::shared_ptr<SubOrder>> cell2_orders;
-    // sub orders sent to the cells
-    std::list<std::shared_ptr<SubOrder>> cell1_dispatched_orders;
-    std::list<std::shared_ptr<SubOrder>> cell2_dispatched_orders;
-    // queue of unload orders
-    std::vector<std::shared_ptr<UnloadOrder>> u_orders;
-    // orders already dispatched by the factory
-    std::vector<std::shared_ptr<TransformOrder>> dispatched_transforms;
-    std::vector<std::shared_ptr<UnloadOrder>> dispatched_unloads;
-
-    Storage *store;
 };
 
 // STREAM OVERLOADS
@@ -159,9 +159,9 @@ OStream &operator<<(OStream &os, const Scheduler &sc)
 #endif
     // Unload Orders
     os << "== Unload Orders ==" << std::endl;
-    for(int i=0; i < sc.u_orders.size(); i++)
+    for(int i=0; i < sc.unload_orders.size(); i++)
     {
-        os << i << " - " << *sc.u_orders[i] << std::endl;
+        os << i << " - " << *sc.unload_orders[i] << std::endl;
     }
     // Dispatched unload orders
     os << "== Dispatched Unload Orders ==" << std::endl;
