@@ -50,7 +50,7 @@ int writeTransform(OpcClient &opc_client, std::shared_ptr<SubOrder> order, int c
 void MES::onSendTransform(int cell)
 {
     std::lock_guard<std::mutex> lock(cell_mtx);
-    auto next_order = scheduler.popOrderCell(cell);
+    auto next_order = scheduler.requestOrderCell(cell);
     if(next_order == nullptr)
         return;
 
@@ -89,7 +89,7 @@ int writeUnload(OpcClient &opc_client, const opc_unload &order)
 void MES::onSendUnload()
 {
     std::lock_guard<std::mutex> lock(cell_mtx);
-    std::shared_ptr<UnloadOrder> next_unload = scheduler.popUnload();
+    std::shared_ptr<UnloadOrder> next_unload = scheduler.requestUnload();
     if(next_unload == nullptr)
         return;
 

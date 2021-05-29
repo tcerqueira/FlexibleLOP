@@ -58,8 +58,8 @@ public:
     void addOrderList(std::vector<std::shared_ptr<TransformOrder>> &list);
     void addTransform(std::shared_ptr<TransformOrder> order);
     void addUnload(std::shared_ptr<UnloadOrder> order);
-    std::shared_ptr<UnloadOrder> popUnload();
-    std::shared_ptr<SubOrder> popOrderCell(int cell);
+    std::shared_ptr<UnloadOrder> requestUnload();
+    std::shared_ptr<SubOrder> requestOrderCell(int cell);
     bool hasTransform(int cell) const;
     bool hasUnload() const;
 
@@ -69,6 +69,7 @@ public:
     int getQueueWork(int cell) const;
     int getTotalWork(int cell) const;
 
+    // get the transform order with id=number
     std::shared_ptr<TransformOrder> getTransform(int number);
 
     void schedule();
@@ -88,6 +89,8 @@ protected:
         bool operator()(const std::shared_ptr<TransformOrder> o1, const std::shared_ptr<TransformOrder> o2) const;
         bool operator()(const std::shared_ptr<SubOrder> o1, const std::shared_ptr<SubOrder> o2) const;
     };
+    
+    std::shared_ptr<SubOrder> popSubOrder(int cell);
 
 private:
     void priority_push_back(int cell, std::shared_ptr<SubOrder> sub_order);
