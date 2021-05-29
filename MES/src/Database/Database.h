@@ -20,9 +20,12 @@ public:
     int getMachine(int id_mac);
     int updateMachineStat(int id_mac, int piece_type, int piece_count);
     int getMachinePieceCount(int id_mac, int piece_type);
-    std::shared_ptr<TransformOrder> getOrder(int number);
+    std::vector<std::shared_ptr<TransformOrder>> getOrders();
     int insertOrder(std::shared_ptr<TransformOrder> order);
     int deleteOrder(int number);
+    std::vector<std::shared_ptr<UnloadOrder>> getUnloads();
+    int insertUnload(std::shared_ptr<UnloadOrder> order);
+    int deleteUnload(int number);
 
 protected:
     Database();

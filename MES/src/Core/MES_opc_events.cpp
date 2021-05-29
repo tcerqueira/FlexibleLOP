@@ -60,6 +60,7 @@ void MES::onSendTransform(int cell)
         return;
     }
     store.subCount((piece_t)(int)next_order->init_p, next_order->quantity);
+    Database::Get().updateStorage(next_order->init_p, store.countPiece((piece_t)(int) next_order->init_p));
     MES_INFO("Transform Order sent on cell {}: {}", cell, *next_order);
 }
 
@@ -155,6 +156,7 @@ void MES::onFinishPiece(int cell)
     piece_t type = (piece_t)(int)*(uint16_t*)type_var.data;
     MES_TRACE("Piece type {} of order {} finished on cell {}.", (int)type, number, cell);
     store.addCount(type, 1);
+    Database::Get().updateStorage((int) type, store.countPiece(type));
     scheduler.updatePieceFinished(cell, number);
     UA_Variant_clear(&number_var);
 }
@@ -206,6 +208,8 @@ void MES::onFinishProcessing(int machine)
     MES_TRACE("Machine {}: type {} and time {}.", machine, (int)machined_piece, machined_time);
     if(machined_piece < 1 || machined_piece > NPIECES) return;
     factory.machined(machine, machined_piece, machined_time);
+    Database::Get().updateMachine(machine, factory.machines_stats[machine].total_time);
+    Database::Get().updateMachineStat(machine, (int) machined_piece, factory.machines_stats[machine].count[(int) (machined_piece-1)]);
     UA_Variant_clear(&type_var);
     UA_Variant_clear(&time_var);
 }

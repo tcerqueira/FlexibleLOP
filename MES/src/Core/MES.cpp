@@ -188,11 +188,26 @@ void MES::setUp()
     }
     // TODO async query
     // get storage from db
-    // for(int i = 0; i< NPIECES; i++)
-    // {
-    //     store.setCount(static_cast<piece_t> (i+1), Database::Get().getPieceAmount(i+1));
-    // }
+    for(int i = 0; i< NPIECES; i++)
+    {
+        store.setCount(static_cast<piece_t> (i+1), Database::Get().getPieceAmount(i+1));
+    }
 
+    // get machine stats
+    for(int i = 0; i<NMACHINES; i++)
+    {
+        factory.machines_stats[i].total_time = Database::Get().getMachine(i);
+        for(int j = 0; j < NPIECES; j++)
+        {
+            factory.machines_stats[i].count[j] = Database::Get().getMachinePieceCount(i, j+1);
+        }
+    }
+
+    std::vector<std::shared_ptr<TransformOrder>> orders_aux = Database::Get().getOrders();
+    std::vector<std::shared_ptr<UnloadOrder>> unloads_aux = Database::Get().getUnloads();
+    scheduler.addOrderList(orders_aux);
+    scheduler.addUnloadList(unloads_aux);
+    scheduler.schedule();
 }
 
 MES::~MES()

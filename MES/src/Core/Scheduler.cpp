@@ -36,10 +36,19 @@ void Scheduler::addTransform(std::shared_ptr<TransformOrder> order)
     std::push_heap(to_dispatch.begin(), to_dispatch.end(), OrderPriority());
 }
 
+void Scheduler::addUnloadList(std::vector<std::shared_ptr<UnloadOrder>> &list)
+{
+    for (std::shared_ptr<UnloadOrder> order : list)
+    {
+        addUnload(order);
+    }
+}
+
 void Scheduler::addUnload(std::shared_ptr<UnloadOrder> order)
 {
     std::lock_guard<std::mutex> lock(unloads_mutex);
     u_orders.push_back(order);
+    Database::Get().insertUnload(order);
 }
 
 std::shared_ptr<UnloadOrder> Scheduler::popUnload()
@@ -52,6 +61,7 @@ std::shared_ptr<UnloadOrder> Scheduler::popUnload()
         {
             dispatched_unloads.push_back(unload);
             u_orders.erase(u_orders.begin()+i);
+            Database::Get().deleteUnload(unload->getId());
             return unload;
         }
         i++;
@@ -181,10 +191,10 @@ void Scheduler::schedule()
         work_cell2 = getTotalWork(2);
 
         auto sub_order = toSubOrder(order);
-        
+        MES_TRACE("to_do:{}", sub_order->to_do);
         if(sub_order->tools.size() <= 2 && sub_order->tools.size() > 0)
         {
-            for(int i = 0; i<sub_order->quantity; i++)
+            for(int i = 0; i<sub_order->to_do; i++)
             {
                 auto order_aux = std::make_shared<SubOrder>(*sub_order);
                 order_aux->quantity = 1;
@@ -242,7 +252,7 @@ void Scheduler::schedule()
 
             }
             chooseToolSet(order_itm->tool_set, order_itm->tools);
-            for(int i = 0; i<order_itm->quantity; i++)
+            for(int i = 0; i<order_itm->to_do; i++)
             {
                 auto order_aux = std::make_shared<SubOrder>(*order_itm);
                 order_aux->quantity = 1;
@@ -400,7 +410,11 @@ void Scheduler::updatePieceFinished(int cell, int number)
         order->finished();
 
     order->pieceDone();
-
+    if(order->getDone() == order->getQuantity())
+    {
+        Database::Get().deleteOrder(order->getId());
+        MES_TRACE("Deleted order {}", order->getId());
+    }
     // update dispatched lists
     std::lock_guard<std::mutex> lock(suborders_mutex);
     std::shared_ptr<SubOrder> sub_order = nullptr;
