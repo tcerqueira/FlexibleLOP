@@ -20,7 +20,6 @@ public:
     time_t getTimeFinished() const { return finishedAt; }
 
     void pieceDone();
-    void setDone(int done);
     void pieceDoing();
     void sent();
     void started();

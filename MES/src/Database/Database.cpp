@@ -43,6 +43,7 @@ Database::~Database()
 int Database::updateStorage(int piece_type, int amount)
 {
     if(!conn.isConnected()) return 0;
+
     SACommand update(&conn, _TSA("UPDATE PieceStorage SET amount = :1 WHERE piece_type = :2"));
     update << (long) amount << (long) piece_type;
     try{
@@ -97,24 +98,25 @@ int* Database::getStorage()
     return count;
 }
 
+// To Test
 int Database::updateMachine(int id_mac, int total_time)
 {
     if(!conn.isConnected()) return 0;
 
-    SACommand update(&conn, _TSA("UPDATE Machine SET total_time = :1 WHERE id_mac = :2"));
+    SACommand update(&conn, _TSA("UPDATE Machine SET total_time = :1 WHERE id_mach = :2"));
     update << (long) total_time << (long) id_mac;
     try{
         update.Execute();
     }
     catch(const SAException& e)
     {
-        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         return 0;
     }
 
     return 1;
 }
 
+// To Test
 int Database::getMachine(int id_mac)
 {
     if(!conn.isConnected()) return -1;
@@ -136,24 +138,25 @@ int Database::getMachine(int id_mac)
     return total_time;
 }
 
+// To Test
 int Database::updateMachineStat(int id_mac, int piece_type, int piece_count)
 {
     if(!conn.isConnected()) return 0;
 
-    SACommand update(&conn, _TSA("UPDATE MachineStat SET piece_count = :1 WHERE id_mac = :2 AND piece_type = :3"));
+    SACommand update(&conn, _TSA("UPDATE MachineStat SET piece_count = :1 WHERE id_mach = :2 AND piece_type = :3"));
     update << (long) piece_count << (long) id_mac << (long) piece_type;
     try{
         update.Execute();
     }
     catch(const SAException& e)
     {
-        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         return 0;
     }
 
     return 1;
 }
 
+// To Test
 int Database::getMachinePieceCount(int id_mac, int piece_type)
 {
     if(!conn.isConnected()) return -1;
@@ -175,19 +178,23 @@ int Database::getMachinePieceCount(int id_mac, int piece_type)
     return piece_count;
 }
 
-std::vector<std::shared_ptr<TransformOrder>> Database::getOrders()
+std::shared_ptr<TransformOrder> Database::getOrder(int number)
 {
-    std::vector<std::shared_ptr<TransformOrder>> order;
-    if(!conn.isConnected()) return order;
-    SACommand get(&conn, _TSA("SELECT * FROM TransformOrder"));
+    if(!conn.isConnected()) return nullptr;
+
+    SACommand get(&conn, _TSA("SELECT * FROM TransformOrder WHERE id_number = :1"));
+    get << (long) number;
     get.Execute();
 
-    
+    std::shared_ptr<TransformOrder> order;
+    int i = 0;
     while(get.FetchNext())
     {
+        if(i > 0) return nullptr;
+        
         std::shared_ptr<TransformOrder> aux = std::make_shared<TransformOrder>(get.Field(_TSA("id_number")).asInt64(), get.Field(_TSA("received_at")), get.Field(_TSA("total_amount")).asInt64(), (piece_t) get.Field(_TSA("piece_initial")).asInt64(), (piece_t) get.Field(_TSA("piece_final")).asInt64(), get.Field(_TSA("penalty_per_day")).asInt64(), get.Field(_TSA("max_delay")).asInt64());
-        aux->setDone(get.Field(_TSA("done_amount")).asInt64());
-        order.push_back(aux);
+        order = aux;
+        i++;
     }
     return order;
 }
@@ -201,7 +208,7 @@ int Database::insertOrder(std::shared_ptr<TransformOrder> order)
     get.Execute();
     if(get.FetchNext())
     {
-        //MES_WARN("DB insertOrder: Order id ({}) already exists aborting", order->getId());
+        MES_WARN("DB insertOrder: Order id ({}) already exists aborting", order->getId());
         return 0;
     }
     SACommand insert(&conn, _TSA("INSERT INTO TransformOrder (id_number, piece_initial, piece_final, total_amount, done_amount, doing_amount, sent_at, received_at, max_delay, penalty_per_day, started_at, finished_at, penalty) VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13)"));
@@ -228,7 +235,7 @@ int Database::deleteOrder(int number)
     get.Execute();
     if(!get.FetchNext())
     {
-        //MES_WARN("[DB deleteOrder: Order id ({}) doesn't exist in db aborting", number);
+        MES_WARN("[DB deleteOrder: Order id ({}) doesn't exist in db aborting", number);
         return 0;
     }
 
@@ -245,77 +252,6 @@ int Database::deleteOrder(int number)
     }
 
     return 1;
-}
-
-std::vector<std::shared_ptr<UnloadOrder>> Database::getUnloads()
-{
-    std::vector<std::shared_ptr<UnloadOrder>> order;
-    if(!conn.isConnected()) return order;
-    SACommand get(&conn, _TSA("SELECT * FROM UnloadOrder"));
-    get.Execute();
-
-    
-    while(get.FetchNext())
-    {
-        std::shared_ptr<UnloadOrder> aux = std::make_shared<UnloadOrder>(get.Field(_TSA("id_number")).asInt64(), get.Field(_TSA("received_at")), get.Field(_TSA("quantity")).asInt64(), (piece_t) get.Field(_TSA("piece_type")).asInt64(), (dest_t) get.Field(_TSA("destination")).asInt64());
-        order.push_back(aux);
-    }
-    return order;
-}
-
-int Database::insertUnload(std::shared_ptr<UnloadOrder> order)
-{
-    if(!conn.isConnected()) return 0;
-
-    SACommand get(&conn, _TSA("SELECT id_number FROM UnloadOrder WHERE id_number = :1"));
-    get << (long) order->getId();
-    get.Execute();
-    if(get.FetchNext())
-    {
-        //MES_WARN("DB insertOrder: Order id ({}) already exists aborting", order->getId());
-        return 0;
-    }
-
-    SACommand insert(&conn, _TSA("INSERT INTO UnloadOrder (id_number, piece_type, destination, quantity, received_at) VALUES (:1, :2, :3, :4, :5)"));
-    insert << (long) order->getId() << (long) order->getPiece() << (long) order->getDest() << (long) order->getQuantity() << (long) order->getTimeRcv();
-
-    try
-    {
-        insert.Execute();
-    }
-    catch(const SAException& e)
-    {
-        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
-        return 0;
-    }
-
-    return 1;
-}
-
-int Database::deleteUnload(int number)
-{
-    if(!conn.isConnected()) return 0;
-
-    SACommand get(&conn, _TSA("SELECT id_number FROM UnloadOrder WHERE id_number = :1"));
-    get << (long) number;
-    get.Execute();
-    if(!get.FetchNext())
-    {
-        MES_WARN("[DB deleteOrder: Unload id ({}) doesn't exist in db aborting", number);
-        return 0;
-    }
-
-    SACommand del(&conn, _TSA("DELETE FROM UnloadOrder WHERE id_number = :1"));
-    del << (long) number;
-    try
-    {
-        del.Execute();
-    }
-    catch(const SAException& e)
-    {
-        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
-        return 0;
-    }
 
     return 1;
 }
