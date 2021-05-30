@@ -211,7 +211,6 @@ void MES::setUp()
     DB_ASYNC_JOIN(db_unloads);
     scheduler.addOrderList(orders_aux);
     scheduler.addUnloadList(unloads_aux);
-    MES_WARN(scheduler);
     scheduler.schedule();
 }
 
