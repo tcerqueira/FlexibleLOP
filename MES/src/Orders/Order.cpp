@@ -11,6 +11,7 @@ void Order::pieceDone()
 {
     std::lock_guard<std::mutex> lck(mtx);
     doneAmount++;
+    doingAmount--;
 }
 
 void Order::setDone(int done)

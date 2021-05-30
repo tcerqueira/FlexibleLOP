@@ -36,8 +36,8 @@ public:
 
 protected:
     int id;
-    int doneAmount;
-    int doingAmount;
+    int doneAmount = 0;
+    int doingAmount = 0;
     int totalAmount;
     time_t receivedAt;
     time_t sentAt;
