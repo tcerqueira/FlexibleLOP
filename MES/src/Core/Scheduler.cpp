@@ -14,8 +14,6 @@ Scheduler::Scheduler(Storage *store)
 : store(store)
 {
     std::make_heap(to_dispatch.begin(), to_dispatch.end(), OrderPriority());
-    // std::make_heap(cell1_orders.begin(), cell1_orders.end(), OrderPriority());
-    // std::make_heap(cell2_orders.begin(), cell2_orders.end(), OrderPriority());
 }
 
 void Scheduler::addOrderList(std::vector<std::shared_ptr<TransformOrder>> &list)
@@ -39,19 +37,19 @@ void Scheduler::addTransform(std::shared_ptr<TransformOrder> order)
 void Scheduler::addUnload(std::shared_ptr<UnloadOrder> order)
 {
     std::lock_guard<std::mutex> lock(unloads_mutex);
-    u_orders.push_back(order);
+    unload_orders.push_back(order);
 }
 
-std::shared_ptr<UnloadOrder> Scheduler::popUnload()
+std::shared_ptr<UnloadOrder> Scheduler::requestUnload()
 {
     std::lock_guard<std::mutex> lock(unloads_mutex);
     int i = 0;
-    for(auto unload : u_orders)
+    for(auto unload : unload_orders)
     {
         if(unload->getQuantity() <= store->countPiece(unload->getPiece()))
         {
             dispatched_unloads.push_back(unload);
-            u_orders.erase(u_orders.begin()+i);
+            unload_orders.erase(unload_orders.begin()+i);
             return unload;
         }
         i++;
@@ -60,69 +58,51 @@ std::shared_ptr<UnloadOrder> Scheduler::popUnload()
     return nullptr;
 }
 
-std::shared_ptr<SubOrder> Scheduler::popOrderCell(int cell)
+std::shared_ptr<SubOrder> Scheduler::popSubOrder(int cell)
 {
-    std::lock_guard<std::mutex> lock(suborders_mutex);
-    static int last_order_numberC[2] = {0,0};
+    std::list<std::shared_ptr<SubOrder>> &sub_orders = (cell == 1) ? cell1_orders : cell2_orders;
     std::shared_ptr<SubOrder> sub_order = nullptr;
-    if(cell == 1)
+
+    std::list<std::shared_ptr<SubOrder>>::iterator it;
+    for(it=sub_orders.begin(); it != sub_orders.end(); ++it)
     {
-        // if(cell1_orders.empty())
-        // {
-        //     if(!cell2_orders.empty() && !cell2_dispatched_orders.empty())
-        //     {
-        //         lock.unlock();
-        //         auto other_order = popOrderCell(2);
-        //         lock.lock();
-        //         cell1_orders.push_back(other_order);
-        //     }
-        // }
-        int i = 0;
-        std::list<std::shared_ptr<SubOrder>>::iterator it;
-        for(it=cell1_orders.begin(); it != cell1_orders.end(); ++it)
+        sub_order = *it;
+        if(sub_order->quantity <= store->countPiece((piece_t)sub_order->init_p))
         {
-            sub_order = *it;
-            if(sub_order->quantity <= store->countPiece((piece_t)sub_order->init_p))
-            {
-                cell1_orders.erase(it);
-                break;
-            }
-            i++;
+            sub_orders.erase(it);
+            break;
         }
-        if(it == cell1_orders.end())
-            sub_order = nullptr;
-        if(sub_order != nullptr)
-            cell1_dispatched_orders.push_back(sub_order); 
     }
-    else{
-        // if(cell2_orders.empty())
-        // {
-        //     if(!cell1_orders.empty() && !cell1_dispatched_orders.empty())
-        //     {
-        //         lock.unlock();
-        //         auto other_order = popOrderCell(1);
-        //         lock.lock();
-        //         cell2_orders.push_back(other_order);
-        //     }
-        // }
-        int i = 0;
-        std::list<std::shared_ptr<SubOrder>>::iterator it;
-        for(it=cell2_orders.begin(); it != cell2_orders.end(); ++it)
-        {
-            sub_order = *it;
-            if(sub_order->quantity <= store->countPiece((piece_t)sub_order->init_p))
-            {
-                cell2_orders.erase(it);
-                break;
-            }
-            i++;
-        }
-        if(it == cell2_orders.end())
-            sub_order = nullptr;
-        if(sub_order != nullptr)
-            cell2_dispatched_orders.push_back(sub_order);
+    if(it == sub_orders.end())
+        return nullptr;
+    
+    return sub_order;
+}
+
+std::shared_ptr<SubOrder> Scheduler::requestOrderCell(int cell)
+{
+    std::unique_lock<std::mutex> lock(suborders_mutex);
+    static int last_order_numberC[2] = {0,0};
+    std::list<std::shared_ptr<SubOrder>> &sub_orders = (cell == 1) ? cell1_orders : cell2_orders;
+    std::list<std::shared_ptr<SubOrder>> &disp_orders = (cell == 1) ? cell1_dispatched_orders : cell2_dispatched_orders;
+    std::shared_ptr<SubOrder> sub_order = nullptr;
+
+    // optimize cell dead time
+    constexpr const int threshold = 500;
+    if(cell == 1 && sub_orders.empty() && !cell2_orders.empty() && !cell2_dispatched_orders.empty() && getQueueWork(cell) <= threshold && getTotalWork(2) > threshold) {
+        sub_order = popSubOrder(2);
+        sub_orders.push_back(sub_order);
     }
-    // lock.unlock();
+    else if(cell == 2 && sub_orders.empty() && !cell1_orders.empty() && !cell1_dispatched_orders.empty() && getQueueWork(cell) <= threshold && getTotalWork(1) > threshold) {
+        sub_order = popSubOrder(1);
+        sub_orders.push_back(sub_order);
+    }
+    
+    // takes next sub order
+    sub_order = popSubOrder(cell);
+    if(sub_order != nullptr)
+        disp_orders.push_back(sub_order);
+    
     // checks if its the first sub order of an order and records that it was sent to the factory
     if(sub_order != nullptr && sub_order->orderID != last_order_numberC[cell-1])
     {
@@ -131,6 +111,8 @@ std::shared_ptr<SubOrder> Scheduler::popOrderCell(int cell)
             curr_order->sent();
         last_order_numberC[cell-1] = sub_order->orderID;
     }
+
+    lock.unlock();
     return sub_order; 
 }
 
@@ -138,32 +120,19 @@ void Scheduler::priority_push_back(int cell, std::shared_ptr<SubOrder> sub_order
 {
     std::lock_guard<std::mutex> lock(suborders_mutex);
     OrderPriority hasPriority;
-    if(cell == 1)
+    std::list<std::shared_ptr<SubOrder>> &sub_orders = (cell == 1) ? cell1_orders : cell2_orders;
+
+    std::list<std::shared_ptr<SubOrder>>::iterator it;
+    for(it=sub_orders.begin(); it != sub_orders.end(); ++it)
     {
-        std::list<std::shared_ptr<SubOrder>>::iterator it;
-        for(it=cell1_orders.begin(); it != cell1_orders.end(); ++it)
+        if(hasPriority(sub_order, *it))   // sub_order has more priority over *it
         {
-            if(hasPriority(sub_order, *it))   // sub_order has more priority over *it
-            {
-                cell1_orders.insert(it, sub_order);
-            }
-        }
-        if(it == cell1_orders.end()) {
-            cell1_orders.push_back(sub_order);
+            sub_orders.insert(it, sub_order);
+            break;
         }
     }
-    else {
-        std::list<std::shared_ptr<SubOrder>>::iterator it;
-        for(it=cell2_orders.begin(); it != cell2_orders.end(); ++it)
-        {
-            if(hasPriority(sub_order, *it))   // sub_order has more priority over *it
-            {
-                cell2_orders.insert(it, sub_order);
-            }
-        }
-        if(it == cell2_orders.end()) {
-            cell2_orders.push_back(sub_order);
-        }
+    if(it == sub_orders.end()) {
+        sub_orders.push_back(sub_order);
     }
 }
 
@@ -310,7 +279,7 @@ void Scheduler::clean()
     }
     orders_list.clear();
     to_dispatch.clear();
-    u_orders.clear();
+    unload_orders.clear();
     dispatched_unloads.clear();
 }
 
@@ -328,7 +297,7 @@ int Scheduler::getCellWork(int cell) const
     {
         for (auto order : cell2_orders)
             work += WORK_TRANSFORM * (order->work);
-        for(auto unload : u_orders)
+        for(auto unload : unload_orders)
             work += WORK_UNLOAD * unload->getQuantity();
         work += WORK_CHANGETOOLS * cell2_orders.size();
     }
@@ -340,18 +309,12 @@ int Scheduler::getQueueWork(int cell) const
 {
     // std::lock_guard<std::mutex> lock(suborders_mutex);
     int work = 0;
-    if (cell == 1)
-    {
-        for (auto order : cell1_dispatched_orders)
-            work += WORK_TRANSFORM * (order->work);
-        work += WORK_CHANGETOOLS * cell1_dispatched_orders.size();
+    const std::list<std::shared_ptr<SubOrder>> &disp_orders = (cell == 1) ? cell1_dispatched_orders : cell2_dispatched_orders;
+
+    for (auto order : disp_orders) {
+        work += WORK_TRANSFORM * (order->work);
     }
-    else
-    {
-        for (auto order : cell2_dispatched_orders)
-            work += WORK_TRANSFORM * (order->work);
-        work += WORK_CHANGETOOLS * cell2_dispatched_orders.size();
-    }
+    work += WORK_CHANGETOOLS * disp_orders.size();
 
     return work;
 }
@@ -367,84 +330,61 @@ bool Scheduler::OrderPriority::operator()(const std::shared_ptr<TransformOrder> 
     long p1 = (o1->getReadyTime() - now - o1->getEstimatedWork() * WORK_TRANSFORM) * o1->getDailyPenalty(); /// DAY_OF_WORK;
     long p2 = (o2->getReadyTime() - now - o2->getEstimatedWork() * WORK_TRANSFORM) * o2->getDailyPenalty(); /// DAY_OF_WORK;
 
-    return p1 > p2;
+    return p1 < p2;
 }
 
 bool Scheduler::OrderPriority::operator()(const std::shared_ptr<SubOrder> o1, const std::shared_ptr<SubOrder> o2) const
 {
     // MES_TRACE("p{}:{} p{}:{}", o1->orderID, o1->priority, o2->orderID, o2->priority);
-    return o1->priority > o2->priority;
+    return o1->priority < o2->priority;
 }
 
 void Scheduler::updatePieceStarted(int cell, int number)
 {
-    auto order = this->getTransform(number);
-    if(order == nullptr)
-        return;
+    // auto order = this->getTransform(number);
+    // if(order == nullptr)
+    //     return;
 
-    if(order->getDoing() == 0) 
-        order->started();
+    // if(order->getDoing() == 0) 
+    //     order->started();
 
-    order->pieceDoing();
+    // order->pieceDoing();
     // TODO async query
     // Database::Get().updateStorage((int) order->getInitial(), store->countPiece(order->getInitial()));
 }
 
 void Scheduler::updatePieceFinished(int cell, int number)
 {
-    auto order = this->getTransform(number);
-    if(order == nullptr)
-        return;
+    // auto order = this->getTransform(number);
+    // if(order == nullptr)
+    //     return;
 
-    if(order->getDone() == order->getQuantity()) 
-        order->finished();
+    // order->pieceDone();
 
-    order->pieceDone();
+    // if(order->getDone() == order->getQuantity()) 
+    //     order->finished();
 
     // update dispatched lists
     std::lock_guard<std::mutex> lock(suborders_mutex);
     std::shared_ptr<SubOrder> sub_order = nullptr;
+    std::list<std::shared_ptr<SubOrder>> &disp_orders = (cell == 1) ? cell1_dispatched_orders : cell2_dispatched_orders;
+    
     std::list<std::shared_ptr<SubOrder>>::iterator it;
-    if(cell == 1){
-        for(it=cell1_dispatched_orders.begin(); it != cell1_dispatched_orders.end(); ++it)
-        {
-            sub_order = *it;
-            if(sub_order->orderID == number){
-                if(--sub_order->to_do == 0)
-                    cell1_dispatched_orders.erase(it);
-                sub_order->work = sub_order->calculateWork();
-                break;
-            }
+    for(it=disp_orders.begin(); it != disp_orders.end(); ++it)
+    {
+        sub_order = *it;
+        if(sub_order->orderID == number){
+            if(--sub_order->to_do == 0)
+                disp_orders.erase(it);
+            sub_order->work = sub_order->calculateWork();
+            break;
         }
-        if(it == cell1_dispatched_orders.end())
-            MES_WARN("SubOrder number:{} in cell:{} not found in dispatched orders.", number, cell);
     }
-    else {
-        for(it=cell2_dispatched_orders.begin(); it != cell2_dispatched_orders.end(); ++it)
-        {
-            sub_order = *it;
-            if(sub_order->orderID == number){
-                if(--sub_order->to_do == 0)
-                    cell2_dispatched_orders.erase(it);
-                sub_order->work = sub_order->calculateWork();
-                break;
-            }
-        }
-        if(it == cell2_dispatched_orders.end())
-            MES_WARN("SubOrder number:{} in cell:{} not found in dispatched orders.", number, cell);
-    }
+    if(it == cell1_dispatched_orders.end())
+        MES_WARN("SubOrder number:{} in cell:{} not found in dispatched orders.", number, cell);
+    
     // TODO async query
     // Database::Get().updateStorage((int) order->getFinal(), store->countPiece(order->getFinal()));
-}
-
-bool Scheduler::hasTransform(int cell) const
-{
-    return cell == 1 ? !cell1_orders.empty() : !cell2_orders.empty();
-}
-
-bool Scheduler::hasUnload() const
-{
-    return !u_orders.empty();
 }
 
 std::shared_ptr<TransformOrder> Scheduler::getTransform(int number) 
@@ -456,19 +396,9 @@ std::shared_ptr<TransformOrder> Scheduler::getTransform(int number)
     return nullptr;
 }
 
-// TransformOrder Scheduler::popOrder()
-// {
-//     TransformOrder order = --(*cell1_orders.front());
-//     // if all orders dispatched
-//     if(order.getDoing() + order.getDone() >= order.getQuantity()){
-//         MES_TRACE("Order {} dispatched.", order);
-//         // TODO: add it to dispatched list
-//     }
-
-//     return order;
-// }
 // ########################### AUXILIAR FUNCTIONS ####################################
 // ###################################################################################
+
 void chooseTools(std::shared_ptr<SubOrder> sub_order, std::vector<int16_t>& tools, const std::shared_ptr<TransformOrder> next_order);
 void chooseRoute(std::shared_ptr<SubOrder> sub_order, const std::vector<int16_t> &tools);
 
@@ -491,10 +421,10 @@ std::shared_ptr<SubOrder> toSubOrder(const std::shared_ptr<TransformOrder> order
             sub_order->warehouse_intermediate = true;
         }
     }
+    sub_order->penalty = order->getDailyPenalty();
     sub_order->priority = sub_order->calculatePriority();
     sub_order->readyTime = order->getReadyTime();
     sub_order->work = order->getEstimatedWork();
-    sub_order->penalty = order->getDailyPenalty();
 
     return sub_order;
 }

@@ -50,7 +50,7 @@ int writeTransform(OpcClient &opc_client, std::shared_ptr<SubOrder> order, int c
 void MES::onSendTransform(int cell)
 {
     std::lock_guard<std::mutex> lock(cell_mtx);
-    auto next_order = scheduler.popOrderCell(cell);
+    auto next_order = scheduler.requestOrderCell(cell);
     if(next_order == nullptr)
         return;
 
@@ -89,7 +89,7 @@ int writeUnload(OpcClient &opc_client, const opc_unload &order)
 void MES::onSendUnload()
 {
     std::lock_guard<std::mutex> lock(cell_mtx);
-    std::shared_ptr<UnloadOrder> next_unload = scheduler.popUnload();
+    std::shared_ptr<UnloadOrder> next_unload = scheduler.requestUnload();
     if(next_unload == nullptr)
         return;
 
@@ -101,7 +101,7 @@ void MES::onSendUnload()
     }
     store.subCount(next_unload->getPiece(), next_unload->getQuantity());
     // TODO async query
-    Database::Get().updateStorage((int) next_unload->getPiece(), store.countPiece(next_unload->getPiece()));
+    // Database::Get().updateStorage((int) next_unload->getPiece(), store.countPiece(next_unload->getPiece()));
     MES_INFO("Unload sent: {}", *next_unload);
 }
 
@@ -115,8 +115,9 @@ void MES::onLoadOrder(piece_t piece)
 void MES::onStartPiece(int cell)
 {
     // Update scheduler by id
-    std::stringstream ss_node;
+    std::stringstream ss_node, ss_init;
     ss_node << OPC_GLOBAL_NODE_STR << "starting_piece_numberC" << cell;
+    ss_init << OPC_GLOBAL_NODE_STR << "orders_C" << cell;
     const std::string &str_node = ss_node.str();
 
     UA_Variant number_var;
@@ -125,10 +126,27 @@ void MES::onStartPiece(int cell)
         MES_ERROR("Could not read from node \"{}\".", str_node);
         return;
     }
+    UA_Variant type_var;
+    UA_Variant_init(&type_var);
+    std::string init_piece_node = std::move(ss_init.str() + std::string("[1].init_p"));
+    if(!fct_client.readValueUInt16(UA_NODEID_STRING_ALLOC(4, init_piece_node.c_str()), type_var)) {
+        MES_ERROR("Could not read from node \"{}\".", init_piece_node);
+        return;
+    }
     int number = *(int*)number_var.data;
+    piece_t piece = (piece_t)(int)*(uint16_t*)type_var.data;
+
+    auto order = scheduler.getTransform(number);
+    if(order != nullptr && order->getInitial() == piece) {
+        if(order->getDoing() == 0) 
+            order->started();
+
+        order->pieceDoing();
+    }
+
     MES_TRACE("Piece of order {} started on cell {}.", number, cell);
     scheduler.updatePieceStarted(cell, number);
-    UA_Variant_clear(&number_var);
+    UA_Variant_clear(&number_var); UA_Variant_clear(&type_var);
 }
 
 void MES::onFinishPiece(int cell)
@@ -154,8 +172,17 @@ void MES::onFinishPiece(int cell)
     int number = *(int*)number_var.data;
     piece_t type = (piece_t)(int)*(uint16_t*)type_var.data;
     MES_TRACE("Piece type {} of order {} finished on cell {}.", (int)type, number, cell);
+
+    auto order = scheduler.getTransform(number);
+    if(order != nullptr && order->getFinal() == type) {
+        order->pieceDone();
+        if(order->getDone() == order->getQuantity())
+            order->finished();
+    }
+
     store.addCount(type, 1);
-    scheduler.updatePieceFinished(cell, number);
+    if(order != nullptr)
+        scheduler.updatePieceFinished(cell, number);
     UA_Variant_clear(&number_var);
 }
 
@@ -181,8 +208,8 @@ void MES::onUnloaded(dest_t dest)
 void MES::onFinishProcessing(int machine)
 {
     // Update stats
-    std::stringstream ss_type_node; ss_type_node << OPC_GLOBAL_NODE_STR << "machined_type" << "[" << machine << "]";
-    std::stringstream ss_time_node; ss_time_node << OPC_GLOBAL_NODE_STR << "machined_time" << "[" << machine << "]";
+    std::stringstream ss_type_node; ss_type_node << OPC_GLOBAL_NODE_STR << "machined_type" << "[" << machine+1 << "]";
+    std::stringstream ss_time_node; ss_time_node << OPC_GLOBAL_NODE_STR << "machined_time" << "[" << machine+1 << "]";
 
     const std::string &str_type_node = ss_type_node.str();
     const std::string &str_time_node = ss_time_node.str();
