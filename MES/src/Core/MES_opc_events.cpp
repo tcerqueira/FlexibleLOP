@@ -101,7 +101,7 @@ void MES::onSendUnload()
     }
     store.subCount(next_unload->getPiece(), next_unload->getQuantity());
     // TODO async query
-    Database::Get().updateStorage((int) next_unload->getPiece(), store.countPiece(next_unload->getPiece()));
+    // Database::Get().updateStorage((int) next_unload->getPiece(), store.countPiece(next_unload->getPiece()));
     MES_INFO("Unload sent: {}", *next_unload);
 }
 
