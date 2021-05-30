@@ -46,9 +46,9 @@ project "MES"
     }
 
     filter "configurations:Debug"
-        defines {"DEBUG", "OPC_LISTEN_ASYNC_MODE=0"}
+        defines {"DEBUG", "OPC_LISTEN_ASYNC_MODE=0", "DB_ASYNC_MODE=0"}
         symbols "On"
 
     filter "configurations:Release"
-        defines {"NDEBUG", "OPC_LISTEN_ASYNC_MODE=0"}
+        defines {"NDEBUG", "OPC_LISTEN_ASYNC_MODE=0", "DB_ASYNC_MODE=0"}
         optimize "On"

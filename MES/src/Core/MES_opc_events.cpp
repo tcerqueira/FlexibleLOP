@@ -60,6 +60,7 @@ void MES::onSendTransform(int cell)
         return;
     }
     store.subCount((piece_t)(int)next_order->init_p, next_order->quantity);
+    Database::Get().updateStorage(next_order->init_p, store.countPiece((piece_t)(int) next_order->init_p));
     MES_INFO("Transform Order sent on cell {}: {}", cell, *next_order);
 }
 
@@ -101,7 +102,7 @@ void MES::onSendUnload()
     }
     store.subCount(next_unload->getPiece(), next_unload->getQuantity());
     // TODO async query
-    // Database::Get().updateStorage((int) next_unload->getPiece(), store.countPiece(next_unload->getPiece()));
+    Database::Get().updateStorage((int) next_unload->getPiece(), store.countPiece(next_unload->getPiece()));
     MES_INFO("Unload sent: {}", *next_unload);
 }
 
@@ -177,10 +178,19 @@ void MES::onFinishPiece(int cell)
     if(order != nullptr && order->getFinal() == type) {
         order->pieceDone();
         if(order->getDone() == order->getQuantity())
+        {
             order->finished();
+            Database::Get().deleteOrder(order->getId());
+            MES_TRACE("Deleted order {}", order->getId());
+        }
     }
-
+    // if(order->getDone() == order->getQuantity())
+    // {
+    //     Database::Get().deleteOrder(order->getId());
+    //     MES_TRACE("Deleted order {}", order->getId());
+    // }
     store.addCount(type, 1);
+    Database::Get().updateStorage((int) type, store.countPiece(type));
     if(order != nullptr)
         scheduler.updatePieceFinished(cell, number);
     UA_Variant_clear(&number_var);
@@ -233,6 +243,8 @@ void MES::onFinishProcessing(int machine)
     MES_TRACE("Machine {}: type {} and time {}.", machine, (int)machined_piece, machined_time);
     if(machined_piece < 1 || machined_piece > NPIECES) return;
     factory.machined(machine, machined_piece, machined_time);
+    Database::Get().updateMachine(machine, factory.machines_stats[machine].total_time);
+    Database::Get().updateMachineStat(machine, (int) machined_piece, factory.machines_stats[machine].count[(int) (machined_piece-1)]);
     UA_Variant_clear(&type_var);
     UA_Variant_clear(&time_var);
 }

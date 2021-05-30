@@ -22,6 +22,7 @@ public:
     // note: takes ownership of the Order objects in the container
     void addOrderList(std::vector<std::shared_ptr<TransformOrder>> &list);
     void addTransform(std::shared_ptr<TransformOrder> order);
+    void addUnloadList(std::vector<std::shared_ptr<UnloadOrder>> &list);
     void addUnload(std::shared_ptr<UnloadOrder> order);
     std::shared_ptr<UnloadOrder> requestUnload();
     std::shared_ptr<SubOrder> requestOrderCell(int cell);
