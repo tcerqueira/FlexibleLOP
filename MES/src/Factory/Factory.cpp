@@ -7,7 +7,7 @@ Factory::Factory(std::array<Machine, NMACHINES> &&other_machines, std::array<std
 
 void Factory::machined(int cell, int number, piece_t p, unsigned int time)
 {
-    machined((cell-1)*2+number, p, time);
+    machined((cell-1)*4+number, p, time);
 }
 
 void Factory::machined(int number, piece_t p, unsigned int time)

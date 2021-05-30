@@ -128,6 +128,7 @@ void Scheduler::priority_push_back(int cell, std::shared_ptr<SubOrder> sub_order
         if(hasPriority(sub_order, *it))   // sub_order has more priority over *it
         {
             sub_orders.insert(it, sub_order);
+            break;
         }
     }
     if(it == sub_orders.end()) {
@@ -329,39 +330,39 @@ bool Scheduler::OrderPriority::operator()(const std::shared_ptr<TransformOrder> 
     long p1 = (o1->getReadyTime() - now - o1->getEstimatedWork() * WORK_TRANSFORM) * o1->getDailyPenalty(); /// DAY_OF_WORK;
     long p2 = (o2->getReadyTime() - now - o2->getEstimatedWork() * WORK_TRANSFORM) * o2->getDailyPenalty(); /// DAY_OF_WORK;
 
-    return p1 > p2;
+    return p1 < p2;
 }
 
 bool Scheduler::OrderPriority::operator()(const std::shared_ptr<SubOrder> o1, const std::shared_ptr<SubOrder> o2) const
 {
     // MES_TRACE("p{}:{} p{}:{}", o1->orderID, o1->priority, o2->orderID, o2->priority);
-    return o1->priority > o2->priority;
+    return o1->priority < o2->priority;
 }
 
 void Scheduler::updatePieceStarted(int cell, int number)
 {
-    auto order = this->getTransform(number);
-    if(order == nullptr)
-        return;
+    // auto order = this->getTransform(number);
+    // if(order == nullptr)
+    //     return;
 
-    if(order->getDoing() == 0) 
-        order->started();
+    // if(order->getDoing() == 0) 
+    //     order->started();
 
-    order->pieceDoing();
+    // order->pieceDoing();
     // TODO async query
     // Database::Get().updateStorage((int) order->getInitial(), store->countPiece(order->getInitial()));
 }
 
 void Scheduler::updatePieceFinished(int cell, int number)
 {
-    auto order = this->getTransform(number);
-    if(order == nullptr)
-        return;
+    // auto order = this->getTransform(number);
+    // if(order == nullptr)
+    //     return;
 
-    order->pieceDone();
+    // order->pieceDone();
 
-    if(order->getDone() == order->getQuantity()) 
-        order->finished();
+    // if(order->getDone() == order->getQuantity()) 
+    //     order->finished();
 
     // update dispatched lists
     std::lock_guard<std::mutex> lock(suborders_mutex);
@@ -420,10 +421,10 @@ std::shared_ptr<SubOrder> toSubOrder(const std::shared_ptr<TransformOrder> order
             sub_order->warehouse_intermediate = true;
         }
     }
+    sub_order->penalty = order->getDailyPenalty();
     sub_order->priority = sub_order->calculatePriority();
     sub_order->readyTime = order->getReadyTime();
     sub_order->work = order->getEstimatedWork();
-    sub_order->penalty = order->getDailyPenalty();
 
     return sub_order;
 }
