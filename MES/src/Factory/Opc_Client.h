@@ -82,6 +82,7 @@ protected:
     void notify(opc_evt evt);
     bool checkFlag(UA_NodeId node);
     void clearFlag(UA_NodeId node);
+    void clearAllFlags();
 
 private:
     UA_Client* client;

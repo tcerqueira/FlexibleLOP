@@ -21,7 +21,7 @@ public:
 
     void pieceDone();
     void pieceDoing();
-    void sent();
+    // void sent();
     void started();
     void finished();
     

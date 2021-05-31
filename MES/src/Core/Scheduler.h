@@ -4,9 +4,9 @@
 #include "Orders/Orders.h"
 #include "Factory/Storage.h"
 
-#define WORK_TRANSFORM 30
-#define WORK_UNLOAD 10
-#define WORK_CHANGETOOLS 20
+#define WORK_TRANSFORM 8
+#define WORK_UNLOAD 2
+#define WORK_CHANGETOOLS 5
 
 #define TOOLSET_BUFLEN 4
 #define PIECESEQ_BUFLEN 8

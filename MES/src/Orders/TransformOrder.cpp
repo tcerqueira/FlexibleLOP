@@ -17,6 +17,12 @@ int TransformOrder::getEstimatedWork() const
 
 int TransformOrder::getPenalty() const
 {
+    return calculatePenalty(penaltyPerDay, finishedAt, sentAt, maxSecDelay, DAY_OF_WORK);
+}
+
+int calculatePenalty(int penaltyPerDay, time_t finishedAt, time_t sentAt, int maxSecDelay, int secondsPerDay)
+{
     // penalty * (time_finish - max_time_finish)
-    return penaltyPerDay * ((long)finishedAt - ((long)sentAt + maxSecDelay)) / DAY_OF_WORK;
+    int result = penaltyPerDay * ((long)finishedAt - ((long)sentAt + maxSecDelay)) / secondsPerDay;
+    return result >= 0 ? result : 0;
 }

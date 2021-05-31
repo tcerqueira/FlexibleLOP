@@ -103,12 +103,12 @@ std::shared_ptr<SubOrder> Scheduler::requestOrderCell(int cell)
     if(sub_order != nullptr)
         disp_orders.push_back(sub_order);
     
-    // checks if its the first sub order of an order and records that it was sent to the factory
+    // checks if its the first sub order of an order and records that it started on the factory
     if(sub_order != nullptr && sub_order->orderID != last_order_numberC[cell-1])
     {
         auto curr_order = getTransform(sub_order->orderID);
         if(curr_order->getDoing() == 0)
-            curr_order->sent();
+            curr_order->started();
         last_order_numberC[cell-1] = sub_order->orderID;
     }
 
@@ -153,7 +153,7 @@ void Scheduler::schedule()
         
         if(sub_order->tools.size() <= 2 && sub_order->tools.size() > 0)
         {
-            for(int i = 0; i<sub_order->quantity; i++)
+            for(int i = 0; i<sub_order->to_do; i++)
             {
                 auto order_aux = std::make_shared<SubOrder>(*sub_order);
                 order_aux->quantity = 1;
@@ -211,7 +211,7 @@ void Scheduler::schedule()
 
             }
             chooseToolSet(order_itm->tool_set, order_itm->tools);
-            for(int i = 0; i<order_itm->quantity; i++)
+            for(int i = 0; i<order_itm->to_do; i++)
             {
                 auto order_aux = std::make_shared<SubOrder>(*order_itm);
                 order_aux->quantity = 1;
@@ -232,7 +232,7 @@ void Scheduler::schedule()
                 }
             }
         }
-        else if(sub_order->quantity >= N_ORDERDIV && std::abs(work_cell1-work_cell2) < 150)
+        else if(sub_order->to_do >= N_ORDERDIV && std::abs(work_cell1-work_cell2) < 150)
         {
             auto order_c1 = std::make_shared<SubOrder>(*sub_order);
             auto order_c2 = std::make_shared<SubOrder>(*sub_order);

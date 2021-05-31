@@ -29,6 +29,8 @@ private:
     int maxSecDelay;
 };
 
+int calculatePenalty(int penaltyPerDay, time_t finishedAt, time_t sentAt, int maxSecDelay, int secondsPerDay);
+
 // STREAM OVERLOADS
 template <typename OStream>
 OStream &operator<<(OStream &os, const TransformOrder &o)
