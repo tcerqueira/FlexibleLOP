@@ -142,7 +142,7 @@ OStream &operator<<(OStream &os, const Scheduler &sc)
     {
         os << j++ << " - " << *sub_order << std::endl;
     }
-//#ifdef DEBUG
+#ifdef DEBUG
     // Dispatched Transforms
     os << "== Dispatched Orders C1 == " << std::endl;
     j = 0;
@@ -157,7 +157,7 @@ OStream &operator<<(OStream &os, const Scheduler &sc)
     {
         os << j++ << " - " << *sub_order << std::endl;
     }
-//#endif
+#endif
     // Unload Orders
     os << "== Unload Orders ==" << std::endl;
     for(int i=0; i < sc.unload_orders.size(); i++)
