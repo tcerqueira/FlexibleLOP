@@ -243,7 +243,7 @@ void Scheduler::schedule()
                 }
             }
         }
-        else if(sub_order->quantity >= N_ORDERDIV && std::abs(work_cell1-work_cell2) < 150)
+        else if(sub_order->to_do >= N_ORDERDIV && std::abs(work_cell1-work_cell2) < 150)
         {
             auto order_c1 = std::make_shared<SubOrder>(*sub_order);
             auto order_c2 = std::make_shared<SubOrder>(*sub_order);
