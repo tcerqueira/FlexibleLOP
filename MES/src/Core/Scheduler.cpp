@@ -236,12 +236,12 @@ void Scheduler::schedule()
         {
             auto order_c1 = std::make_shared<SubOrder>(*sub_order);
             auto order_c2 = std::make_shared<SubOrder>(*sub_order);
-            order_c1->quantity = sub_order->quantity / 2 + sub_order->quantity % 2;
-            order_c1->to_do = sub_order->quantity / 2 + sub_order->quantity % 2;
+            order_c1->quantity = sub_order->quantity / 2;
+            order_c1->to_do = sub_order->quantity / 2;
             order_c1->work = (sub_order->work * order_c1->quantity) / sub_order->quantity;
             // cell1_orders.push_back(order_c1);
             priority_push_back(1, order_c1);
-            order_c2->quantity = sub_order->quantity / 2;
+            order_c2->quantity = sub_order->quantity / 2 + sub_order->quantity % 2;
             order_c2->to_do = sub_order->quantity / 2 + sub_order->quantity % 2;
             order_c2->work = (sub_order->work * order_c2->quantity) / sub_order->quantity;
             // cell2_orders.push_back(order_c2);
