@@ -34,6 +34,7 @@ protected:
 private:
     static Database *instance;
     static std::mutex mutex;
+    static std::mutex db_call_mutex;
     SAConnection conn;
 };
 

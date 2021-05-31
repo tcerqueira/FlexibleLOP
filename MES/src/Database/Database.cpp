@@ -3,6 +3,7 @@
 
 Database* Database::instance{nullptr};
 std::mutex Database::mutex;
+std::mutex Database::db_call_mutex;
 
 Database& Database::Get()
 {
@@ -42,6 +43,7 @@ Database::~Database()
 
 int Database::updateStorage(int piece_type, int amount)
 {
+    std::lock_guard<std::mutex> lock(db_call_mutex);
     if(!conn.isConnected()) return 0;
     SACommand update(&conn, _TSA("UPDATE PieceStorage SET amount = :1 WHERE piece_type = :2"));
     update << (long) amount << (long) piece_type;
@@ -50,7 +52,7 @@ int Database::updateStorage(int piece_type, int amount)
     }
     catch(const SAException& e)
     {
-        //MES_WARN("{}", e.ErrText().GetMultiByteChars());
+        MES_ERROR("{}", e.ErrText().GetMultiByteChars());
         return 0;
     }
 
@@ -59,6 +61,7 @@ int Database::updateStorage(int piece_type, int amount)
 
 int Database::getPieceAmount(int piece_type)
 {
+    std::lock_guard<std::mutex> lock(db_call_mutex);
     if(!conn.isConnected()) return -1;
 
     if(piece_type > 9 || piece_type < 1) return -1;
@@ -88,6 +91,7 @@ int Database::getPieceAmount(int piece_type)
 // To Test
 int* Database::getStorage()
 {
+    std::lock_guard<std::mutex> lock(db_call_mutex);
     if(!conn.isConnected()) return nullptr;
 
     SACommand get(&conn, _TSA("SELECT * FROM PieceStorage"));
@@ -115,6 +119,7 @@ int* Database::getStorage()
 
 int Database::updateMachine(int id_mac, int total_time)
 {
+    std::lock_guard<std::mutex> lock(db_call_mutex);
     if(!conn.isConnected()) return 0;
 
     SACommand update(&conn, _TSA("UPDATE Machine SET total_time = :1 WHERE id_mac = :2"));
@@ -133,6 +138,7 @@ int Database::updateMachine(int id_mac, int total_time)
 
 int Database::getMachine(int id_mac)
 {
+    std::lock_guard<std::mutex> lock(db_call_mutex);
     if(!conn.isConnected()) return -1;
 
     if(id_mac > 7 || id_mac < 0) return -1;
@@ -162,6 +168,7 @@ int Database::getMachine(int id_mac)
 
 int Database::updateMachineStat(int id_mac, int piece_type, int piece_count)
 {
+    std::lock_guard<std::mutex> lock(db_call_mutex);
     if(!conn.isConnected()) return 0;
 
     SACommand update(&conn, _TSA("UPDATE MachineStat SET piece_count = :1 WHERE id_mac = :2 AND piece_type = :3"));
@@ -180,6 +187,7 @@ int Database::updateMachineStat(int id_mac, int piece_type, int piece_count)
 
 int Database::getMachinePieceCount(int id_mac, int piece_type)
 {
+    std::lock_guard<std::mutex> lock(db_call_mutex);
     if(!conn.isConnected()) return -1;
 
     if(id_mac > 7 || id_mac < 0) return -1;
@@ -209,6 +217,7 @@ int Database::getMachinePieceCount(int id_mac, int piece_type)
 
 std::vector<std::shared_ptr<TransformOrder>> Database::getOrders()
 {
+    std::lock_guard<std::mutex> lock(db_call_mutex);
     std::vector<std::shared_ptr<TransformOrder>> order;
     if(!conn.isConnected()) return order;
     SACommand get(&conn, _TSA("SELECT * FROM TransformOrder"));
@@ -233,6 +242,7 @@ std::vector<std::shared_ptr<TransformOrder>> Database::getOrders()
 
 int Database::insertOrder(std::shared_ptr<TransformOrder> order)
 {
+    std::lock_guard<std::mutex> lock(db_call_mutex);
     if(!conn.isConnected()) return 0;
 
     SACommand get(&conn, _TSA("SELECT id_number FROM TransformOrder WHERE id_number = :1"));
@@ -248,7 +258,7 @@ int Database::insertOrder(std::shared_ptr<TransformOrder> order)
     }
     if(get.FetchNext())
     {
-        //MES_WARN("DB insertOrder: Order id ({}) already exists aborting", order->getId());
+        MES_WARN("DB insertOrder: Order id ({}) already exists", order->getId());
         return 0;
     }
     SACommand insert(&conn, _TSA("INSERT INTO TransformOrder (id_number, piece_initial, piece_final, total_amount, done_amount, doing_amount, sent_at, received_at, max_delay, penalty_per_day, started_at, finished_at, penalty) VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13)"));
@@ -259,15 +269,15 @@ int Database::insertOrder(std::shared_ptr<TransformOrder> order)
     }
     catch(const SAException& e)
     {
-        //MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         return 0;
     }
-    MES_WARN("DB: inserted order");
     return 1;
 }
 
 int Database::deleteOrder(int number)
 {
+    std::lock_guard<std::mutex> lock(db_call_mutex);
     if(!conn.isConnected()) return 0;
 
     SACommand get(&conn, _TSA("SELECT id_number FROM TransformOrder WHERE id_number = :1"));
@@ -295,7 +305,7 @@ int Database::deleteOrder(int number)
     }
     catch(const SAException& e)
     {
-        //MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         return 0;
     }
 
@@ -304,6 +314,7 @@ int Database::deleteOrder(int number)
 
 std::vector<std::shared_ptr<UnloadOrder>> Database::getUnloads()
 {
+    std::lock_guard<std::mutex> lock(db_call_mutex);
     std::vector<std::shared_ptr<UnloadOrder>> order;
     if(!conn.isConnected()) return order;
     SACommand get(&conn, _TSA("SELECT * FROM UnloadOrder"));
@@ -328,6 +339,7 @@ std::vector<std::shared_ptr<UnloadOrder>> Database::getUnloads()
 
 int Database::insertUnload(std::shared_ptr<UnloadOrder> order)
 {
+    std::lock_guard<std::mutex> lock(db_call_mutex);
     if(!conn.isConnected()) return 0;
 
     SACommand get(&conn, _TSA("SELECT id_number FROM UnloadOrder WHERE id_number = :1"));
@@ -356,7 +368,7 @@ int Database::insertUnload(std::shared_ptr<UnloadOrder> order)
     }
     catch(const SAException& e)
     {
-        //MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         return 0;
     }
 
@@ -365,6 +377,7 @@ int Database::insertUnload(std::shared_ptr<UnloadOrder> order)
 
 int Database::deleteUnload(int number)
 {
+    std::lock_guard<std::mutex> lock(db_call_mutex);
     if(!conn.isConnected()) return 0;
 
     SACommand get(&conn, _TSA("SELECT id_number FROM UnloadOrder WHERE id_number = :1"));
@@ -380,7 +393,7 @@ int Database::deleteUnload(int number)
     }
     if(!get.FetchNext())
     {
-        MES_WARN("[DB deleteOrder: Unload id ({}) doesn't exist in db aborting", number);
+        MES_WARN("DB deleteOrder: Unload id ({}) doesn't exist in db", number);
         return 0;
     }
 
@@ -392,7 +405,7 @@ int Database::deleteUnload(int number)
     }
     catch(const SAException& e)
     {
-        //MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         return 0;
     }
 

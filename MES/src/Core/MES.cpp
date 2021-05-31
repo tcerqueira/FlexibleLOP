@@ -188,12 +188,33 @@ void MES::setUp()
             onFinishProcessing(i);
         });
     }
+    
     // TODO async query
     // get storage from db
-    // for(int i = 0; i< NPIECES; i++)
-    // {
-    //     store.setCount(static_cast<piece_t> (i+1), Database::Get().getPieceAmount(i+1));
-    // }
+    for(int i = 0; i< NPIECES; i++)
+    {
+        DB_ASYNC_DETACH(db_storage, store.setCount(static_cast<piece_t> (i+1), Database::Get().getPieceAmount(i+1)));
+    }
+
+    // get machine stats
+    for(int i = 0; i<NMACHINES; i++)
+    {
+        DB_ASYNC_DETACH(db_mactime, factory.machines_stats[i].total_time = Database::Get().getMachine(i));
+        for(int j = 0; j < NPIECES; j++)
+        {
+            DB_ASYNC_DETACH(db_macpieces, factory.machines_stats[i].count[j] = Database::Get().getMachinePieceCount(i, j+1));
+        }
+    }
+
+    std::vector<std::shared_ptr<TransformOrder>> orders_aux;
+    std::vector<std::shared_ptr<UnloadOrder>> unloads_aux;
+    DB_ASYNC(db_transforms, orders_aux = Database::Get().getOrders());
+    DB_ASYNC(db_unloads, unloads_aux = Database::Get().getUnloads());
+    DB_ASYNC_JOIN(db_transforms);
+    DB_ASYNC_JOIN(db_unloads);
+    scheduler.addOrderList(orders_aux);
+    scheduler.addUnloadList(unloads_aux);
+    scheduler.schedule();
 
 }
 

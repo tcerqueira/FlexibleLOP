@@ -49,8 +49,6 @@ void Scheduler::addUnload(std::shared_ptr<UnloadOrder> order)
     std::lock_guard<std::mutex> lock(unloads_mutex);
     unload_orders.push_back(order);
     Database::Get().insertUnload(order);
-    aux = 1;
-    MES_WARN(aux);
 }
 
 std::shared_ptr<UnloadOrder> Scheduler::requestUnload()
@@ -64,8 +62,6 @@ std::shared_ptr<UnloadOrder> Scheduler::requestUnload()
             dispatched_unloads.push_back(unload);
             unload_orders.erase(unload_orders.begin()+i);
             Database::Get().deleteUnload(unload->getId());
-            aux = 2;
-            MES_WARN(aux);
             return unload;
         }
         i++;
