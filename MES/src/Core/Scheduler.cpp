@@ -103,12 +103,12 @@ std::shared_ptr<SubOrder> Scheduler::requestOrderCell(int cell)
     if(sub_order != nullptr)
         disp_orders.push_back(sub_order);
     
-    // checks if its the first sub order of an order and records that it was sent to the factory
+    // checks if its the first sub order of an order and records that it started on the factory
     if(sub_order != nullptr && sub_order->orderID != last_order_numberC[cell-1])
     {
         auto curr_order = getTransform(sub_order->orderID);
         if(curr_order->getDoing() == 0)
-            curr_order->sent();
+            curr_order->started();
         last_order_numberC[cell-1] = sub_order->orderID;
     }
 

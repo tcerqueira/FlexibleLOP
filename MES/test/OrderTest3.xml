@@ -1,18 +1,18 @@
 <ORDERS>
 <Order Number="301">
-    <Transform From="P1" To="P3" Quantity="4" Time="1615744339" MaxDelay="259200"
+    <Transform From="P1" To="P3" Quantity="4" Time="1615744339" MaxDelay="100"
     Penalty="10"/>
 </Order>
 <Order Number="302">
-    <Transform From="P2" To="P4" Quantity="4" Time="1615744339" MaxDelay="259200"
+    <Transform From="P2" To="P4" Quantity="4" Time="1615744339" MaxDelay="100"
     Penalty="10"/>
 </Order>
 <Order Number="303">
-    <Transform From="P3" To="P5" Quantity="4" Time="1615744339" MaxDelay="2592"
+    <Transform From="P3" To="P5" Quantity="4" Time="1615744339" MaxDelay="10"
     Penalty="1000"/>
 </Order> 
 <Order Number="304">
-    <Transform From="P4" To="P6" Quantity="4" Time="1615744339" MaxDelay="2592"
+    <Transform From="P4" To="P6" Quantity="4" Time="1615744339" MaxDelay="10"
     Penalty="1000"/>
 </Order>
 </ORDERS>
