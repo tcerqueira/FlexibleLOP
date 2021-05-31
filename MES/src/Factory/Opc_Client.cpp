@@ -59,6 +59,8 @@ int OpcClient::startListening(int t_ms)
         return 0;
     }
 
+    clearAllFlags();
+
     isListening = true;
 #if OPC_LISTEN_ASYNC_MODE == 3
     std::vector<std::future<void>> futures;
@@ -85,6 +87,7 @@ int OpcClient::startListening(int t_ms)
                 boost::asio::post(listen_threadpool, [=, this]() {
                     notify({node_key, 0});
                     clearFlag(flag_node);
+                    // UA_NodeId_clear(&flag_node);
                 });
 
 #elif OPC_LISTEN_ASYNC_MODE == 2
@@ -92,17 +95,20 @@ int OpcClient::startListening(int t_ms)
                     std::thread([=, this]() { // if it doesnt work, comment it out and uncomment code bellow
                         notify({node_key, 0});
                         clearFlag(flag_node);
+                        // UA_NodeId_clear(&flag_node);
                 })));
 
 #elif OPC_LISTEN_ASYNC_MODE == 3
                 futures.push_back(std::move(std::async(std::launch::async, [=, this](){
                     notify({node_key, 0});
                     clearFlag(flag_node);
+                    // UA_NodeId_clear(&flag_node);
                 })));
 
 #elif OPC_LISTEN_ASYNC_MODE == 0
                 notify({node_key, 0});
                 clearFlag(flag_node);
+                UA_NodeId_clear(&flag_node);
 #endif
             }
         }
@@ -124,6 +130,7 @@ int OpcClient::startListening(int t_ms)
         // MES_TRACE(sleep_duration.count());
         std::this_thread::sleep_for(sleep_duration);
     }
+
     return 1;
 }
 
@@ -157,6 +164,17 @@ bool OpcClient::checkFlag(UA_NodeId node)
 void OpcClient::clearFlag(UA_NodeId node)
 {
     writeValue(node, false);
+}
+
+void OpcClient::clearAllFlags()
+{
+    UA_NodeId flag_node;
+    for(NodeKey node : event_nodes)
+    {
+        flag_node = UA_NODEID_STRING_ALLOC(node.name_space, node.id_str.c_str());
+        clearFlag(flag_node);
+    }
+    UA_NodeId_clear(&flag_node);
 }
 
 void OpcClient::addListener(NodeKey type, evtHandler handler)
