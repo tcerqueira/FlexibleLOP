@@ -52,7 +52,7 @@ int Database::updateStorage(int piece_type, int amount)
     }
     catch(const SAException& e)
     {
-        MES_ERROR("{}", e.ErrText().GetMultiByteChars());
+        DB_ERROR("{}", e.ErrText().GetMultiByteChars());
         return 0;
     }
 
@@ -74,7 +74,7 @@ int Database::getPieceAmount(int piece_type)
     }
     catch(const SAException& e)
     {
-        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        DB_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         return 0;
     }
     int amount;
@@ -101,7 +101,7 @@ int* Database::getStorage()
     }
     catch(const SAException& e)
     {
-        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        DB_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         return 0;
     }
     int *count = new int[9]; //(int*) malloc(sizeof(int)*9);
@@ -129,7 +129,7 @@ int Database::updateMachine(int id_mac, int total_time)
     }
     catch(const SAException& e)
     {
-        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        DB_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         return 0;
     }
 
@@ -151,7 +151,7 @@ int Database::getMachine(int id_mac)
     }
     catch(const SAException& e)
     {
-        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        DB_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         return 0;
     }
     int total_time;
@@ -178,7 +178,7 @@ int Database::updateMachineStat(int id_mac, int piece_type, int piece_count)
     }
     catch(const SAException& e)
     {
-        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        DB_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         return 0;
     }
 
@@ -200,7 +200,7 @@ int Database::getMachinePieceCount(int id_mac, int piece_type)
     }
     catch(const SAException& e)
     {
-        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        DB_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         return 0;
     }
     int piece_count;
@@ -227,7 +227,7 @@ std::vector<std::shared_ptr<TransformOrder>> Database::getOrders()
     }
     catch(const SAException& e)
     {
-        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        DB_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         return order;
     }
     
@@ -253,12 +253,12 @@ int Database::insertOrder(std::shared_ptr<TransformOrder> order)
     }
     catch(const SAException& e)
     {
-        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        DB_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         // return 0;
     }
     if(get.FetchNext())
     {
-        MES_WARN("DB insertOrder: Order id ({}) already exists", order->getId());
+        DB_WARN("DB insertOrder: Order id ({}) already exists", order->getId());
         return 0;
     }
     SACommand insert(&conn, _TSA("INSERT INTO TransformOrder (id_number, piece_initial, piece_final, total_amount, done_amount, doing_amount, sent_at, received_at, max_delay, penalty_per_day, started_at, finished_at, penalty) VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13)"));
@@ -269,7 +269,7 @@ int Database::insertOrder(std::shared_ptr<TransformOrder> order)
     }
     catch(const SAException& e)
     {
-        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        DB_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         return 0;
     }
     return 1;
@@ -288,12 +288,12 @@ int Database::deleteOrder(int number)
     }
     catch(const SAException& e)
     {
-        //MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        //DB_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         // return 0;
     }
     if(!get.FetchNext())
     {
-        MES_WARN("[DB deleteOrder: Order id ({}) doesn't exist in db aborting", number);
+        DB_WARN("[DB deleteOrder: Order id ({}) doesn't exist in db aborting", number);
         return 0;
     }
 
@@ -305,7 +305,7 @@ int Database::deleteOrder(int number)
     }
     catch(const SAException& e)
     {
-        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        DB_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         return 0;
     }
 
@@ -324,7 +324,7 @@ std::vector<std::shared_ptr<UnloadOrder>> Database::getUnloads()
     }
     catch(const SAException& e)
     {
-        //MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        //DB_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         return order;
     }
 
@@ -350,12 +350,12 @@ int Database::insertUnload(std::shared_ptr<UnloadOrder> order)
     }
     catch(const SAException& e)
     {
-        //MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        //DB_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         // return 0;
     }
     if(get.FetchNext())
     {
-        MES_WARN("DB insertOrder: Order id ({}) already exists aborting", order->getId());
+        DB_WARN("DB insertOrder: Order id ({}) already exists aborting", order->getId());
         return 0;
     }
 
@@ -368,7 +368,7 @@ int Database::insertUnload(std::shared_ptr<UnloadOrder> order)
     }
     catch(const SAException& e)
     {
-        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        DB_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         return 0;
     }
 
@@ -388,12 +388,12 @@ int Database::deleteUnload(int number)
     }
     catch(const SAException& e)
     {
-        //MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        //DB_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         // return 0;
     }
     if(!get.FetchNext())
     {
-        MES_WARN("DB deleteOrder: Unload id ({}) doesn't exist in db", number);
+        DB_WARN("DB deleteOrder: Unload id ({}) doesn't exist in db", number);
         return 0;
     }
 
@@ -405,7 +405,7 @@ int Database::deleteUnload(int number)
     }
     catch(const SAException& e)
     {
-        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        DB_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         return 0;
     }
 
