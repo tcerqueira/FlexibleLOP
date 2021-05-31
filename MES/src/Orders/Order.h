@@ -22,7 +22,7 @@ public:
     void pieceDone();
     void setDone(int done);
     void pieceDoing();
-    void sent();
+    // void sent();
     void started();
     void finished();
     

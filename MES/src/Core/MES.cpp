@@ -96,8 +96,8 @@ void MES::setUp()
     // connect to DB
     if(!Database::Get().connect()){
         // TODO: connection fails
-        MES_FATAL("No connection to Database.");
-        // exit(1);
+        DB_FATAL("No connection to Database.");
+        exit(1);
     }
     // connect to OPC server
     if(!fct_client.connect()){

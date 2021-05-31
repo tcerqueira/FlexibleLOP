@@ -26,11 +26,11 @@ void Order::pieceDoing()
     doingAmount++;
 }
 
-void Order::sent()
-{
-    std::lock_guard<std::mutex> lck(mtx);
-    sentAt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-}
+// void Order::sent()
+// {
+//     std::lock_guard<std::mutex> lck(mtx);
+//     sentAt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+// }
 
 void Order::started()
 {
