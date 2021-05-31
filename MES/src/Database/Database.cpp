@@ -50,7 +50,7 @@ int Database::updateStorage(int piece_type, int amount)
     }
     catch(const SAException& e)
     {
-        MES_WARN("{}", e.ErrText().GetMultiByteChars());
+        //MES_WARN("{}", e.ErrText().GetMultiByteChars());
         return 0;
     }
 
@@ -65,7 +65,15 @@ int Database::getPieceAmount(int piece_type)
 
     SACommand get(&conn, _TSA("SELECT amount FROM PieceStorage WHERE piece_type = :1"));
     get << (long) piece_type;
-    get.Execute();
+    try
+    {
+        get.Execute();
+    }
+    catch(const SAException& e)
+    {
+        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        return 0;
+    }
     int amount;
     int i = 0;
     while(get.FetchNext())
@@ -83,7 +91,15 @@ int* Database::getStorage()
     if(!conn.isConnected()) return nullptr;
 
     SACommand get(&conn, _TSA("SELECT * FROM PieceStorage"));
-    get.Execute();
+    try
+    {
+        get.Execute();
+    }
+    catch(const SAException& e)
+    {
+        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        return 0;
+    }
     int *count = new int[9]; //(int*) malloc(sizeof(int)*9);
     while(get.FetchNext())
     {
@@ -123,7 +139,15 @@ int Database::getMachine(int id_mac)
 
     SACommand get(&conn, _TSA("SELECT total_time FROM Machine WHERE id_mac = :1"));
     get << (long) id_mac;
-    get.Execute();
+    try
+    {
+        get.Execute();
+    }
+    catch(const SAException& e)
+    {
+        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        return 0;
+    }
     int total_time;
     int i = 0;
     while(get.FetchNext())
@@ -162,7 +186,15 @@ int Database::getMachinePieceCount(int id_mac, int piece_type)
 
     SACommand get(&conn, _TSA("SELECT piece_count FROM MachineStat WHERE id_mac = :1 AND piece_type = :2"));
     get << (long) id_mac << (long) piece_type;
-    get.Execute();
+    try
+    {
+        get.Execute();
+    }
+    catch(const SAException& e)
+    {
+        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        return 0;
+    }
     int piece_count;
     int i = 0;
     while(get.FetchNext())
@@ -180,8 +212,15 @@ std::vector<std::shared_ptr<TransformOrder>> Database::getOrders()
     std::vector<std::shared_ptr<TransformOrder>> order;
     if(!conn.isConnected()) return order;
     SACommand get(&conn, _TSA("SELECT * FROM TransformOrder"));
-    get.Execute();
-
+    try
+    {
+        get.Execute();
+    }
+    catch(const SAException& e)
+    {
+        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        return order;
+    }
     
     while(get.FetchNext())
     {
@@ -198,7 +237,15 @@ int Database::insertOrder(std::shared_ptr<TransformOrder> order)
 
     SACommand get(&conn, _TSA("SELECT id_number FROM TransformOrder WHERE id_number = :1"));
     get << (long) order->getId();
-    get.Execute();
+    try
+    {
+        get.Execute();
+    }
+    catch(const SAException& e)
+    {
+        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        // return 0;
+    }
     if(get.FetchNext())
     {
         //MES_WARN("DB insertOrder: Order id ({}) already exists aborting", order->getId());
@@ -212,10 +259,10 @@ int Database::insertOrder(std::shared_ptr<TransformOrder> order)
     }
     catch(const SAException& e)
     {
-        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        //MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         return 0;
     }
-
+    MES_WARN("DB: inserted order");
     return 1;
 }
 
@@ -225,10 +272,18 @@ int Database::deleteOrder(int number)
 
     SACommand get(&conn, _TSA("SELECT id_number FROM TransformOrder WHERE id_number = :1"));
     get << (long) number;
-    get.Execute();
+    try
+    {
+        get.Execute();
+    }
+    catch(const SAException& e)
+    {
+        //MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        // return 0;
+    }
     if(!get.FetchNext())
     {
-        //MES_WARN("[DB deleteOrder: Order id ({}) doesn't exist in db aborting", number);
+        MES_WARN("[DB deleteOrder: Order id ({}) doesn't exist in db aborting", number);
         return 0;
     }
 
@@ -240,7 +295,7 @@ int Database::deleteOrder(int number)
     }
     catch(const SAException& e)
     {
-        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        //MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         return 0;
     }
 
@@ -252,7 +307,15 @@ std::vector<std::shared_ptr<UnloadOrder>> Database::getUnloads()
     std::vector<std::shared_ptr<UnloadOrder>> order;
     if(!conn.isConnected()) return order;
     SACommand get(&conn, _TSA("SELECT * FROM UnloadOrder"));
-    get.Execute();
+    try
+    {
+        get.Execute();
+    }
+    catch(const SAException& e)
+    {
+        //MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        return order;
+    }
 
     
     while(get.FetchNext())
@@ -269,10 +332,18 @@ int Database::insertUnload(std::shared_ptr<UnloadOrder> order)
 
     SACommand get(&conn, _TSA("SELECT id_number FROM UnloadOrder WHERE id_number = :1"));
     get << (long) order->getId();
-    get.Execute();
+    try
+    {
+        get.Execute();
+    }
+    catch(const SAException& e)
+    {
+        //MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        // return 0;
+    }
     if(get.FetchNext())
     {
-        //MES_WARN("DB insertOrder: Order id ({}) already exists aborting", order->getId());
+        MES_WARN("DB insertOrder: Order id ({}) already exists aborting", order->getId());
         return 0;
     }
 
@@ -285,7 +356,7 @@ int Database::insertUnload(std::shared_ptr<UnloadOrder> order)
     }
     catch(const SAException& e)
     {
-        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        //MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         return 0;
     }
 
@@ -298,7 +369,15 @@ int Database::deleteUnload(int number)
 
     SACommand get(&conn, _TSA("SELECT id_number FROM UnloadOrder WHERE id_number = :1"));
     get << (long) number;
-    get.Execute();
+    try
+    {
+        get.Execute();
+    }
+    catch(const SAException& e)
+    {
+        //MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        // return 0;
+    }
     if(!get.FetchNext())
     {
         MES_WARN("[DB deleteOrder: Unload id ({}) doesn't exist in db aborting", number);
@@ -313,7 +392,7 @@ int Database::deleteUnload(int number)
     }
     catch(const SAException& e)
     {
-        MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
+        //MES_ERROR("{}", e.ErrMessage().GetMultiByteChars());
         return 0;
     }
 
